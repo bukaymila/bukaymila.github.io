@@ -6,9 +6,12 @@
 <div class="row">
     <div class="user-input" style="float:left;">
         <form>
-            <label for="percentage">Enter required percentage:</label>
-            <input oninput="update_chart()" type="number" value="20" min="0" max="100" id="percentage">
+            <label for="percentage">Enter required percentage:</label><br>
+            <input type="number" value="20" min="0" max="100" id="percentage"><br>
+            <label for="color">Enter required color: 'blue' or 'red</label><br>
+            <input type="text" value="blue" id="color"><br><br>
         </form>
+    <button onclick="display_chart()">Update</button><br>
     <button class="save">Save to SVG</button>
     </div>
     <div class="chart-gauge" style="float:left;"></div>
