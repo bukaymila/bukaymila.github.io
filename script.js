@@ -116,42 +116,42 @@ function gauge(user_input, color) {
 
     }
 
-    function display_chart() {
-        element = document.querySelector('.chart-gauge');
-        while (element.firstChild) {
-            element.removeChild(element.firstChild);
-        }
-        user_input = document.getElementById('percentage').value;
-        color = document.getElementById('color').value; 
-
-        gauge(user_input, color);
-        save_svg();
+function display_chart() {
+    element = document.querySelector('.chart-gauge');
+    while (element.firstChild) {
+        element.removeChild(element.firstChild);
     }
+    user_input = document.getElementById('percentage').value;
+    color = document.getElementById('color').value; 
 
-    function save_svg() {
-        var btn = document.querySelector('.save')
-        var svg = document.querySelector('svg')
-
-        let triggerDownload = (imgURI, fileName) => {
-            let a = document.createElement('a')
-
-            a.setAttribute('download', 'gauge-chart.svg')
-            a.setAttribute('href', imgURI)
-            a.setAttribute('target', '_blank')
-
-            a.click()
-        }
-
-        let save = () => {
-            let data = (new XMLSerializer()).serializeToString(svg)
-            let svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'})
-            let url = URL.createObjectURL(svgBlob)
-
-            triggerDownload(url)
-        }
-
-        var btn = document.querySelector('.save')
-        btn.addEventListener('click', save)
-    }
-    gauge(20, 'blue');
+    gauge(user_input, color);
     save_svg();
+}
+
+function save_svg() {
+    var btn = document.querySelector('.save')
+    var svg = document.querySelector('svg')
+
+    let triggerDownload = (imgURI, fileName) => {
+        let a = document.createElement('a')
+
+        a.setAttribute('download', 'gauge-chart.svg')
+        a.setAttribute('href', imgURI)
+        a.setAttribute('target', '_blank')
+
+        a.click()
+    }
+
+    let save = () => {
+        let data = (new XMLSerializer()).serializeToString(svg)
+        let svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'})
+        let url = URL.createObjectURL(svgBlob)
+
+        triggerDownload(url)
+    }
+
+    var btn = document.querySelector('.save')
+    btn.addEventListener('click', save)
+}
+gauge(20, 'blue');
+save_svg();
