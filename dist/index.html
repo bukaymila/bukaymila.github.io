@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+<!-- Load d3.js <script src="https://d3js.org/d3.v3.js"></script> -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.0.0/d3.js"></script><script  src="./script.js"></script>
+
+<div class="row">
+    <div class="user-input" style="float:left;">
+        <form>
+            <label for="ease">Ease of Implementation:</label><br>
+            <input type="number" value="1" min="0" max="5" id="ease"><br>
+            <label for="opr">Operational Savings:</label><br>
+            <input type="number" value="3" min="0" max="5" id="opr"><br>
+            <label for="aff">Affordability:</label><br>
+            <input type="number" value="2" min="0" max="5" id="aff"><br>
+            <label for="solm">Solution Maturity:</label><br>
+            <input type="number" value="4" min="0" max="5" id="solm"><br>
+            <label for="deci">Decarbonization Impact:</label><br>
+            <input type="number" value="4" min="0" max="5" id="deci"><br><br>
+        </form>
+        <button onclick="display_chart()">Update</button><br>
+        <button class="save">Save to SVG</button>
+    </div>
+    
+    <div class="chart-radar" style="float:left;"></div>
+
+</div>
