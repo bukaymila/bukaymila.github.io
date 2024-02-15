@@ -125,7 +125,6 @@ function display_gauge() {
     color = document.getElementById('color').value; 
 
     gauge(user_input, color);
-    save_gauge();
 }
 
 function save_gauge() {
@@ -147,11 +146,10 @@ function save_gauge() {
         let svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'})
         let url = URL.createObjectURL(svgBlob)
 
-        triggerDownload(url)
+        triggerDownload(url);
     }
 
-    var btn = document.querySelector('.save-gauge')
-    btn.addEventListener('click', save)
+    save();
 }
 
 function display_spider(){
@@ -187,9 +185,6 @@ function display_spider(){
     .attr('width', cfg.w + 50)
     .attr('height', cfg.h - 125);
     svg.append('g').classed('single', 1).datum(data).call(chart).attr('transform', "translate(" + ((15)) + ", " + ((-30)) + ")");
-
-    save_spider()
-
 }
 
 // Wrap text function
@@ -511,27 +506,30 @@ d3.select(id)
 
 // Save SVG
 function save_spider(){
-var btn = document.querySelector('.save-spider')
-var svg = document.querySelector('svg#spider')
+    var btn = document.querySelector('.save-spider')
+    var svg = document.querySelector('svg#spider')
 
-let triggerDownload = (imgURI, fileName) => {
-let a = document.createElement('a')
+    let triggerDownload = (imgURI, fileName) => {
+        let a = document.createElement('a')
 
-a.setAttribute('download', 'radar-chart.svg')
-a.setAttribute('href', imgURI)
-a.setAttribute('target', '_blank')
+        a.setAttribute('download', 'radar-chart.svg')
+        a.setAttribute('href', imgURI)
+        a.setAttribute('target', '_blank')
 
-a.click()
+        a.click()
+        }
+
+    let save = () => {
+        let data = (new XMLSerializer()).serializeToString(svg);
+        let svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+        let url = URL.createObjectURL(svgBlob);
+
+        triggerDownload(url);
+        }
+    save();
 }
 
-let save = () => {
-let data = (new XMLSerializer()).serializeToString(svg);
-let svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-let url = URL.createObjectURL(svgBlob);
-
-triggerDownload(url)
-}
-
-var btn = document.querySelector('.save-spider')
-btn.addEventListener('click', save)
-}
+var btn1 = document.querySelector('.save-gauge')
+btn1.addEventListener('click', save)
+var btn2 = document.querySelector('.save-spider')
+btn2.addEventListener('click', save)
