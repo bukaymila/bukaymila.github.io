@@ -20,7 +20,34 @@
             max-width: 100%;
             margin: 0 auto;
         }
-        h1 { margin-bottom: 4px; font-size: 1.8rem; }
+        
+        /* Header with title and CSV edit link */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .header h1 {
+            margin-bottom: 0;
+            font-size: 1.8rem;
+        }
+        .csv-edit-link {
+            font-size: 0.7rem;
+            color: #667eea;
+            text-decoration: none;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .csv-edit-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
         .sub { color: #475569; margin-bottom: 20px; }
         
         .csv-panel {
@@ -393,7 +420,11 @@
 </head>
 <body>
 <div class="dashboard">
-    <h1>🎨 Line Chart Studio</h1>
+    <!-- Header with title and CSV edit link -->
+    <div class="header">
+        <h1>🎨 Line Chart Studio</h1>
+        <a href="https://bukaymila.github.io/csv-edit" id="csvEditLink" class="csv-edit-link" target="_blank">📝 Click here for CSV edit</a>
+    </div>
     <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
 
     <div class="csv-panel">
@@ -447,6 +478,9 @@
 </div>
 
 <script>
+    // Set CSV edit link - REPLACE THIS URL WITH YOUR OWN
+    document.getElementById('csvEditLink').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/edit';  // <-- CHANGE THIS LINK
+    
     // Color themes with emojis restored
     const colorThemes = {
         "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
