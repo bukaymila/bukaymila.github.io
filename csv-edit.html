@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>CSV Ultra Editor | By Alim Yakub(RP)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #eef2f5;
+            margin: 0;
+            padding: 16px;
+            color: #1e2a3e;
+        }
+        .app-container {
+            max-width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+            padding: 18px 22px 24px 22px;
+        }
+        h1 {
+            margin: 0 0 4px 0;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1f6e8c, #0a4b62);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .sub {
+            color: #2c5a74;
+            border-left: 4px solid #2c7da0;
+            padding-left: 14px;
+            margin-bottom: 18px;
+            font-size: 0.8rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            background: #f8fafc;
+            padding: 12px 18px;
+            border-radius: 48px;
+            align-items: center;
+            border: 1px solid #dce5ef;
+        }
+        button {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 7px 14px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.8rem;
+        }
+        button:hover {
+            background: #eef2ff;
+            transform: scale(0.97);
+        }
+        .btn-primary {
+            background: #1f6e8c;
+            border-color: #155f7a;
+            color: white;
+        }
+        .btn-danger { background: #fff0f0; border-color: #f3b5b5; color: #b91c1c; }
+        .btn-warning { background: #fff6e5; border-color: #ffd966; color: #a16200; }
+        .file-label {
+            background: #eef2ff;
+            padding: 7px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        input[type="file"] { display: none; }
+        .stats {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 6px 18px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+        }
+        .loader-container {
+            width: 100%;
+            margin: 8px 0 12px 0;
+        }
+        .loader-bar {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .loader-progress {
+            width: 0%;
+            height: 100%;
+            background: #2c7da0;
+            transition: width 0.2s ease;
+            border-radius: 12px;
+        }
+        .loader-status {
+            font-size: 0.7rem;
+            color: #2c5a74;
+            margin-top: 4px;
+            text-align: right;
+        }
+        .error-banner {
+            background: #fee2e2;
+            border-left: 5px solid #dc2626;
+            padding: 8px 14px;
+            border-radius: 16px;
+            margin-bottom: 14px;
+            font-size: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .grid-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            max-height: 62vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        table {
+            border-collapse: collapse;
+            font-size: 0.73rem;
+            min-width: 700px;
+            font-family: 'SF Mono', 'Cascadia Code', monospace;
+        }
+        th {
+            background: #f1f5f9;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            padding: 10px 8px;
+            border-bottom: 2px solid #cbd5e1;
+            font-weight: 600;
+        }
+        td {
+            padding: 7px 8px;
+            border-bottom: 1px solid #ecf3f9;
+            border-right: 1px solid #edf2f7;
+            max-width: 210px;
+            white-space: nowrap;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+        }
+        td.clear-cell {
+            background-color: #fff2df;
+            font-style: italic;
+            color: #b85c00;
+        }
+        .selected-col {
+            background-color: #cbddec !important;
+            box-shadow: inset 0 0 0 1px #2c7da0;
+        }
+        .selected-row {
+            background-color: #fffbdd !important;
+        }
+        .pin-col-btn, .pin-row-btn {
+            cursor: pointer;
+            user-select: none;
+            text-align: center;
+            font-weight: bold;
+            background: #eef2ff;
+        }
+        .pin-col-btn {
+            min-width: 42px;
+        }
+        .pin-row-btn {
+            background: #f9fafb;
+            font-weight: bold;
+        }
+        .sample-input { width: 65px; padding: 5px 8px; border-radius: 30px; text-align: center; }
+        .small-badge { font-size: 0.7rem; background: #e2e8f0; border-radius: 30px; padding: 2px 8px; }
+        footer { margin-top: 18px; font-size: 0.65rem; text-align: center; color: #5a6e86; }
+        @media (max-width: 780px) {
+            .toolbar { flex-direction: column; align-items: stretch; border-radius: 28px; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <h1>CSV Nth Counter</h1>
+    <div class="sub">🥶 Imagined by Alim (RP) for cold box project</div>
+    
+    <div id="errorBanner" style="display:none;" class="error-banner"></div>
+    <div class="loader-container" id="loaderContainer" style="display:none;">
+        <div class="loader-bar"><div class="loader-progress" id="loadProgress"></div></div>
+        <div class="loader-status" id="loadStatus">Processing file...</div>
+    </div>
+    
+    <div class="toolbar">
+        <label class="file-label">Load CSV <input type="file" id="csvFileInput" accept=".csv"></label>
+        <button id="undoBtn">Undo</button>
+        <button id="resetBtn" class="btn-warning">Reset</button>
+        <div class="small-badge">Select: Click Col PIN or Row PIN</div>
+        <button id="deleteColBtn" class="btn-danger">Delete Column</button>
+        <button id="deleteRowBtn" class="btn-danger">Delete Row</button>
+        <div>
+            <span>Nth row:</span>
+            <input type="number" id="nthValue" min="2" value="3" step="1" class="sample-input">
+            <button id="applyNthBtn">Sample</button>
+        </div>
+        <button id="saveCsvBtn" class="btn-primary">Save CSV</button>
+    </div>
+
+    <div class="stats" id="statsPanel">
+        <span>Rows: <span id="rowCount">0</span></span>
+        <span>Columns: <span id="colCount">0</span></span>
+        <span>Cleared cells: <span id="clearedCount">0</span></span>
+        <span>Undo steps: <span id="undoSteps">0</span></span>
+    </div>
+
+    <div class="grid-wrapper" id="tableWrapper">
+        <div style="padding: 55px; text-align: center; color: #6c86a3;">Load a CSV file to start (supports 400MB+ files)</div>
+    </div>
+    <footer>
+        <strong>Selection:</strong> Click on <strong>Col PIN</strong> (first row) to select a column. Click on <strong>Row PIN</strong> (first column) to select a row.<br>
+        Click any data cell to CLEAR it (makes empty). All actions are undoable. Large files processed in streaming mode with proper final chunk handling.
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // Data store
+        let originalData = [];
+        let currentData = [];
+        let undoStack = [];
+        let isLoading = false;
+        let selectedColIdx = null;
+        let selectedRowIdx = null;
+        
+        // Helper: deep copy 2D array
+        function deepCopy2D(arr) {
+            if (!arr || !arr.length) return [];
+            return arr.map(row => (row ? [...row] : []));
+        }
+        
+        function pushUndo() {
+            undoStack.push(deepCopy2D(currentData));
+            if (undoStack.length > 50) undoStack.shift();
+            updateStats();
+        }
+        
+        function undo() {
+            if (undoStack.length === 0) {
+                showError("Nothing to undo.");
+                return false;
+            }
+            currentData = deepCopy2D(undoStack.pop());
+            selectedColIdx = null;
+            selectedRowIdx = null;
+            renderTable();
+            updateStats();
+            hideError();
+            return true;
+        }
+        
+        function resetToOriginal() {
+            if (!originalData.length) { showError("No CSV loaded."); return; }
+            currentData = deepCopy2D(originalData);
+            undoStack = [];
+            pushUndo();
+            selectedColIdx = null;
+            selectedRowIdx = null;
+            renderTable();
+            updateStats();
+            hideError();
+        }
+        
+        // Streaming CSV parser with proper final flush - handles large files and avoids 99% hang
+        async function parseLargeCSVStreaming(file) {
+            return new Promise((resolve, reject) => {
+                const chunkSize = 1024 * 1024; // 1MB chunks for smooth processing
+                let offset = 0;
+                let totalSize = file.size;
+                let leftover = '';
+                let allRows = [];
+                let reading = true;
+                
+                const updateProgress = (percent) => {
+                    const progBar = document.getElementById('loadProgress');
+                    const statusDiv = document.getElementById('loadStatus');
+                    if (progBar) progBar.style.width = Math.min(100, percent) + '%';
+                    if (statusDiv) statusDiv.innerText = `Processing: ${Math.floor(percent)}% - ${(offset/1024/1024).toFixed(1)} MB read`;
+                };
+                
+                function parseCSVLine(line) {
+                    const row = [];
+                    let inQuote = false;
+                    let current = '';
+                    for (let i = 0; i < line.length; i++) {
+                        const ch = line[i];
+                        if (ch === '"') {
+                            if (inQuote && line[i+1] === '"') {
+                                current += '"';
+                                i++;
+                            } else {
+                                inQuote = !inQuote;
+                            }
+                        } else if (ch === ',' && !inQuote) {
+                            row.push(current);
+                            current = '';
+                        } else {
+                            current += ch;
+                        }
+                    }
+                    row.push(current);
+                    return row;
+                }
+                
+                function processChunk(chunkText) {
+                    let text = leftover + chunkText;
+                    let lines = text.split(/\r?\n/);
+                    leftover = lines.pop() || '';
+                    
+                    for (let line of lines) {
+                        if (line.trim() !== '' || allRows.length === 0) {
+                            const parsed = parseCSVLine(line);
+                            if (parsed.length) allRows.push(parsed);
+                        }
+                    }
+                }
+                
+                function readNextChunk() {
+                    if (offset >= totalSize) {
+                        // Final flush: process leftover as last line
+                        if (leftover.trim() !== '') {
+                            const lastRow = parseCSVLine(leftover);
+                            if (lastRow.length) allRows.push(lastRow);
+                        }
+                        leftover = '';
+                        
+                        if (allRows.length === 0) {
+                            reject(new Error("No data rows found"));
+                            return;
+                        }
+                        
+                        // Unify column counts
+                        const maxCols = Math.max(...allRows.map(r => r.length), 0);
+                        for (let row of allRows) {
+                            while (row.length < maxCols) row.push('');
+                        }
+                        
+                        updateProgress(100);
+                        setTimeout(() => resolve(allRows), 50);
+                        return;
+                    }
+                    
+                    const slice = file.slice(offset, Math.min(offset + chunkSize, totalSize));
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        const chunkText = e.target.result;
+                        processChunk(chunkText);
+                        offset += chunkSize;
+                        const percent = (offset / totalSize) * 100;
+                        updateProgress(percent);
+                        // Schedule next chunk
+                        setTimeout(readNextChunk, 0);
+                    };
+                    
+                    reader.onerror = () => reject(new Error("File read error at chunk"));
+                    reader.readAsText(slice, "UTF-8");
+                }
+                
+                readNextChunk();
+            });
+        }
+        
+        function showError(msg, isWarning = false) {
+            const banner = document.getElementById('errorBanner');
+            banner.style.display = 'flex';
+            banner.innerHTML = `<span>⚠️ ${msg}</span><button style="background:transparent; border:none; font-weight:bold; cursor:pointer;" id="closeErrBtn">✖</button>`;
+            const closeBtn = document.getElementById('closeErrBtn');
+            if (closeBtn) closeBtn.onclick = () => { banner.style.display = 'none'; };
+            if (!isWarning) console.error(msg);
+        }
+        
+        function hideError() {
+            const b = document.getElementById('errorBanner');
+            if (b) b.style.display = 'none';
+        }
+        
+        async function loadCSV(file) {
+            if (isLoading) {
+                showError("Already loading a file, please wait.");
+                return;
+            }
+            isLoading = true;
+            hideError();
+            const loaderDiv = document.getElementById('loaderContainer');
+            const progressBar = document.getElementById('loadProgress');
+            const statusDiv = document.getElementById('loadStatus');
+            
+            loaderDiv.style.display = 'block';
+            if (progressBar) progressBar.style.width = '0%';
+            if (statusDiv) statusDiv.innerText = 'Starting stream parser...';
+            
+            try {
+                const rows = await parseLargeCSVStreaming(file);
+                if (!rows.length) throw new Error("CSV file is empty");
+                
+                originalData = deepCopy2D(rows);
+                currentData = deepCopy2D(originalData);
+                undoStack = [];
+                pushUndo(); // initial state
+                selectedColIdx = null;
+                selectedRowIdx = null;
+                renderTable();
+                updateStats();
+                loaderDiv.style.display = 'none';
+            } catch (err) {
+                loaderDiv.style.display = 'none';
+                showError("Failed to load CSV: " + err.message);
+                console.error(err);
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        // Render table with row/column pins
+        function renderTable() {
+            const wrapper = document.getElementById("tableWrapper");
+            if (!currentData.length || !currentData[0]) {
+                wrapper.innerHTML = '<div style="padding: 50px; text-align: center;">Load a CSV file to start editing</div>';
+                return;
+            }
+            
+            const numRows = currentData.length;
+            const numCols = currentData[0].length;
+            
+            let html = '<table id="dataGridTable" style="width:100%; border-collapse: collapse;">';
+            html += '<thead><tr>';
+            html += '<th style="width: 38px; background:#eef2ff;">Row PIN</th>';
+            for (let c = 0; c < numCols; c++) {
+                const isSelectedCol = (selectedColIdx === c);
+                html += `<th class="pin-col-btn ${isSelectedCol ? 'selected-col' : ''}" data-colidx="${c}" style="cursor:pointer; text-align:center;">Col ${c+1}</th>`;
+            }
+            html += '</tr></thead><tbody>';
+            
+            for (let r = 0; r < numRows; r++) {
+                const isRowSelected = (selectedRowIdx === r);
+                html += `<tr data-rowidx="${r}" class="${isRowSelected ? 'selected-row' : ''}">`;
+                html += `<td class="pin-row-btn" data-rowpin="${r}" style="cursor:pointer; text-align:center; background:#f8fafc; font-weight:bold;">Row ${r+1}</td>`;
+                for (let c = 0; c < numCols; c++) {
+                    let val = currentData[r][c];
+                    const isCleared = (val === "");
+                    const displayValue = (val === "" ? "[empty]" : (val.length > 48 ? val.slice(0,45)+"..." : val));
+                    const clearedClass = isCleared ? "clear-cell" : "";
+                    html += `<td class="data-cell ${clearedClass}" data-r="${r}" data-c="${c}" title="Click to clear cell">${escapeHtml(displayValue)}</td>`;
+                }
+                html += `</tr>`;
+            }
+            html += '</tbody></table>';
+            wrapper.innerHTML = html;
+            
+            // Attach events
+            const tableElem = document.getElementById("dataGridTable");
+            if (!tableElem) return;
+            
+            // Column PIN clicks
+            const colPins = tableElem.querySelectorAll(".pin-col-btn");
+            colPins.forEach(pin => {
+                pin.addEventListener("click", (e) => {
+                    const colIdx = parseInt(pin.getAttribute("data-colidx"));
+                    if (!isNaN(colIdx)) {
+                        selectedColIdx = colIdx;
+                        selectedRowIdx = null;
+                        renderTable();
+                    }
+                    e.stopPropagation();
+                });
+            });
+            
+            // Row PIN clicks
+            const rowPins = tableElem.querySelectorAll(".pin-row-btn");
+            rowPins.forEach(btn => {
+                btn.addEventListener("click", (e) => {
+                    const rowVal = btn.getAttribute("data-rowpin");
+                    if (rowVal !== null) {
+                        selectedRowIdx = parseInt(rowVal, 10);
+                        selectedColIdx = null;
+                        renderTable();
+                    }
+                    e.stopPropagation();
+                });
+            });
+            
+            // Clear cell on data cell click
+            const cells = tableElem.querySelectorAll(".data-cell");
+            cells.forEach(cell => {
+                cell.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    const r = parseInt(cell.getAttribute("data-r"));
+                    const c = parseInt(cell.getAttribute("data-c"));
+                    if (!isNaN(r) && !isNaN(c)) {
+                        clearCell(r, c);
+                    }
+                });
+            });
+        }
+        
+        function clearCell(row, col) {
+            if (!currentData[row] || currentData[row][col] === undefined) return;
+            if (currentData[row][col] === "") return;
+            pushUndo();
+            currentData[row][col] = "";
+            renderTable();
+            updateStats();
+        }
+        
+        function deleteSelectedColumn() {
+            if (!currentData.length) { showError("No data"); return; }
+            if (selectedColIdx === null) { showError("Please click a Col PIN to select a column"); return; }
+            const col = selectedColIdx;
+            if (currentData[0].length <= 1) { showError("Cannot delete the last column"); return; }
+            pushUndo();
+            for (let i = 0; i < currentData.length; i++) {
+                currentData[i].splice(col, 1);
+            }
+            selectedColIdx = null;
+            renderTable();
+            updateStats();
+        }
+        
+        function deleteSelectedRow() {
+            if (!currentData.length) { showError("No data"); return; }
+            if (selectedRowIdx === null) { showError("Please click a Row PIN to select a row"); return; }
+            const row = selectedRowIdx;
+            if (currentData.length <= 1) { showError("Cannot delete the last row"); return; }
+            pushUndo();
+            currentData.splice(row, 1);
+            selectedRowIdx = null;
+            renderTable();
+            updateStats();
+        }
+        
+        function sampleEveryNth() {
+            if (!currentData.length) { showError("No data loaded"); return; }
+            let nth = parseInt(document.getElementById("nthValue").value, 10);
+            if (isNaN(nth) || nth < 2) { showError("N must be 2 or greater"); return; }
+            pushUndo();
+            const newRows = [];
+            for (let i = 0; i < currentData.length; i++) {
+                if (i === 0 || (i % nth === 0)) {
+                    newRows.push(currentData[i]);
+                }
+            }
+            if (newRows.length === 0) newRows.push(currentData[0]);
+            currentData = newRows;
+            selectedColIdx = null;
+            selectedRowIdx = null;
+            renderTable();
+            updateStats();
+        }
+        
+        function saveCSV() {
+            if (!currentData.length) { showError("No data to save"); return; }
+            
+            const csvLines = [];
+            for (let row of currentData) {
+                const escapedRow = row.map(cell => {
+                    let str = cell === undefined || cell === null ? "" : String(cell);
+                    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                        str = '"' + str.replace(/"/g, '""') + '"';
+                    }
+                    return str;
+                }).join(',');
+                csvLines.push(escapedRow);
+            }
+            
+            const csvString = csvLines.join('\n');
+            const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.setAttribute('download', 'edited_data.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        function updateStats() {
+            if (!currentData.length) {
+                document.getElementById("rowCount").innerText = "0";
+                document.getElementById("colCount").innerText = "0";
+                document.getElementById("clearedCount").innerText = "0";
+                document.getElementById("undoSteps").innerText = "0";
+                return;
+            }
+            const rows = currentData.length;
+            const cols = currentData[0]?.length || 0;
+            let cleared = 0;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    if (currentData[r][c] === "") cleared++;
+                }
+            }
+            document.getElementById("rowCount").innerText = rows;
+            document.getElementById("colCount").innerText = cols;
+            document.getElementById("clearedCount").innerText = cleared;
+            document.getElementById("undoSteps").innerText = undoStack.length;
+        }
+        
+        function escapeHtml(str) {
+            if (str === undefined || str === null) return "";
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
+        }
+        
+        // Event binding
+        document.getElementById("csvFileInput").addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 0) {
+                    loadCSV(file);
+                } else {
+                    showError("File is empty");
+                }
+            }
+            e.target.value = null;
+        });
+        
+        document.getElementById("undoBtn").addEventListener("click", () => {
+            if (originalData.length) undo();
+            else showError("Load a CSV first");
+        });
+        
+        document.getElementById("resetBtn").addEventListener("click", () => {
+            if (originalData.length) resetToOriginal();
+            else showError("No loaded CSV");
+        });
+        
+        document.getElementById("deleteColBtn").addEventListener("click", deleteSelectedColumn);
+        document.getElementById("deleteRowBtn").addEventListener("click", deleteSelectedRow);
+        document.getElementById("applyNthBtn").addEventListener("click", sampleEveryNth);
+        document.getElementById("saveCsvBtn").addEventListener("click", saveCSV);
+        
+        // Initial empty state
+        originalData = [];
+        currentData = [];
+        undoStack = [];
+        renderTable();
+        updateStats();
+    })();
+</script>
+</body>
+</html>
