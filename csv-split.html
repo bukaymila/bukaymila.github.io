@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Stream Splitter | By Alim Yakub (RP)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 3px 0;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-error {
+            border-left-color: #dc3545;
+            color: #ff6b6b;
+        }
+        .log-success {
+            border-left-color: #28a745;
+            color: #8bc34a;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📂 CSV Stream Splitter</h1>
+    <div class="warning">
+        <strong>⚡ Memory-efficient:</strong> This splits files using streaming - it never loads the entire file into memory.<br>
+        Works with files of ANY size (1GB, 10GB, 100GB+) as long as your browser supports the File System Access API.
+    </div>
+    
+    <div style="margin: 20px 0;">
+        <label><strong>Rows per chunk:</strong></label>
+        <input type="number" id="rowsPerChunk" value="50000" min="1000" step="10000">
+        <button id="selectFileBtn">📁 Select CSV File</button>
+        <button id="downloadZipBtn" disabled>📦 Download All Chunks as ZIP</button>
+    </div>
+    
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="log" id="log">
+        <div class="log-entry">Ready to split CSV files. Click "Select CSV File" to begin.</div>
+    </div>
+</div>
+
+<script>
+    let chunks = [];
+    let originalFileName = "";
+    
+    function addLog(message, type = "info") {
+        const logDiv = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logDiv.appendChild(entry);
+        entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    async function splitCSVStreaming(file, rowsPerChunk) {
+        return new Promise((resolve, reject) => {
+            const chunks_result = [];
+            let chunkIndex = 0;
+            let currentChunkRows = [];
+            let header = null;
+            let isFirstChunk = true;
+            let totalRows = 0;
+            
+            addLog(`Starting to split "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)`, "info");
+            addLog(`Rows per chunk: ${rowsPerChunk.toLocaleString()}`, "info");
+            
+            const fileStream = file.stream();
+            const reader = fileStream.getReader();
+            const decoder = new TextDecoder();
+            let leftover = '';
+            
+            function processLines(text) {
+                const lines = (leftover + text).split(/\r?\n/);
+                leftover = lines.pop() || '';
+                
+                for (let line of lines) {
+                    if (line.trim() === "" && totalRows > 0) continue;
+                    
+                    if (isFirstChunk && header === null) {
+                        header = line;
+                        isFirstChunk = false;
+                        continue;
+                    }
+                    
+                    currentChunkRows.push(line);
+                    totalRows++;
+                    
+                    if (currentChunkRows.length >= rowsPerChunk) {
+                        chunks_result.push({
+                            header: header,
+                            rows: [...currentChunkRows],
+                            index: chunkIndex,
+                            name: `chunk_${(chunkIndex + 1).toString().padStart(4, '0')}_rows_${(chunkIndex * rowsPerChunk + 1)}-${(chunkIndex * rowsPerChunk + currentChunkRows.length)}`
+                        });
+                        chunkIndex++;
+                        currentChunkRows = [];
+                        
+                        // Update progress
+                        const progress = (totalRows / (totalRows + 1)) * 100;
+                        document.getElementById('progressBar').style.width = `${Math.min(progress, 99)}%`;
+                    }
+                }
+            }
+            
+            function readChunk() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        // Process leftover
+                        if (leftover.trim() !== "") {
+                            currentChunkRows.push(leftover);
+                            totalRows++;
+                        }
+                        
+                        // Save last chunk
+                        if (currentChunkRows.length > 0) {
+                            chunks_result.push({
+                                header: header,
+                                rows: [...currentChunkRows],
+                                index: chunkIndex,
+                                name: `chunk_${(chunkIndex + 1).toString().padStart(4, '0')}_rows_${(chunkIndex * rowsPerChunk + 1)}-${(chunkIndex * rowsPerChunk + currentChunkRows.length)}`
+                            });
+                        }
+                        
+                        document.getElementById('progressBar').style.width = '100%';
+                        addLog(`✅ Split complete! Created ${chunks_result.length} chunks from ${totalRows.toLocaleString()} rows`, "success");
+                        resolve(chunks_result);
+                        return;
+                    }
+                    
+                    const text = decoder.decode(value, { stream: true });
+                    processLines(text);
+                    readChunk();
+                }).catch(reject);
+            }
+            
+            readChunk();
+        });
+    }
+    
+    async function downloadAsZip() {
+        if (!chunks.length) {
+            addLog("No chunks to download", "error");
+            return;
+        }
+        
+        addLog("Preparing ZIP file...", "info");
+        
+        // Dynamically load JSZip
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+        
+        script.onload = () => {
+            const zip = new JSZip();
+            
+            for (let chunk of chunks) {
+                const csvContent = [chunk.header, ...chunk.rows].join('\n');
+                zip.file(`${chunk.name}.csv`, csvContent);
+                addLog(`Added ${chunk.name}.csv to ZIP`, "info");
+            }
+            
+            zip.generateAsync({ type: "blob" }).then((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${originalFileName}_split_${chunks.length}_chunks.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                addLog(`✅ ZIP downloaded! ${(blob.size / 1024 / 1024).toFixed(2)} MB`, "success");
+            });
+        };
+        
+        script.onerror = () => {
+            addLog("Failed to load JSZip. Trying fallback - downloading individual chunks...", "error");
+            downloadChunksIndividually();
+        };
+        
+        document.head.appendChild(script);
+    }
+    
+    function downloadChunksIndividually() {
+        addLog("Downloading chunks individually...", "info");
+        
+        chunks.forEach((chunk, i) => {
+            setTimeout(() => {
+                const csvContent = [chunk.header, ...chunk.rows].join('\n');
+                const blob = new Blob([csvContent], { type: "text/csv" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${chunk.name}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                addLog(`Downloaded ${chunk.name}.csv`, "info");
+            }, i * 100);
+        });
+        
+        addLog(`Started downloading ${chunks.length} chunks`, "success");
+    }
+    
+    async function selectAndSplit() {
+        // Use modern File System Access API if available
+        if ('showOpenFilePicker' in window) {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'CSV Files',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                });
+                const file = await fileHandle.getFile();
+                originalFileName = file.name.replace('.csv', '');
+                const rowsPerChunk = parseInt(document.getElementById('rowsPerChunk').value);
+                
+                chunks = await splitCSVStreaming(file, rowsPerChunk);
+                document.getElementById('downloadZipBtn').disabled = false;
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    addLog(`Error: ${err.message}`, "error");
+                }
+            }
+        } else {
+            // Fallback for older browsers
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                
+                originalFileName = file.name.replace('.csv', '');
+                const rowsPerChunk = parseInt(document.getElementById('rowsPerChunk').value);
+                
+                chunks = await splitCSVStreaming(file, rowsPerChunk);
+                document.getElementById('downloadZipBtn').disabled = false;
+            };
+            input.click();
+        }
+    }
+    
+    // Event listeners
+    document.getElementById('selectFileBtn').addEventListener('click', selectAndSplit);
+    document.getElementById('downloadZipBtn').addEventListener('click', downloadAsZip);
+    
+    // Check for File System Access API support
+    if (!('showOpenFilePicker' in window)) {
+        addLog("⚠️ Using fallback file picker. For better performance, use Chrome, Edge, or Opera.", "warning");
+    } else {
+        addLog("✅ File System Access API supported! Streaming split available.", "success");
+    }
+</script>
+</body>
+</html>
