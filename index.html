@@ -28,10 +28,17 @@
             align-items: baseline;
             flex-wrap: wrap;
             margin-bottom: 4px;
+            gap: 15px;
         }
         .header h1 {
             margin-bottom: 0;
             font-size: 1.8rem;
+        }
+        .header-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
         }
         .csv-edit-link {
             font-size: 0.7rem;
@@ -423,7 +430,10 @@
     <!-- Header with title and CSV edit link -->
     <div class="header">
         <h1>🎨 Line Chart Studio</h1>
-        <a href="https://bukaymila.github.io/csv-edit" id="csvEditLink" class="csv-edit-link" target="_blank">📝 Click here for CSV edit</a>
+        <div class="header-links">
+            <a href="#" id="csvEditLink" class="csv-edit-link" target="_blank">📝 Click here for CSV edit</a>
+            <a href="#" id="csvEditLink2" class="csv-edit-link" target="_blank">📊 Click here for CSV Split</a>
+        </div>
     </div>
     <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
 
@@ -478,8 +488,9 @@
 </div>
 
 <script>
-    // Set CSV edit link - REPLACE THIS URL WITH YOUR OWN
+    // Set CSV edit link
     document.getElementById('csvEditLink').href = 'https://bukaymila.github.io/csv-edit';
+    document.getElementById('csvEditLink2').href = 'https://bukaymila.github.io/csv-split';
     
     // Color themes with emojis restored
     const colorThemes = {
