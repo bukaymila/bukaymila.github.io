@@ -2,669 +2,823 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>CSV Nth Counter | By Alim Yakub(RP)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Processor | By Alim Yakub (RP)</title>
     <style>
         * {
             box-sizing: border-box;
         }
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background: #eef2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
             margin: 0;
-            padding: 16px;
-            color: #1e2a3e;
+            padding: 20px;
         }
-        .app-container {
-            max-width: 100%;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
             background: white;
-            border-radius: 28px;
-            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
-            overflow: hidden;
-            padding: 18px 22px 24px 22px;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
         h1 {
-            margin: 0 0 4px 0;
-            font-size: 1.8rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1f6e8c, #0a4b62);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
+            margin: 0 0 5px 0;
+            color: #1e3c72;
         }
         .sub {
-            color: #2c5a74;
-            margin-bottom: 18px;
-            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 20px;
         }
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 16px;
-            background: #f8fafc;
-            padding: 12px 18px;
-            border-radius: 48px;
-            align-items: center;
-            border: 1px solid #dce5ef;
-        }
-        button {
-            background: white;
-            border: 1px solid #cbd5e1;
-            padding: 7px 14px;
-            border-radius: 40px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 0.8rem;
-        }
-        button:hover {
-            background: #eef2ff;
-            transform: scale(0.97);
-        }
-        .btn-primary {
-            background: #1f6e8c;
-            border-color: #155f7a;
-            color: white;
-        }
-        .btn-danger { background: #fff0f0; border-color: #f3b5b5; color: #b91c1c; }
-        .btn-warning { background: #fff6e5; border-color: #ffd966; color: #a16200; }
-        .file-label {
-            background: #eef2ff;
-            padding: 7px 18px;
-            border-radius: 40px;
-            font-weight: 500;
-            cursor: pointer;
-            font-size: 0.8rem;
-        }
-        input[type="file"] { display: none; }
-        .stats {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 6px 18px;
-            font-size: 0.75rem;
-            font-family: monospace;
-            margin-bottom: 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            align-items: center;
-        }
-        .loader-container {
-            width: 100%;
-            margin: 8px 0 12px 0;
-        }
-        .loader-bar {
-            width: 100%;
-            height: 8px;
-            background: #e2e8f0;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-        .loader-progress {
-            width: 0%;
-            height: 100%;
-            background: #2c7da0;
-            transition: width 0.2s ease;
-            border-radius: 12px;
-        }
-        .loader-status {
-            font-size: 0.7rem;
-            color: #2c5a74;
-            margin-top: 4px;
-            text-align: right;
-        }
-        .error-banner {
-            background: #fee2e2;
-            border-left: 5px solid #dc2626;
-            padding: 8px 14px;
-            border-radius: 16px;
-            margin-bottom: 14px;
-            font-size: 0.75rem;
+        .workflow-steps {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
         }
-        .grid-wrapper {
-            overflow-x: auto;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            background: white;
-            max-height: 62vh;
-            overflow-y: auto;
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
             position: relative;
         }
-        table {
-            border-collapse: collapse;
-            font-size: 0.73rem;
-            min-width: 700px;
-            font-family: 'SF Mono', 'Cascadia Code', monospace;
+        .step.active {
+            background: #1e3c72;
+            color: white;
         }
-        th {
-            background: #f1f5f9;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            padding: 10px 8px;
-            border-bottom: 2px solid #cbd5e1;
-            font-weight: 600;
+        .step.completed {
+            background: #28a745;
+            color: white;
         }
-        td {
-            padding: 7px 8px;
-            border-bottom: 1px solid #ecf3f9;
-            border-right: 1px solid #edf2f7;
-            max-width: 210px;
-            white-space: nowrap;
-            overflow-x: hidden;
-            text-overflow: ellipsis;
+        .step-number {
+            font-weight: bold;
+            font-size: 1.2rem;
         }
-        td.clear-cell {
-            background-color: #fff2df;
-            font-style: italic;
-            color: #b85c00;
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
         }
-        .selected-col {
-            background-color: #cbddec !important;
-            box-shadow: inset 0 0 0 1px #2c7da0;
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
         }
-        .selected-row {
-            background-color: #fffbdd !important;
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: #1e3c72;
         }
-        .pin-col-btn, .pin-row-btn {
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
             cursor: pointer;
-            user-select: none;
-            text-align: center;
-            font-weight: bold;
-            background: #eef2ff;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.2s;
         }
-        .pin-col-btn {
-            min-width: 42px;
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
         }
-        .pin-row-btn {
-            background: #f9fafb;
-            font-weight: bold;
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
-        .sample-input { width: 65px; padding: 5px 8px; border-radius: 30px; text-align: center; }
-        .small-badge { font-size: 0.7rem; background: #e2e8f0; border-radius: 30px; padding: 2px 8px; }
-        footer { margin-top: 18px; font-size: 0.65rem; text-align: center; color: #5a6e86; }
-        @media (max-width: 780px) {
-            .toolbar { flex-direction: column; align-items: stretch; border-radius: 28px; }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #bb2d3b;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #1a1a2e;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        input, select, textarea {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 3px 0;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-error {
+            border-left-color: #dc3545;
+            color: #ff6b6b;
+        }
+        .log-success {
+            border-left-color: #28a745;
+            color: #8bc34a;
+        }
+        .find-replace-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        .sample-text-area {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .sample-row {
+            padding: 4px;
+            border-bottom: 1px solid #dee2e6;
+            font-family: monospace;
+        }
+        .stats {
+            display: inline-block;
+            background: #e9ecef;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px;
+            font-size: 12px;
+        }
+        .row-highlight {
+            background-color: #fff3cd;
+            cursor: pointer;
+        }
+        hr {
+            margin: 15px 0;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        @media (max-width: 768px) {
+            .workflow-steps { flex-direction: column; }
+            .flex-row { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
-<div class="app-container">
-    <h1>CSV Nth Counter</h1>
-    <div class="sub">🥶 Imagined by Alim (RP) for cold box project</div>
+<div class="container">
+    <h1>📊 CSV Processor</h1>
+    <div class="sub">Streaming processor - Handles ANY file size | Find/Replace | Keep Nth Rows | Split or Keep as One</div>
     
-    <div id="errorBanner" style="display:none;" class="error-banner"></div>
-    <div class="loader-container" id="loaderContainer" style="display:none;">
-        <div class="loader-bar"><div class="loader-progress" id="loadProgress"></div></div>
-        <div class="loader-status" id="loadStatus">Processing file...</div>
-    </div>
-    
-    <div class="toolbar">
-        <label class="file-label">Load CSV <input type="file" id="csvFileInput" accept=".csv"></label>
-        <button id="undoBtn">Undo</button>
-        <button id="resetBtn" class="btn-warning">Reset</button>
-        <div class="small-badge">Select: Click Col PIN or Row PIN</div>
-        <button id="deleteColBtn" class="btn-danger">Delete Column</button>
-        <button id="deleteRowBtn" class="btn-danger">Delete Row</button>
-        <div>
-            <span>Nth row:</span>
-            <input type="number" id="nthValue" min="2" value="3" step="1" class="sample-input">
-            <button id="applyNthBtn">Sample</button>
+    <div class="workflow-steps">
+        <div class="step" id="step1">
+            <div class="step-number">1</div>
+            <div>Upload CSV</div>
         </div>
-        <button id="saveCsvBtn" class="btn-primary">Save CSV</button>
+        <div class="step" id="step2">
+            <div class="step-number">2</div>
+            <div>Find & Replace</div>
+        </div>
+        <div class="step" id="step3">
+            <div class="step-number">3</div>
+            <div>Keep Nth Row</div>
+        </div>
+        <div class="step" id="step4">
+            <div class="step-number">4</div>
+            <div>Split & Export</div>
+        </div>
     </div>
-
-    <div class="stats" id="statsPanel">
-        <span>Rows: <span id="rowCount">0</span></span>
-        <span>Columns: <span id="colCount">0</span></span>
-        <span>Cleared cells: <span id="clearedCount">0</span></span>
-        <span>Undo steps: <span id="undoSteps">0</span></span>
+    
+    <div class="warning">
+        <strong>⚡ Memory-efficient streaming:</strong> Processes files line by line - never loads entire file into memory.<br>
+        Works with files of ANY size (100MB, 1GB, 10GB+).
     </div>
-
-    <div class="grid-wrapper" id="tableWrapper">
-        <div style="padding: 55px; text-align: center; color: #6c86a3;">Load a CSV file to start (supports 400MB+ files)</div>
+    
+    <!-- Step 1: Upload -->
+    <div class="card" id="uploadCard">
+        <h3>📁 Step 1: Upload CSV File</h3>
+        <button id="selectFileBtn">Select CSV File</button>
+        <div id="fileInfo" style="margin-top: 10px; color: #6c757d;"></div>
+        <div class="progress" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
     </div>
-    <footer>
-        <strong>Selection:</strong> Click on <strong>Col PIN</strong> (first row) to select a column. Click on <strong>Row PIN</strong> (first column) to select a row.<br>
-        Click any data cell to CLEAR it (makes empty). All actions are undoable. Large files processed in streaming mode with proper final chunk handling.
-    </footer>
+    
+    <!-- Step 2: Find & Replace -->
+    <div class="card" id="findReplaceCard" style="display: none;">
+        <h3>🔍 Step 2: Find & Replace (Preview & Apply)</h3>
+        
+        <!-- Sample rows for preview -->
+        <div style="margin-bottom: 15px;">
+            <button id="refreshPreviewBtn" class="btn-secondary">Refresh Preview</button>
+            <span style="font-size: 12px; margin-left: 10px;">Click any sample row to copy to find field</span>
+        </div>
+        <div id="sampleRows" class="sample-text-area">
+            <div style="color: #6c757d;">Load a file to see sample rows</div>
+        </div>
+        
+        <div class="find-replace-panel">
+            <div class="flex-row">
+                <input type="text" id="findText" placeholder="Find text..." style="flex: 2;">
+                <input type="text" id="replaceText" placeholder="Replace with (leave empty to delete)" style="flex: 2;">
+                <button id="applyFindReplaceBtn" class="btn-warning">Apply to All Rows</button>
+            </div>
+            <div class="flex-row" style="margin-top: 10px;">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="caseSensitive"> Case sensitive
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="exactMatch"> Exact cell match only
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="previewMode" checked> Preview only (don't save yet)
+                </label>
+            </div>
+            <div id="findReplaceStats" style="font-size: 12px; color: #28a745; margin-top: 8px;"></div>
+        </div>
+    </div>
+    
+    <!-- Step 3: Keep Nth Row -->
+    <div class="card" id="keepRowCard" style="display: none;">
+        <h3>📐 Step 3: Keep Every Nth Row (Reduce File Size)</h3>
+        <div class="flex-row">
+            <label>Keep every:</label>
+            <input type="number" id="keepNth" value="10" min="1" step="1" style="width: 80px;">
+            <span>th row</span>
+            <span style="margin: 0 10px;">(1 = keep all rows, 2 = keep half, 10 = keep 10%)</span>
+            <button id="applyKeepRowBtn" class="btn-warning">Apply & Keep Selected Rows</button>
+        </div>
+        <div id="keepRowStats" style="font-size: 12px; color: #6c757d; margin-top: 10px;"></div>
+        <div class="warning" style="margin-top: 10px; font-size: 12px;">
+            💡 Header row (first row) is always kept. Then every Nth row after that.
+        </div>
+    </div>
+    
+    <!-- Step 4: Split & Export -->
+    <div class="card" id="exportCard" style="display: none;">
+        <h3>💾 Step 4: Split & Export</h3>
+        <div class="flex-row">
+            <label>Split into chunks of:</label>
+            <input type="number" id="rowsPerChunk" value="50000" min="1000" step="10000" style="width: 100px;">
+            <span>rows per file</span>
+            <label class="checkbox-label">
+                <input type="checkbox" id="dontSplit" checked> Don't split (single file)
+            </label>
+        </div>
+        <div style="margin-top: 15px;">
+            <button id="processAndExportBtn" class="btn-success">🚀 Process & Export</button>
+            <span id="exportStats" style="margin-left: 15px; font-size: 12px;"></span>
+        </div>
+    </div>
+    
+    <div class="log" id="log">
+        <div class="log-entry">Ready. Click "Select CSV File" to begin.</div>
+    </div>
 </div>
 
 <script>
-    (function() {
-        // Data store
-        let originalData = [];
-        let currentData = [];
-        let undoStack = [];
-        let isLoading = false;
-        let selectedColIdx = null;
-        let selectedRowIdx = null;
+    // Global state
+    let originalRows = [];      // Store all rows after initial load
+    let currentRows = [];       // Current rows after find/replace and keep Nth
+    let header = "";
+    let originalFileName = "";
+    let fileLoaded = false;
+    let findReplaceApplied = false;
+    let keepRowApplied = false;
+    let totalOriginalRows = 0;
+    
+    function addLog(message, type = "info") {
+        const logDiv = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logDiv.appendChild(entry);
+        entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function updateStepUI() {
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
         
-        // Helper: deep copy 2D array
-        function deepCopy2D(arr) {
-            if (!arr || !arr.length) return [];
-            return arr.map(row => (row ? [...row] : []));
+        if (fileLoaded) {
+            step1.classList.add('completed');
+            step2.classList.add('active');
         }
-        
-        function pushUndo() {
-            undoStack.push(deepCopy2D(currentData));
-            if (undoStack.length > 50) undoStack.shift();
-            updateStats();
+        if (findReplaceApplied) {
+            step2.classList.remove('active');
+            step2.classList.add('completed');
+            step3.classList.add('active');
         }
-        
-        function undo() {
-            if (undoStack.length === 0) {
-                showError("Nothing to undo.");
-                return false;
+        if (keepRowApplied) {
+            step3.classList.remove('active');
+            step3.classList.add('completed');
+            step4.classList.add('active');
+        }
+    }
+    
+    // Parse CSV line (handles quotes)
+    function parseCSVLine(line) {
+        const row = [];
+        let inQuote = false;
+        let current = '';
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQuote && line[i+1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuote = !inQuote;
+                }
+            } else if (ch === ',' && !inQuote) {
+                row.push(current);
+                current = '';
+            } else {
+                current += ch;
             }
-            currentData = deepCopy2D(undoStack.pop());
-            selectedColIdx = null;
-            selectedRowIdx = null;
-            renderTable();
-            updateStats();
-            hideError();
-            return true;
         }
-        
-        function resetToOriginal() {
-            if (!originalData.length) { showError("No CSV loaded."); return; }
-            currentData = deepCopy2D(originalData);
-            undoStack = [];
-            pushUndo();
-            selectedColIdx = null;
-            selectedRowIdx = null;
-            renderTable();
-            updateStats();
-            hideError();
-        }
-        
-        // Streaming CSV parser with proper final flush - handles large files and avoids 99% hang
-        async function parseLargeCSVStreaming(file) {
-            return new Promise((resolve, reject) => {
-                const chunkSize = 1024 * 1024; // 1MB chunks for smooth processing
-                let offset = 0;
-                let totalSize = file.size;
-                let leftover = '';
-                let allRows = [];
-                let reading = true;
-                
-                const updateProgress = (percent) => {
-                    const progBar = document.getElementById('loadProgress');
-                    const statusDiv = document.getElementById('loadStatus');
-                    if (progBar) progBar.style.width = Math.min(100, percent) + '%';
-                    if (statusDiv) statusDiv.innerText = `Processing: ${Math.floor(percent)}% - ${(offset/1024/1024).toFixed(1)} MB read`;
-                };
-                
-                function parseCSVLine(line) {
-                    const row = [];
-                    let inQuote = false;
-                    let current = '';
-                    for (let i = 0; i < line.length; i++) {
-                        const ch = line[i];
-                        if (ch === '"') {
-                            if (inQuote && line[i+1] === '"') {
-                                current += '"';
-                                i++;
-                            } else {
-                                inQuote = !inQuote;
-                            }
-                        } else if (ch === ',' && !inQuote) {
-                            row.push(current);
-                            current = '';
-                        } else {
-                            current += ch;
-                        }
-                    }
-                    row.push(current);
-                    return row;
+        row.push(current);
+        return row;
+    }
+    
+    function rowToCSV(row) {
+        return row.map(cell => {
+            let str = String(cell || "");
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                str = '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }).join(',');
+    }
+    
+    // Apply find/replace to a single row
+    function applyFindReplaceToRow(rowCells, findText, replaceText, caseSensitive, exactMatch) {
+        const find = caseSensitive ? findText : findText.toLowerCase();
+        return rowCells.map(cell => {
+            if (cell === undefined || cell === null) return cell;
+            
+            let compareCell = caseSensitive ? cell : cell.toLowerCase();
+            
+            if (exactMatch) {
+                return compareCell === find ? replaceText : cell;
+            } else {
+                if (caseSensitive) {
+                    return cell.split(findText).join(replaceText);
+                } else {
+                    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                    return cell.replace(regex, replaceText);
                 }
+            }
+        });
+    }
+    
+    // Load and store all rows from CSV (streaming)
+    async function loadCSVRows(file) {
+        return new Promise((resolve, reject) => {
+            const rows = [];
+            let currentRowsArray = [];
+            let headerLine = null;
+            let totalRows = 0;
+            
+            addLog(`Loading "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)`, "info");
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            const fileStream = file.stream();
+            const reader = fileStream.getReader();
+            const decoder = new TextDecoder();
+            let leftover = '';
+            
+            function processLines(text) {
+                const lines = (leftover + text).split(/\r?\n/);
+                leftover = lines.pop() || '';
                 
-                function processChunk(chunkText) {
-                    let text = leftover + chunkText;
-                    let lines = text.split(/\r?\n/);
-                    leftover = lines.pop() || '';
+                for (let line of lines) {
+                    if (line.trim() === "" && totalRows > 0) continue;
                     
-                    for (let line of lines) {
-                        if (line.trim() !== '' || allRows.length === 0) {
-                            const parsed = parseCSVLine(line);
-                            if (parsed.length) allRows.push(parsed);
-                        }
+                    if (headerLine === null) {
+                        headerLine = line;
+                        continue;
+                    }
+                    
+                    rows.push(line);
+                    totalRows++;
+                    
+                    if (totalRows % 10000 === 0) {
+                        const percent = (totalRows / (totalRows + 1)) * 100;
+                        progressBar.style.width = `${Math.min(percent, 99)}%`;
                     }
                 }
-                
-                function readNextChunk() {
-                    if (offset >= totalSize) {
-                        // Final flush: process leftover as last line
-                        if (leftover.trim() !== '') {
-                            const lastRow = parseCSVLine(leftover);
-                            if (lastRow.length) allRows.push(lastRow);
-                        }
-                        leftover = '';
-                        
-                        if (allRows.length === 0) {
-                            reject(new Error("No data rows found"));
-                            return;
+            }
+            
+            function readChunk() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        if (leftover.trim() !== "") {
+                            rows.push(leftover);
+                            totalRows++;
                         }
                         
-                        // Unify column counts
-                        const maxCols = Math.max(...allRows.map(r => r.length), 0);
-                        for (let row of allRows) {
-                            while (row.length < maxCols) row.push('');
-                        }
-                        
-                        updateProgress(100);
-                        setTimeout(() => resolve(allRows), 50);
+                        progressBar.style.width = '100%';
+                        addLog(`✅ Loaded ${totalRows.toLocaleString()} rows`, "success");
+                        resolve({ header: headerLine, rows: rows });
                         return;
                     }
                     
-                    const slice = file.slice(offset, Math.min(offset + chunkSize, totalSize));
-                    const reader = new FileReader();
-                    
-                    reader.onload = (e) => {
-                        const chunkText = e.target.result;
-                        processChunk(chunkText);
-                        offset += chunkSize;
-                        const percent = (offset / totalSize) * 100;
-                        updateProgress(percent);
-                        // Schedule next chunk
-                        setTimeout(readNextChunk, 0);
-                    };
-                    
-                    reader.onerror = () => reject(new Error("File read error at chunk"));
-                    reader.readAsText(slice, "UTF-8");
-                }
+                    const text = decoder.decode(value, { stream: true });
+                    processLines(text);
+                    readChunk();
+                }).catch(reject);
+            }
+            
+            readChunk();
+        });
+    }
+    
+    // Update sample rows display
+    function updateSampleRows() {
+        if (!currentRows.length) return;
+        
+        const findText = document.getElementById('findText').value;
+        const replaceText = document.getElementById('replaceText').value;
+        const caseSensitive = document.getElementById('caseSensitive').checked;
+        const exactMatch = document.getElementById('exactMatch').checked;
+        const previewMode = document.getElementById('previewMode').checked;
+        
+        const sampleDiv = document.getElementById('sampleRows');
+        const sampleRowsToShow = currentRows.slice(0, 10);
+        
+        let html = '<div style="font-weight: bold; margin-bottom: 8px;">First 10 rows (click any to copy to find field):</div>';
+        
+        sampleRowsToShow.forEach((row, idx) => {
+            const cells = parseCSVLine(row);
+            let displayRow = [...cells];
+            
+            // Preview the find/replace if preview mode is on
+            if (previewMode && findText) {
+                displayRow = applyFindReplaceToRow(cells, findText, replaceText, caseSensitive, exactMatch);
+            }
+            
+            html += `<div class="sample-row" data-row="${idx}" data-original="${row.replace(/"/g, '&quot;')}">`;
+            html += `<strong>Row ${idx + 1}:</strong> `;
+            html += displayRow.map(cell => `<span style="background: #e9ecef; padding: 2px 4px; margin: 0 2px; border-radius: 3px;">${escapeHtml(cell || '␣')}</span>`).join('');
+            html += `</div>`;
+        });
+        
+        sampleDiv.innerHTML = html;
+        
+        // Add click handlers to copy cell content
+        document.querySelectorAll('.sample-row').forEach(rowDiv => {
+            rowDiv.addEventListener('click', async (e) => {
+                const originalRow = rowDiv.dataset.original;
+                const cells = parseCSVLine(originalRow);
                 
-                readNextChunk();
-            });
-        }
-        
-        function showError(msg, isWarning = false) {
-            const banner = document.getElementById('errorBanner');
-            banner.style.display = 'flex';
-            banner.innerHTML = `<span>⚠️ ${msg}</span><button style="background:transparent; border:none; font-weight:bold; cursor:pointer;" id="closeErrBtn">✖</button>`;
-            const closeBtn = document.getElementById('closeErrBtn');
-            if (closeBtn) closeBtn.onclick = () => { banner.style.display = 'none'; };
-            if (!isWarning) console.error(msg);
-        }
-        
-        function hideError() {
-            const b = document.getElementById('errorBanner');
-            if (b) b.style.display = 'none';
-        }
-        
-        async function loadCSV(file) {
-            if (isLoading) {
-                showError("Already loading a file, please wait.");
-                return;
-            }
-            isLoading = true;
-            hideError();
-            const loaderDiv = document.getElementById('loaderContainer');
-            const progressBar = document.getElementById('loadProgress');
-            const statusDiv = document.getElementById('loadStatus');
-            
-            loaderDiv.style.display = 'block';
-            if (progressBar) progressBar.style.width = '0%';
-            if (statusDiv) statusDiv.innerText = 'Starting stream parser...';
-            
-            try {
-                const rows = await parseLargeCSVStreaming(file);
-                if (!rows.length) throw new Error("CSV file is empty");
+                // Create a simple text selection dialog
+                const cellList = cells.map((cell, i) => `${i}: ${cell}`).join('\n');
+                const selectedIndex = prompt(`Select cell to copy to find field:\n\n${cellList}\n\nEnter column number (0-${cells.length-1}):`);
                 
-                originalData = deepCopy2D(rows);
-                currentData = deepCopy2D(originalData);
-                undoStack = [];
-                pushUndo(); // initial state
-                selectedColIdx = null;
-                selectedRowIdx = null;
-                renderTable();
-                updateStats();
-                loaderDiv.style.display = 'none';
-            } catch (err) {
-                loaderDiv.style.display = 'none';
-                showError("Failed to load CSV: " + err.message);
-                console.error(err);
-            } finally {
-                isLoading = false;
-            }
-        }
-        
-        // Render table with row/column pins
-        function renderTable() {
-            const wrapper = document.getElementById("tableWrapper");
-            if (!currentData.length || !currentData[0]) {
-                wrapper.innerHTML = '<div style="padding: 50px; text-align: center;">Load a CSV file to start editing</div>';
-                return;
-            }
-            
-            const numRows = currentData.length;
-            const numCols = currentData[0].length;
-            
-            let html = '<table id="dataGridTable" style="width:100%; border-collapse: collapse;">';
-            html += '<thead><tr>';
-            html += '<th style="width: 38px; background:#eef2ff;">Row PIN</th>';
-            for (let c = 0; c < numCols; c++) {
-                const isSelectedCol = (selectedColIdx === c);
-                html += `<th class="pin-col-btn ${isSelectedCol ? 'selected-col' : ''}" data-colidx="${c}" style="cursor:pointer; text-align:center;">Col ${c+1}</th>`;
-            }
-            html += '</tr></thead><tbody>';
-            
-            for (let r = 0; r < numRows; r++) {
-                const isRowSelected = (selectedRowIdx === r);
-                html += `<tr data-rowidx="${r}" class="${isRowSelected ? 'selected-row' : ''}">`;
-                html += `<td class="pin-row-btn" data-rowpin="${r}" style="cursor:pointer; text-align:center; background:#f8fafc; font-weight:bold;">Row ${r+1}</td>`;
-                for (let c = 0; c < numCols; c++) {
-                    let val = currentData[r][c];
-                    const isCleared = (val === "");
-                    const displayValue = (val === "" ? "[empty]" : (val.length > 48 ? val.slice(0,45)+"..." : val));
-                    const clearedClass = isCleared ? "clear-cell" : "";
-                    html += `<td class="data-cell ${clearedClass}" data-r="${r}" data-c="${c}" title="Click to clear cell">${escapeHtml(displayValue)}</td>`;
+                if (selectedIndex !== null && cells[selectedIndex]) {
+                    document.getElementById('findText').value = cells[selectedIndex];
+                    addLog(`Copied: "${cells[selectedIndex]}" to find field`, "info");
                 }
-                html += `</tr>`;
-            }
-            html += '</tbody></table>';
-            wrapper.innerHTML = html;
-            
-            // Attach events
-            const tableElem = document.getElementById("dataGridTable");
-            if (!tableElem) return;
-            
-            // Column PIN clicks
-            const colPins = tableElem.querySelectorAll(".pin-col-btn");
-            colPins.forEach(pin => {
-                pin.addEventListener("click", (e) => {
-                    const colIdx = parseInt(pin.getAttribute("data-colidx"));
-                    if (!isNaN(colIdx)) {
-                        selectedColIdx = colIdx;
-                        selectedRowIdx = null;
-                        renderTable();
-                    }
-                    e.stopPropagation();
-                });
             });
+        });
+    }
+    
+    // Apply find/replace to all rows
+    async function applyFindReplace() {
+        if (!currentRows.length) {
+            addLog("No data loaded", "error");
+            return;
+        }
+        
+        const findText = document.getElementById('findText').value;
+        const replaceText = document.getElementById('replaceText').value;
+        const caseSensitive = document.getElementById('caseSensitive').checked;
+        const exactMatch = document.getElementById('exactMatch').checked;
+        
+        if (!findText) {
+            addLog("Please enter text to find.", "error");
+            return;
+        }
+        
+        addLog(`Applying find/replace: "${findText}" → "${replaceText || '(empty)'}"`, "info");
+        
+        let totalReplacements = 0;
+        const newRows = [];
+        
+        for (let row of currentRows) {
+            const cells = parseCSVLine(row);
+            const newCells = applyFindReplaceToRow(cells, findText, replaceText, caseSensitive, exactMatch);
             
-            // Row PIN clicks
-            const rowPins = tableElem.querySelectorAll(".pin-row-btn");
-            rowPins.forEach(btn => {
-                btn.addEventListener("click", (e) => {
-                    const rowVal = btn.getAttribute("data-rowpin");
-                    if (rowVal !== null) {
-                        selectedRowIdx = parseInt(rowVal, 10);
-                        selectedColIdx = null;
-                        renderTable();
-                    }
-                    e.stopPropagation();
-                });
-            });
-            
-            // Clear cell on data cell click
-            const cells = tableElem.querySelectorAll(".data-cell");
-            cells.forEach(cell => {
-                cell.addEventListener("click", (e) => {
-                    e.stopPropagation();
-                    const r = parseInt(cell.getAttribute("data-r"));
-                    const c = parseInt(cell.getAttribute("data-c"));
-                    if (!isNaN(r) && !isNaN(c)) {
-                        clearCell(r, c);
-                    }
-                });
-            });
-        }
-        
-        function clearCell(row, col) {
-            if (!currentData[row] || currentData[row][col] === undefined) return;
-            if (currentData[row][col] === "") return;
-            pushUndo();
-            currentData[row][col] = "";
-            renderTable();
-            updateStats();
-        }
-        
-        function deleteSelectedColumn() {
-            if (!currentData.length) { showError("No data"); return; }
-            if (selectedColIdx === null) { showError("Please click a Col PIN to select a column"); return; }
-            const col = selectedColIdx;
-            if (currentData[0].length <= 1) { showError("Cannot delete the last column"); return; }
-            pushUndo();
-            for (let i = 0; i < currentData.length; i++) {
-                currentData[i].splice(col, 1);
-            }
-            selectedColIdx = null;
-            renderTable();
-            updateStats();
-        }
-        
-        function deleteSelectedRow() {
-            if (!currentData.length) { showError("No data"); return; }
-            if (selectedRowIdx === null) { showError("Please click a Row PIN to select a row"); return; }
-            const row = selectedRowIdx;
-            if (currentData.length <= 1) { showError("Cannot delete the last row"); return; }
-            pushUndo();
-            currentData.splice(row, 1);
-            selectedRowIdx = null;
-            renderTable();
-            updateStats();
-        }
-        
-        function sampleEveryNth() {
-            if (!currentData.length) { showError("No data loaded"); return; }
-            let nth = parseInt(document.getElementById("nthValue").value, 10);
-            if (isNaN(nth) || nth < 2) { showError("N must be 2 or greater"); return; }
-            pushUndo();
-            const newRows = [];
-            for (let i = 0; i < currentData.length; i++) {
-                if (i === 0 || (i % nth === 0)) {
-                    newRows.push(currentData[i]);
+            let rowChanged = false;
+            for (let i = 0; i < cells.length; i++) {
+                if (cells[i] !== newCells[i]) {
+                    rowChanged = true;
+                    totalReplacements++;
                 }
             }
-            if (newRows.length === 0) newRows.push(currentData[0]);
-            currentData = newRows;
-            selectedColIdx = null;
-            selectedRowIdx = null;
-            renderTable();
-            updateStats();
+            
+            if (rowChanged) {
+                newRows.push(rowToCSV(newCells));
+            } else {
+                newRows.push(row);
+            }
         }
         
-        function saveCSV() {
-            if (!currentData.length) { showError("No data to save"); return; }
-            
-            const csvLines = [];
-            for (let row of currentData) {
-                const escapedRow = row.map(cell => {
-                    let str = cell === undefined || cell === null ? "" : String(cell);
-                    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-                        str = '"' + str.replace(/"/g, '""') + '"';
-                    }
-                    return str;
-                }).join(',');
-                csvLines.push(escapedRow);
+        currentRows = newRows;
+        findReplaceApplied = true;
+        
+        addLog(`✅ ${totalReplacements} replacements made`, "success");
+        document.getElementById('findReplaceStats').innerHTML = `✅ Replaced ${totalReplacements} occurrences`;
+        setTimeout(() => document.getElementById('findReplaceStats').innerHTML = '', 3000);
+        
+        updateSampleRows();
+        updateStepUI();
+        
+        // Show next step card
+        document.getElementById('keepRowCard').style.display = 'block';
+    }
+    
+    // Apply keep every Nth row
+    async function applyKeepEveryNth() {
+        if (!currentRows.length) {
+            addLog("No data loaded", "error");
+            return;
+        }
+        
+        const nth = parseInt(document.getElementById('keepNth').value);
+        if (isNaN(nth) || nth < 1) {
+            addLog("Please enter a valid number (1 or greater)", "error");
+            return;
+        }
+        
+        const originalCount = currentRows.length;
+        
+        if (nth === 1) {
+            addLog("Keeping all rows (no change)", "info");
+            keepRowApplied = true;
+            updateStepUI();
+            document.getElementById('exportCard').style.display = 'block';
+            document.getElementById('keepRowStats').innerHTML = `✅ Keeping all ${originalCount.toLocaleString()} rows`;
+            return;
+        }
+        
+        addLog(`Keeping every ${nth}th row...`, "info");
+        
+        const newRows = [];
+        for (let i = 0; i < currentRows.length; i++) {
+            if (i === 0 || (i + 1) % nth === 0) {
+                newRows.push(currentRows[i]);
             }
-            
-            const csvString = csvLines.join('\n');
-            const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement('a');
+        }
+        
+        const newCount = newRows.length;
+        currentRows = newRows;
+        keepRowApplied = true;
+        
+        addLog(`✅ Kept ${newCount.toLocaleString()} rows (${Math.round(newCount / originalCount * 100)}% of original)`, "success");
+        document.getElementById('keepRowStats').innerHTML = `✅ Kept ${newCount.toLocaleString()} rows (from ${originalCount.toLocaleString()})`;
+        
+        updateSampleRows();
+        updateStepUI();
+        
+        // Show export card
+        document.getElementById('exportCard').style.display = 'block';
+    }
+    
+    // Process and export
+    async function processAndExport() {
+        if (!currentRows.length) {
+            addLog("No data to export", "error");
+            return;
+        }
+        
+        const dontSplit = document.getElementById('dontSplit').checked;
+        const rowsPerChunk = parseInt(document.getElementById('rowsPerChunk').value);
+        
+        addLog(`Preparing export...`, "info");
+        
+        if (dontSplit) {
+            // Export single file
+            const allLines = [header, ...currentRows];
+            const content = allLines.join('\n');
+            const blob = new Blob([content], { type: "text/csv" });
             const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.setAttribute('download', 'edited_data.csv');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${originalFileName}_processed.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        }
-        
-        function updateStats() {
-            if (!currentData.length) {
-                document.getElementById("rowCount").innerText = "0";
-                document.getElementById("colCount").innerText = "0";
-                document.getElementById("clearedCount").innerText = "0";
-                document.getElementById("undoSteps").innerText = "0";
-                return;
+            addLog(`✅ Downloaded single file (${currentRows.length.toLocaleString()} rows, ${(blob.size / 1024 / 1024).toFixed(2)} MB)`, "success");
+        } else {
+            // Split into chunks
+            addLog(`Splitting into chunks of ${rowsPerChunk.toLocaleString()} rows...`, "info");
+            
+            const chunks = [];
+            let chunkIndex = 0;
+            
+            for (let i = 0; i < currentRows.length; i += rowsPerChunk) {
+                const chunkRows = currentRows.slice(i, i + rowsPerChunk);
+                chunks.push({
+                    name: `${originalFileName}_chunk_${(chunkIndex + 1).toString().padStart(4, '0')}_rows_${i + 1}-${Math.min(i + rowsPerChunk, currentRows.length)}`,
+                    rows: chunkRows
+                });
+                chunkIndex++;
             }
-            const rows = currentData.length;
-            const cols = currentData[0]?.length || 0;
-            let cleared = 0;
-            for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    if (currentData[r][c] === "") cleared++;
+            
+            // Load JSZip and create ZIP
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            
+            script.onload = () => {
+                const zip = new JSZip();
+                
+                for (let chunk of chunks) {
+                    const csvContent = [header, ...chunk.rows].join('\n');
+                    zip.file(`${chunk.name}.csv`, csvContent);
+                }
+                
+                zip.generateAsync({ type: "blob" }).then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${originalFileName}_${chunks.length}_chunks.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    addLog(`✅ Downloaded ZIP with ${chunks.length} chunks (${currentRows.length.toLocaleString()} total rows)`, "success");
+                    document.getElementById('exportStats').innerHTML = `✅ ${chunks.length} chunks created`;
+                });
+            };
+            
+            script.onerror = () => {
+                addLog("Downloading chunks individually...", "info");
+                for (let chunk of chunks) {
+                    setTimeout(() => {
+                        const csvContent = [header, ...chunk.rows].join('\n');
+                        const blob = new Blob([csvContent], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${chunk.name}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                }
+                addLog(`Started downloading ${chunks.length} chunks`, "success");
+            };
+            
+            document.head.appendChild(script);
+        }
+    }
+    
+    // Main file load
+    async function selectAndLoad() {
+        if ('showOpenFilePicker' in window) {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }]
+                });
+                const file = await fileHandle.getFile();
+                originalFileName = file.name.replace('.csv', '');
+                
+                const { header: h, rows: r } = await loadCSVRows(file);
+                header = h;
+                originalRows = r;
+                currentRows = [...r];
+                totalOriginalRows = r.length;
+                fileLoaded = true;
+                findReplaceApplied = false;
+                keepRowApplied = false;
+                
+                document.getElementById('fileInfo').innerHTML = `✅ Loaded: ${file.name}<br>📊 ${totalOriginalRows.toLocaleString()} rows loaded`;
+                document.getElementById('findReplaceCard').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'none';
+                
+                updateSampleRows();
+                updateStepUI();
+                
+                addLog(`File ready. ${totalOriginalRows.toLocaleString()} rows to process.`, "success");
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') {
+                    addLog(`Error: ${err.message}`, "error");
                 }
             }
-            document.getElementById("rowCount").innerText = rows;
-            document.getElementById("colCount").innerText = cols;
-            document.getElementById("clearedCount").innerText = cleared;
-            document.getElementById("undoSteps").innerText = undoStack.length;
+        } else {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                originalFileName = file.name.replace('.csv', '');
+                
+                const { header: h, rows: r } = await loadCSVRows(file);
+                header = h;
+                originalRows = r;
+                currentRows = [...r];
+                totalOriginalRows = r.length;
+                fileLoaded = true;
+                findReplaceApplied = false;
+                keepRowApplied = false;
+                
+                document.getElementById('fileInfo').innerHTML = `✅ Loaded: ${file.name}<br>📊 ${totalOriginalRows.toLocaleString()} rows loaded`;
+                document.getElementById('findReplaceCard').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'none';
+                
+                updateSampleRows();
+                updateStepUI();
+                
+                addLog(`File ready. ${totalOriginalRows.toLocaleString()} rows to process.`, "success");
+            };
+            input.click();
         }
-        
-        function escapeHtml(str) {
-            if (str === undefined || str === null) return "";
-            return String(str).replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
-                return c;
-            });
-        }
-        
-        // Event binding
-        document.getElementById("csvFileInput").addEventListener("change", (e) => {
-            const file = e.target.files[0];
-            if (file) {
-                if (file.size > 0) {
-                    loadCSV(file);
-                } else {
-                    showError("File is empty");
-                }
-            }
-            e.target.value = null;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
         });
-        
-        document.getElementById("undoBtn").addEventListener("click", () => {
-            if (originalData.length) undo();
-            else showError("Load a CSV first");
-        });
-        
-        document.getElementById("resetBtn").addEventListener("click", () => {
-            if (originalData.length) resetToOriginal();
-            else showError("No loaded CSV");
-        });
-        
-        document.getElementById("deleteColBtn").addEventListener("click", deleteSelectedColumn);
-        document.getElementById("deleteRowBtn").addEventListener("click", deleteSelectedRow);
-        document.getElementById("applyNthBtn").addEventListener("click", sampleEveryNth);
-        document.getElementById("saveCsvBtn").addEventListener("click", saveCSV);
-        
-        // Initial empty state
-        originalData = [];
-        currentData = [];
-        undoStack = [];
-        renderTable();
-        updateStats();
-    })();
+    }
+    
+    // Event listeners
+    document.getElementById('selectFileBtn').addEventListener('click', selectAndLoad);
+    document.getElementById('applyFindReplaceBtn').addEventListener('click', applyFindReplace);
+    document.getElementById('applyKeepRowBtn').addEventListener('click', applyKeepEveryNth);
+    document.getElementById('processAndExportBtn').addEventListener('click', processAndExport);
+    document.getElementById('refreshPreviewBtn').addEventListener('click', updateSampleRows);
+    
+    // Live preview on input change
+    document.getElementById('findText').addEventListener('input', updateSampleRows);
+    document.getElementById('replaceText').addEventListener('input', updateSampleRows);
+    document.getElementById('caseSensitive').addEventListener('change', updateSampleRows);
+    document.getElementById('exactMatch').addEventListener('change', updateSampleRows);
+    document.getElementById('previewMode').addEventListener('change', updateSampleRows);
+    
+    // Toggle split/nosplit UI
+    document.getElementById('dontSplit').addEventListener('change', (e) => {
+        document.getElementById('rowsPerChunk').disabled = e.target.checked;
+    });
+    
+    addLog("✅ Ready! Follow the workflow steps above.", "success");
 </script>
 </body>
 </html>
