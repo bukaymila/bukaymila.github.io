@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>U07B Extractor | by Alim Yakub (RP)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #eef2f5;
+            margin: 0;
+            padding: 24px 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .app-card {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: #1e3a5f;
+            color: white;
+            padding: 1.5rem 2rem;
+        }
+        .header h1 {
+            margin: 0 0 0.3rem 0;
+            font-weight: 600;
+            font-size: 1.8rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.85;
+            font-size: 0.95rem;
+        }
+        .content {
+            padding: 1.8rem 2rem 2rem 2rem;
+        }
+        .upload-area {
+            background: #f8fafc;
+            border: 2px dashed #bdd3e8;
+            border-radius: 24px;
+            padding: 1.6rem;
+            text-align: center;
+            transition: 0.2s;
+            margin-bottom: 2rem;
+        }
+        .upload-area:hover {
+            border-color: #1e3a5f;
+            background: #f1f6fa;
+        }
+        .file-input-label {
+            background: #1e3a5f;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: none;
+        }
+        .file-input-label:hover {
+            background: #0f2c48;
+            transform: scale(0.97);
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-list {
+            margin-top: 18px;
+            font-size: 0.85rem;
+            color: #2c3e4e;
+            background: white;
+            border-radius: 20px;
+            padding: 10px 16px;
+            display: inline-block;
+            max-width: 100%;
+            word-break: break-word;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .badge {
+            background: #e2e8f0;
+            border-radius: 40px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 12px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: 28px 0 24px;
+            align-items: center;
+        }
+        .btn {
+            border: none;
+            background: #eef2f5;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e2f3c;
+            border: 1px solid #cbdde9;
+        }
+        .btn-primary {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .btn-primary:hover:not(:disabled) {
+            background: #0f2c48;
+            transform: translateY(-1px);
+        }
+        .btn-danger {
+            background: #fff0f0;
+            border-color: #f3bfbf;
+            color: #b91c1c;
+        }
+        .btn-danger:hover {
+            background: #ffe0e0;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .preview-grid {
+            background: #ffffff;
+            border-radius: 24px;
+            border: 1px solid #e2edf2;
+            overflow-x: auto;
+            margin: 24px 0 16px;
+            padding: 4px 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.75rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+        }
+        th {
+            background: #f1f5f9;
+            padding: 12px 10px;
+            text-align: center;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 2px solid #dce5ec;
+            position: sticky;
+            top: 0;
+            background: #f1f5f9;
+        }
+        td {
+            padding: 8px 10px;
+            text-align: center;
+            border-bottom: 1px solid #eef2f8;
+        }
+        .status-msg {
+            background: #eef2ff;
+            border-radius: 20px;
+            padding: 12px 20px;
+            font-size: 0.85rem;
+            color: #1e3a5f;
+            margin-top: 20px;
+        }
+        .status-msg.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-msg.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .download-section {
+            margin-top: 28px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        hr {
+            margin: 20px 0;
+            border: none;
+            border-top: 1px solid #e2edf2;
+        }
+        .footer-note {
+            font-size: 0.7rem;
+            color: #5f7f9a;
+            text-align: center;
+            margin-top: 28px;
+        }
+        .file-info {
+            font-size: 0.7rem;
+            color: #4b5563;
+            margin-top: 8px;
+        }
+        @media (max-width: 680px) {
+            .content { padding: 1.2rem; }
+            th, td { padding: 6px 4px; font-size: 0.7rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-card">
+    <div class="header">
+        <h1>🌡️ U07B Extractor | by Alim Yakub (RP) (TempU07B Compatible)</h1>
+        <p>Extracts <strong>Temperature</strong> & <strong>Humidity</strong> from recorder CSV files (handles metadata headers) → merges with 10‑min interval hours column</p>
+    </div>
+    <div class="content">
+        <div class="upload-area">
+            <label class="file-input-label">
+                📂 Select CSV files (TempU07B format)
+                <input type="file" id="csvFilesInput" multiple accept=".csv,.text/csv,.txt">
+            </label>
+            <div id="fileListDisplay" class="file-list">No files selected</div>
+            <div class="badge">✅ Automatically finds "Date,Time,Temperature(C),Humidity(%RH)" header row</div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="processBtn" class="btn btn-primary" disabled>🔍 Process & Merge Data</button>
+            <button id="clearBtn" class="btn btn-danger">🗑 Clear all files</button>
+        </div>
+
+        <div id="statusMessage" class="status-msg">📎 Upload one or more CSV files (TempU07B format with metadata header), then click "Process & Merge Data".</div>
+
+        <div id="previewContainer" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+                <h3 style="margin: 0 0 8px 0;">📋 Preview (first 10 rows)</h3>
+                <span style="font-size: 0.7rem; background: #eef2f5; padding: 4px 12px; border-radius: 50px;">hours = 10‑min intervals = n/6 (0.16667, 0.33333, 0.5...)</span>
+            </div>
+            <div class="preview-grid" id="previewTableWrap">
+                <table id="previewTable">
+                    <thead><tr><th>⏱️ hours</th><th colspan="2">— waiting for data —</th></tr></thead>
+                    <tbody><tr><td colspan="3">Upload files and click process</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="download-section">
+            <button id="downloadBtn" class="btn btn-primary" disabled style="background:#2b5a3b;">⬇️ Download Merged CSV</button>
+        </div>
+        <div class="footer-note">
+            🔍 Handles TempU07B format: skips device info, finds data header line starting with "Date,Time,Temperature".<br>
+            ✅ Hours column: row 1 = 1/6 = 0.166667, row 2 = 2/6 = 0.333333, row 3 = 0.5, etc.
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // DOM elements
+        const fileInput = document.getElementById('csvFilesInput');
+        const fileListDisplay = document.getElementById('fileListDisplay');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const statusMessageDiv = document.getElementById('statusMessage');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewTable = document.getElementById('previewTable');
+
+        // State
+        let selectedFiles = [];
+        let mergedData = null;
+        let currentMergedCSVString = '';
+
+        // Update file list UI
+        function updateFileListUI() {
+            if (selectedFiles.length === 0) {
+                fileListDisplay.innerHTML = '📁 No files selected. Choose CSV files (TempU07B format).';
+                processBtn.disabled = true;
+                downloadBtn.disabled = true;
+                previewContainer.style.display = 'none';
+                mergedData = null;
+                currentMergedCSVString = '';
+                return;
+            }
+            const names = selectedFiles.map(f => f.name).join(', ');
+            fileListDisplay.innerHTML = `✅ ${selectedFiles.length} file(s): ${names}`;
+            processBtn.disabled = false;
+        }
+
+        function clearAllFiles() {
+            selectedFiles = [];
+            fileInput.value = '';
+            updateFileListUI();
+            setStatusMessage('🗑 Files cleared. Upload new CSV files and process.', 'info');
+            previewContainer.style.display = 'none';
+            mergedData = null;
+            currentMergedCSVString = '';
+            downloadBtn.disabled = true;
+        }
+
+        function setStatusMessage(msg, type = 'info') {
+            statusMessageDiv.textContent = msg;
+            statusMessageDiv.className = 'status-msg';
+            if (type === 'error') statusMessageDiv.classList.add('error');
+            else if (type === 'success') statusMessageDiv.classList.add('success');
+        }
+
+        // Parse a TempU07B CSV file - finds the data header row and extracts data
+        function parseTempU07BFile(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const text = e.target.result;
+                    const lines = text.split(/\r?\n/);
+                    
+                    // Find the line that contains the data header "Date,Time,Temperature"
+                    let dataHeaderLineIndex = -1;
+                    let dataHeader = null;
+                    
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        // Look for the pattern: Date,Time,Temperature(C),Humidity(%RH)
+                        if (line.match(/^Date,Time,Temperature/)) {
+                            dataHeaderLineIndex = i;
+                            dataHeader = line;
+                            break;
+                        }
+                        // Also try case-insensitive
+                        if (line.toLowerCase().match(/^date,time,temperature/)) {
+                            dataHeaderLineIndex = i;
+                            dataHeader = line;
+                            break;
+                        }
+                    }
+                    
+                    if (dataHeaderLineIndex === -1) {
+                        resolve({ 
+                            success: false, 
+                            error: `Could not find data header row ("Date,Time,Temperature...") in ${file.name}`,
+                            fileName: file.name
+                        });
+                        return;
+                    }
+                    
+                    // Parse the header to find temperature and humidity column indices
+                    const headerParts = parseCSVRow(dataHeader);
+                    let tempColIndex = -1;
+                    let humColIndex = -1;
+                    
+                    for (let i = 0; i < headerParts.length; i++) {
+                        const col = headerParts[i].toLowerCase().trim();
+                        if (col.includes('temperature') || col === 'temp' || (col.includes('temp') && !col.includes('hum'))) {
+                            tempColIndex = i;
+                        }
+                        if (col.includes('humidity') || col === 'humidity' || col === 'rh' || col.includes('humid')) {
+                            humColIndex = i;
+                        }
+                    }
+                    
+                    // Specific for TempU07B: Temperature(C) is column 2, Humidity(%RH) is column 3
+                    if (tempColIndex === -1 && headerParts[2] && headerParts[2].toLowerCase().includes('temperature')) {
+                        tempColIndex = 2;
+                    }
+                    if (humColIndex === -1 && headerParts[3] && headerParts[3].toLowerCase().includes('humidity')) {
+                        humColIndex = 3;
+                    }
+                    
+                    if (tempColIndex === -1) {
+                        resolve({ success: false, error: `Temperature column not found in ${file.name}`, fileName: file.name });
+                        return;
+                    }
+                    if (humColIndex === -1) {
+                        resolve({ success: false, error: `Humidity column not found in ${file.name}`, fileName: file.name });
+                        return;
+                    }
+                    
+                    // Extract data rows (starting after the header)
+                    const tempValues = [];
+                    const humValues = [];
+                    
+                    for (let i = dataHeaderLineIndex + 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (line === '') continue;
+                        
+                        // Skip separator lines like "******************************"
+                        if (line.includes('***') || line.includes('---')) continue;
+                        
+                        const row = parseCSVRow(line);
+                        if (row.length === 0) continue;
+                        
+                        let tempVal = null;
+                        let humVal = null;
+                        
+                        if (tempColIndex < row.length) {
+                            const raw = row[tempColIndex].trim();
+                            const num = parseFloat(raw);
+                            if (!isNaN(num)) tempVal = num;
+                        }
+                        if (humColIndex < row.length) {
+                            const raw = row[humColIndex].trim();
+                            const num = parseFloat(raw);
+                            if (!isNaN(num)) humVal = num;
+                        }
+                        
+                        // Only add if at least one value is valid
+                        if (tempVal !== null || humVal !== null) {
+                            tempValues.push(tempVal);
+                            humValues.push(humVal);
+                        }
+                    }
+                    
+                    if (tempValues.length === 0) {
+                        resolve({ success: false, error: `No data rows found in ${file.name}`, fileName: file.name });
+                        return;
+                    }
+                    
+                    resolve({
+                        success: true,
+                        fileName: file.name,
+                        tempValues: tempValues,
+                        humValues: humValues,
+                        rowCount: tempValues.length
+                    });
+                };
+                reader.onerror = () => resolve({ success: false, error: `Error reading ${file.name}`, fileName: file.name });
+                reader.readAsText(file, "UTF-8");
+            });
+        }
+        
+        // Parse a CSV row (handles quoted fields)
+        function parseCSVRow(rowStr) {
+            const result = [];
+            let inQuote = false;
+            let current = '';
+            for (let i = 0; i < rowStr.length; i++) {
+                const ch = rowStr[i];
+                if (ch === '"') {
+                    inQuote = !inQuote;
+                } else if (ch === ',' && !inQuote) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += ch;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+        
+        // Process all files and merge
+        async function processAndMerge(files) {
+            if (!files.length) throw new Error("No files selected");
+            
+            setStatusMessage(`⏳ Processing ${files.length} file(s)... extracting temperature & humidity data.`);
+            
+            const fileResults = [];
+            let globalRowCount = null;
+            
+            for (let i = 0; i < files.length; i++) {
+                const result = await parseTempU07BFile(files[i]);
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                if (globalRowCount === null) {
+                    globalRowCount = result.rowCount;
+                } else if (globalRowCount !== result.rowCount) {
+                    throw new Error(`Row count mismatch: ${files[0].name} has ${globalRowCount} rows, ${result.fileName} has ${result.rowCount} rows. Files must have same length.`);
+                }
+                
+                fileResults.push({
+                    fileName: result.fileName,
+                    tempValues: result.tempValues,
+                    humValues: result.humValues,
+                    rowCount: result.rowCount
+                });
+            }
+            
+            if (!globalRowCount || globalRowCount === 0) {
+                throw new Error("No data rows found in any file");
+            }
+            
+            // Build columns: ["hours", "filename_temperature", "filename_humidity", ...]
+            const columns = ["hours"];
+            for (const fr of fileResults) {
+                let baseName = fr.fileName.replace(/\.(csv|txt)$/i, '').replace(/[^a-zA-Z0-9_\-]/g, '_');
+                columns.push(`${baseName}_temperature`);
+                columns.push(`${baseName}_humidity`);
+            }
+            
+            // Build rows with hour values: n/6 (where n starts from 1)
+            const rows = [];
+            for (let rowIdx = 0; rowIdx < globalRowCount; rowIdx++) {
+                const hourVal = (rowIdx + 1) / 6;  // 1/6 = 0.1666667, 2/6 = 0.33333, etc.
+                const rowData = [hourVal];
+                
+                for (const fr of fileResults) {
+                    let temp = (rowIdx < fr.tempValues.length) ? fr.tempValues[rowIdx] : null;
+                    let hum = (rowIdx < fr.humValues.length) ? fr.humValues[rowIdx] : null;
+                    
+                    const tempStr = (temp !== null && !isNaN(temp)) ? temp.toFixed(3) : "";
+                    const humStr = (hum !== null && !isNaN(hum)) ? hum.toFixed(2) : "";
+                    rowData.push(tempStr, humStr);
+                }
+                rows.push(rowData);
+            }
+            
+            return { columns, rows, rowCount: globalRowCount };
+        }
+        
+        // Convert merged data to CSV string
+        function mergedToCSV(columns, rows) {
+            const escapeCSV = (cell) => {
+                if (cell === undefined || cell === null || cell === "") return "";
+                const str = String(cell);
+                if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+                    return '"' + str.replace(/"/g, '""') + '"';
+                }
+                return str;
+            };
+            const headerLine = columns.map(c => escapeCSV(c)).join(',');
+            const dataLines = rows.map(row => row.map(cell => escapeCSV(cell)).join(','));
+            return [headerLine, ...dataLines].join('\n');
+        }
+        
+        // Render preview table
+        function renderPreview(columns, rows) {
+            if (!columns || !rows || rows.length === 0) return;
+            
+            const previewRowsCount = Math.min(10, rows.length);
+            
+            let theadHtml = '<tr>';
+            for (let col of columns) {
+                theadHtml += `<th style="max-width:180px; overflow-x:auto;">${escapeHtml(col)}</th>`;
+            }
+            theadHtml += '</tr>';
+            
+            let tbodyHtml = '';
+            for (let i = 0; i < previewRowsCount; i++) {
+                tbodyHtml += '<tr>';
+                for (let val of rows[i]) {
+                    let display = (val === undefined || val === null || val === '') ? '—' : val;
+                    if (typeof display === 'number') display = display.toFixed(6);
+                    tbodyHtml += `<td>${escapeHtml(String(display))}</td>`;
+                }
+                tbodyHtml += '</tr>';
+            }
+            
+            if (rows.length > previewRowsCount) {
+                tbodyHtml += `<tr><td colspan="${columns.length}" style="text-align:center; font-style:italic;">... and ${rows.length - previewRowsCount} more rows</td></tr>`;
+            }
+            
+            previewTable.innerHTML = `<thead>${theadHtml}</thead><tbody>${tbodyHtml}</tbody>`;
+            previewContainer.style.display = 'block';
+        }
+        
+        function escapeHtml(str) {
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // Main process handler
+        async function handleProcess() {
+            if (!selectedFiles.length) {
+                setStatusMessage('⚠️ Please select at least one CSV file.', 'error');
+                return;
+            }
+            
+            downloadBtn.disabled = true;
+            mergedData = null;
+            currentMergedCSVString = '';
+            
+            try {
+                const { columns, rows, rowCount } = await processAndMerge(selectedFiles);
+                mergedData = { columns, rows };
+                currentMergedCSVString = mergedToCSV(columns, rows);
+                renderPreview(columns, rows);
+                downloadBtn.disabled = false;
+                setStatusMessage(
+                    `✅ Success! ${selectedFiles.length} file(s) processed. Total rows = ${rowCount} (hours: 1/6 to ${rowCount}/6 ≈ ${(rowCount/6).toFixed(3)} hours). Ready to download.`,
+                    'success'
+                );
+            } catch (err) {
+                console.error(err);
+                setStatusMessage(`❌ Merge failed: ${err.message}`, 'error');
+                previewContainer.style.display = 'none';
+                mergedData = null;
+                currentMergedCSVString = '';
+                downloadBtn.disabled = true;
+            }
+        }
+        
+        function downloadCSV() {
+            if (!currentMergedCSVString || !mergedData) {
+                setStatusMessage('⚠️ No merged data. Please process files first.', 'error');
+                return;
+            }
+            
+            const blob = new Blob([currentMergedCSVString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+            link.download = `merged_climate_${timestamp}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            setStatusMessage(`📥 Download started: merged_climate_${timestamp}.csv (${mergedData.rows.length} rows, ${mergedData.columns.length} columns)`, 'success');
+        }
+        
+        // Event listeners
+        fileInput.addEventListener('change', (event) => {
+            const files = Array.from(event.target.files);
+            if (files.length) {
+                selectedFiles = files;
+                updateFileListUI();
+                setStatusMessage(`📁 ${files.length} file(s) ready. Click "Process & Merge Data".`, 'info');
+                previewContainer.style.display = 'none';
+                mergedData = null;
+                currentMergedCSVString = '';
+                downloadBtn.disabled = true;
+            } else if (selectedFiles.length === 0) {
+                clearAllFiles();
+            }
+        });
+        
+        processBtn.addEventListener('click', handleProcess);
+        clearBtn.addEventListener('click', clearAllFiles);
+        downloadBtn.addEventListener('click', downloadCSV);
+        
+        updateFileListUI();
+    })();
+</script>
+</body>
+</html>
