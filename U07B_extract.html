@@ -48,7 +48,7 @@
             background: #f8fafc;
             border: 2px dashed #bdd3e8;
             border-radius: 24px;
-            padding: 1.6rem;
+            padding: 1.6rem 1.6rem 0.5rem 1.6rem;
             text-align: center;
             transition: 0.2s;
             margin-bottom: 2rem;
@@ -82,22 +82,24 @@
             margin-top: 18px;
             font-size: 0.85rem;
             color: #2c3e4e;
-            background: white;
+            /* background: white; */
+	    /* background: #f8fafc; */
             border-radius: 20px;
             padding: 10px 16px;
             display: inline-block;
             max-width: 100%;
             word-break: break-word;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            /* box-shadow: 0 1px 2px rgba(0,0,0,0.05); */
         }
         .badge {
-            background: #e2e8f0;
+            /* background: #e2e8f0; */
+	    /* background: #f8fafc; */
             border-radius: 40px;
-            padding: 6px 12px;
+            padding: 6px 12px 0px;
             font-size: 0.75rem;
             font-weight: 500;
             display: inline-block;
-            margin-top: 12px;
+            margin-top: 30px;
         }
         .action-buttons {
             display: flex;
@@ -218,7 +220,7 @@
 <body>
 <div class="app-card">
     <div class="header">
-        <h1>🌡️ U07B Extractor | by Alim Yakub (RP) (TempU07B Compatible)</h1>
+        <h1>🌡️ U07B Extractor | by Alim Yakub (RP)</h1>
         <p>Extracts <strong>Temperature</strong> & <strong>Humidity</strong> from recorder CSV files (handles metadata headers) → merges with 10‑min interval hours column</p>
     </div>
     <div class="content">
@@ -228,6 +230,7 @@
                 <input type="file" id="csvFilesInput" multiple accept=".csv,.text/csv,.txt">
             </label>
             <div id="fileListDisplay" class="file-list">No files selected</div>
+	    <br style="clear: both;"> 
             <div class="badge">✅ Automatically finds "Date,Time,Temperature(C),Humidity(%RH)" header row</div>
         </div>
 
