@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>STL 3D Viewer | By Alim Yakub (RP)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        #info {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 12px 18px;
+            border-radius: 8px;
+            backdrop-filter: blur(8px);
+            pointer-events: none;
+            z-index: 10;
+            font-size: 14px;
+            border-left: 4px solid #ff9800;
+            font-family: monospace;
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 20;
+            font-family: 'Segoe UI', sans-serif;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        
+        button {
+            background: #2c3e66;
+            border: none;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s;
+            font-family: monospace;
+        }
+        
+        button:hover {
+            background: #ff9800;
+            transform: scale(1.02);
+        }
+        
+        .file-label {
+            background: #4c9aff;
+            padding: 8px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+            display: inline-block;
+        }
+        
+        .file-label:hover {
+            background: #ff9800;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .measure-box {
+            background: #1e2a3a;
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #ffaa66;
+            font-weight: bold;
+        }
+        
+        .status {
+            background: #1e2a3a;
+            padding: 6px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #aaa;
+        }
+        
+        @media (max-width: 700px) {
+            #controls { flex-direction: column; align-items: stretch; }
+            button, .file-label { text-align: center; }
+            .measure-box, .status { text-align: center; }
+        }
+        
+        .instruction {
+            position: absolute;
+            bottom: 90px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            color: #ccc;
+            font-family: monospace;
+            pointer-events: none;
+        }
+        
+        .error-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: #ff6666;
+            padding: 15px 25px;
+            border-radius: 10px;
+            z-index: 100;
+            text-align: center;
+            font-family: monospace;
+            border: 1px solid #ff6666;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        🧊 <strong>STL Explorer By Alim Yakub (RP)</strong> | 🖱️ Drag to rotate | Right-click + drag to pan | Scroll to zoom
+    </div>
+    
+    <div id="controls">
+        <label class="file-label">
+            📁 Open STL File
+            <input type="file" id="stlFileInput" accept=".stl,.STL">
+        </label>
+        <button id="resetViewBtn">🎯 Center & Reset View</button>
+        <button id="toggleGridBtn">🔲 Toggle Grid</button>
+        <div class="measure-box" id="sizeDisplay">
+            📏 Size: <span id="dimensions">--</span>
+        </div>
+        <div class="status" id="statusMsg">
+            ⚡ Ready - Load an STL file
+        </div>
+    </div>
+    <div class="instruction">
+        💡 Supports Binary & ASCII STL | Real-time measurements
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.128.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+
+        // --- Setup Scene ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a2a);
+        scene.fog = new THREE.FogExp2(0x0a0a2a, 0.008);
+
+        // --- Camera ---
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(5, 4, 7);
+        camera.lookAt(0, 0, 0);
+
+        // --- Renderer ---
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        // --- Controls ---
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.rotateSpeed = 1.2;
+        controls.zoomSpeed = 1.2;
+        controls.panSpeed = 0.8;
+        controls.enableZoom = true;
+        controls.enablePan = true;
+        controls.screenSpacePanning = false;
+        controls.maxPolarAngle = Math.PI / 1.6;
+
+        // --- Lighting (better illumination for STL details) ---
+        // Ambient
+        const ambientLight = new THREE.AmbientLight(0x404060);
+        scene.add(ambientLight);
+        
+        // Key light
+        const mainLight = new THREE.DirectionalLight(0xffffff, 1);
+        mainLight.position.set(3, 5, 2);
+        mainLight.castShadow = true;
+        mainLight.receiveShadow = false;
+        scene.add(mainLight);
+        
+        // Fill light
+        const fillLight = new THREE.PointLight(0x6688aa, 0.5);
+        fillLight.position.set(-2, 2, 3);
+        scene.add(fillLight);
+        
+        // Back rim light
+        const rimLight = new THREE.PointLight(0xffaa66, 0.4);
+        rimLight.position.set(1, 2, -3);
+        scene.add(rimLight);
+        
+        // Warm fill from below
+        const bottomLight = new THREE.PointLight(0xaa8866, 0.3);
+        bottomLight.position.set(0, -2, 0);
+        scene.add(bottomLight);
+
+        // --- Helpers ---
+        const gridHelper = new THREE.GridHelper(15, 20, 0x88aaff, 0x335588);
+        gridHelper.position.y = -1.2;
+        gridHelper.material.transparent = true;
+        gridHelper.material.opacity = 0.6;
+        scene.add(gridHelper);
+        
+        const axesHelper = new THREE.AxesHelper(4);
+        axesHelper.material.transparent = true;
+        axesHelper.material.opacity = 0.2;
+        scene.add(axesHelper);
+        
+        // Simple reference plane for shadows
+        const shadowPlane = new THREE.Mesh(
+            new THREE.PlaneGeometry(12, 12),
+            new THREE.ShadowMaterial({ opacity: 0.4, color: 0x000000, transparent: true, side: THREE.DoubleSide })
+        );
+        shadowPlane.rotation.x = -Math.PI / 2;
+        shadowPlane.position.y = -1.2;
+        shadowPlane.receiveShadow = true;
+        scene.add(shadowPlane);
+
+        // --- State ---
+        let currentModel = null;
+        let gridVisible = true;
+
+        // --- Update UI with model dimensions ---
+        function updateModelDimensions(modelMesh) {
+            if (!modelMesh) {
+                document.getElementById('dimensions').innerHTML = '--';
+                document.getElementById('statusMsg').innerHTML = '⚠️ No model loaded';
+                return;
+            }
+            
+            // Compute bounding box
+            const bbox = new THREE.Box3().setFromObject(modelMesh);
+            const size = bbox.getSize(new THREE.Vector3());
+            const center = bbox.getCenter(new THREE.Vector3());
+            
+            // Format dimensions nicely
+            const x = size.x.toFixed(2);
+            const y = size.y.toFixed(2);
+            const z = size.z.toFixed(2);
+            const maxDim = Math.max(size.x, size.y, size.z).toFixed(2);
+            
+            document.getElementById('dimensions').innerHTML = `${x} × ${y} × ${z} mm <span style="color:#88ff88;">(max: ${maxDim} mm)</span>`;
+            document.getElementById('statusMsg').innerHTML = `✅ Model loaded successfully | ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`;
+            
+            // Auto-adjust camera target to model center for better experience
+            controls.target.copy(center);
+            controls.update();
+        }
+        
+        // --- Robust STL loading function with error handling ---
+        const loader = new STLLoader();
+        
+        function loadSTLFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = (event) => {
+                    const buffer = event.target.result;
+                    try {
+                        // STLLoader automatically detects binary vs ASCII
+                        const geometry = loader.parse(buffer);
+                        
+                        // Compute normals if missing (ensures proper lighting)
+                        geometry.computeVertexNormals();
+                        
+                        // Create material with pleasant metallic look
+                        const material = new THREE.MeshStandardMaterial({
+                            color: 0x5a9eff,
+                            roughness: 0.3,
+                            metalness: 0.7,
+                            emissive: 0x001133,
+                            flatShading: false,
+                            side: THREE.DoubleSide  // Helps see inside if model has holes
+                        });
+                        
+                        const mesh = new THREE.Mesh(geometry, material);
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = false;
+                        
+                        // Center the model at origin for easy viewing
+                        const bbox = new THREE.Box3().setFromObject(mesh);
+                        const center = bbox.getCenter(new THREE.Vector3());
+                        const size = bbox.getSize(new THREE.Vector3());
+                        
+                        // Position model so its bottom sits just above the grid
+                        const minY = bbox.min.y;
+                        const targetY = -1.0; // Grid is at -1.2, so model sits slightly above
+                        const offsetY = targetY - minY;
+                        
+                        mesh.position.set(-center.x, -center.y + offsetY, -center.z);
+                        
+                        resolve(mesh);
+                    } catch (err) {
+                        reject(new Error(`STL parsing failed: ${err.message}`));
+                    }
+                };
+                
+                reader.onerror = () => reject(new Error('File read error'));
+                reader.readAsArrayBuffer(file);
+            });
+        }
+        
+        // --- Handle file selection ---
+        const fileInput = document.getElementById('stlFileInput');
+        fileInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            if (!file.name.toLowerCase().endsWith('.stl')) {
+                document.getElementById('statusMsg').innerHTML = '❌ Please select a .stl file';
+                return;
+            }
+            
+            document.getElementById('statusMsg').innerHTML = '⏳ Loading STL file...';
+            document.getElementById('dimensions').innerHTML = 'processing...';
+            
+            try {
+                const mesh = await loadSTLFile(file);
+                
+                // Remove old model
+                if (currentModel) {
+                    scene.remove(currentModel);
+                    if (currentModel.geometry) currentModel.geometry.dispose();
+                    if (currentModel.material) currentModel.material.dispose();
+                }
+                
+                scene.add(mesh);
+                currentModel = mesh;
+                
+                // Update UI with dimensions
+                updateModelDimensions(mesh);
+                
+                // Adjust camera to see the model nicely
+                const bbox = new THREE.Box3().setFromObject(mesh);
+                const size = bbox.getSize(new THREE.Vector3());
+                const center = bbox.getCenter(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const distance = Math.max(maxDim * 1.5, 3);
+                
+                // Set camera position relative to model center
+                camera.position.set(center.x + distance * 0.8, center.y + distance * 0.5, center.z + distance);
+                controls.target.copy(center);
+                controls.update();
+                
+            } catch (error) {
+                console.error('Load error:', error);
+                document.getElementById('statusMsg').innerHTML = `❌ Error: ${error.message}`;
+                document.getElementById('dimensions').innerHTML = 'failed';
+                
+                // Show temporary error notification
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.innerHTML = `⚠️ Failed to load STL<br><span style="font-size:11px;">${error.message}</span>`;
+                document.body.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 3000);
+            }
+        });
+        
+        // --- Reset View Button ---
+        document.getElementById('resetViewBtn').addEventListener('click', () => {
+            if (currentModel) {
+                const bbox = new THREE.Box3().setFromObject(currentModel);
+                const center = bbox.getCenter(new THREE.Vector3());
+                const size = bbox.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const distance = Math.max(maxDim * 1.5, 3.5);
+                
+                camera.position.set(center.x + distance * 0.8, center.y + distance * 0.5, center.z + distance);
+                controls.target.copy(center);
+                controls.update();
+            } else {
+                // Default reset
+                camera.position.set(5, 4, 7);
+                controls.target.set(0, 0, 0);
+                controls.update();
+            }
+        });
+        
+        // --- Toggle Grid & Axes ---
+        document.getElementById('toggleGridBtn').addEventListener('click', () => {
+            gridVisible = !gridVisible;
+            gridHelper.visible = gridVisible;
+            axesHelper.visible = gridVisible;
+            shadowPlane.visible = gridVisible;
+        });
+        
+        // --- Window resize handler ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // --- Simple loading indicator on drag & drop (bonus) ---
+        // Allow drag and drop anywhere
+        const dropZone = document.body;
+        
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.opacity = '0.9';
+        });
+        
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.opacity = '1';
+        });
+        
+        dropZone.addEventListener('drop', async (e) => {
+            e.preventDefault();
+            dropZone.style.opacity = '1';
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.toLowerCase().endsWith('.stl')) {
+                // Simulate file input
+                const fakeEvent = { target: { files: [files[0]] } };
+                fileInput.dispatchEvent(new Event('change'));
+                // Manually trigger load
+                const file = files[0];
+                if (!file.name.toLowerCase().endsWith('.stl')) return;
+                
+                document.getElementById('statusMsg').innerHTML = '⏳ Loading dropped STL...';
+                try {
+                    const mesh = await loadSTLFile(file);
+                    if (currentModel) {
+                        scene.remove(currentModel);
+                        if (currentModel.geometry) currentModel.geometry.dispose();
+                        if (currentModel.material) currentModel.material.dispose();
+                    }
+                    scene.add(mesh);
+                    currentModel = mesh;
+                    updateModelDimensions(mesh);
+                    
+                    const bbox = new THREE.Box3().setFromObject(mesh);
+                    const center = bbox.getCenter(new THREE.Vector3());
+                    const size = bbox.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    const distance = Math.max(maxDim * 1.5, 3);
+                    camera.position.set(center.x + distance * 0.8, center.y + distance * 0.5, center.z + distance);
+                    controls.target.copy(center);
+                    controls.update();
+                } catch (err) {
+                    document.getElementById('statusMsg').innerHTML = `❌ Drop error: ${err.message}`;
+                }
+            } else {
+                document.getElementById('statusMsg').innerHTML = '⚠️ Please drop a valid .stl file';
+            }
+        });
+        
+        // --- Add a subtle reference object (small helper sphere at origin) ---
+        const originMarker = new THREE.Mesh(
+            new THREE.SphereGeometry(0.08, 8, 8),
+            new THREE.MeshStandardMaterial({ color: 0xffaa55, emissive: 0x331100 })
+        );
+        scene.add(originMarker);
+        
+        // --- Animation Loop ---
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+        
+        // Initial status
+        console.log('STL Viewer Ready - supports binary and ASCII STL files');
+    </script>
+</body>
+</html>
