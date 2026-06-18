@@ -21,9 +21,11 @@
         .dashboard {
             max-width: 100%;
             margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
         }
         
-        /* Header with title and CSV edit link */
         .header {
             display: flex;
             justify-content: space-between;
@@ -52,6 +54,26 @@
             transition: all 0.2s;
         }
         .csv-edit-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .bottom-link {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-decoration: none;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            z-index: 100;
+        }
+        .bottom-link:hover {
             background: #667eea;
             color: white;
             text-decoration: none;
@@ -429,10 +451,9 @@
 </head>
 <body>
 <div class="dashboard">
-    <!-- Header with title and CSV edit link -->
     <div class="header">
         <h1>🎨 Line Chart Studio</h1>
-        <div class="header-links">
+	<div class="header-links">
             <!--<a href="#" id="csvEditLink" class="csv-edit-link" target="_blank">📝 Click here for CSV processor</a>-->
             <!--<a href="#" id="csvEditLink2" class="csv-edit-link" target="_blank">📊 Click here for U07B_extractor</a>-->
         </div>
@@ -444,8 +465,7 @@
             <div class="file-input-group"><label>📂 Upload CSV</label><input type="file" id="csvFileInput" accept=".csv"></div>
             <div class="file-input-group"><label>🔗 CSV URL</label><input type="text" id="csvUrlInput" placeholder="https://example.com/data.csv"></div>
             <button id="loadUrlBtn" class="csv-btn">Load URL</button>
-            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3);  color:white">📊 Numeric Sample</button>
-            <button id="loadCategoricalBtn" class="csv-btn" style="background:rgba(255,255,255,0.2);  color:white">📅 Categorical Sample</button>
+            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3);  color:white">📊 Sample (Different Lengths)</button>
         </div>
         <div id="loadStatus" style="font-size:0.7rem; margin-top:8px;">✅ Ready</div>
     </div>
@@ -487,14 +507,15 @@
     <div class="scroll-container">
         <div class="charts-grid" id="chartsGrid"></div>
     </div>
+
+    <!--<a href="#" id="csvEditLinkBottom" class="bottom-link" target="_blank">📝 CSV Editor (alt)</a>-->
 </div>
 
 <script>
-    // Set CSV edit link
-    // document.getElementById('csvEditLink').href = 'https://bukaymila.github.io/csv-edit';
-    // document.getElementById('csvEditLink2').href = 'https://bukaymila.github.io/U07B_extract';
+    //document.getElementById('csvEditLinkTop1').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_1/edit';
+    //document.getElementById('csvEditLinkTop2').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_2/edit';
+    //document.getElementById('csvEditLinkBottom').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_3/edit';
     
-    // Color themes with emojis restored
     const colorThemes = {
         "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
         "💙 Ocean Blues": ["#023E8A", "#0077B6", "#0096C7", "#00B4D8", "#48CAE4", "#90E0EF", "#ADE8F4"],
@@ -514,7 +535,6 @@
     let availableSeries = [];
     let chartInstances = {};
     let nextChartId = 1;
-    let currentLabels = [];
     let globalPointSize = 3;
     let globalXTitle = "";
     let globalYTitle = "";
@@ -534,40 +554,48 @@
         const lines = csvText.trim().split(/\r?\n/);
         if (lines.length < 2) throw new Error("CSV must have header + data");
         const headers = lines[0].split(',').map(h => h.trim());
-        const labels = [];
+        
+        const xValues = [];
         const dataColumns = {};
         for (let i = 1; i < headers.length; i++) dataColumns[headers[i]] = [];
-        
-        const firstDataRow = lines[1].split(',').map(v => v.trim());
-        const isNumericX = !isNaN(parseFloat(firstDataRow[0]));
         
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
             if (values.length < headers.length) continue;
             
-            if (isNumericX) {
-                labels.push(parseFloat(values[0]));
-            } else {
-                labels.push(values[0]);
-            }
-            
+            xValues.push(values[0]);
             for (let j = 1; j < headers.length; j++) {
-                const num = parseFloat(values[j]);
-                dataColumns[headers[j]].push(isNaN(num) ? 0 : num);
+                const val = values[j] || '';
+                // IMPORTANT: Only push numeric values, skip empty/blank cells
+                if (val !== '' && !isNaN(parseFloat(val))) {
+                    dataColumns[headers[j]].push(parseFloat(val));
+                } else {
+                    dataColumns[headers[j]].push(null); // null = missing value
+                }
             }
         }
         
         const series = [];
         const defaultColors = colorThemes["🌈 Rainbow"];
+        let idx = 0;
         for (let i = 1; i < headers.length; i++) {
+            // Filter out series that are completely empty (all nulls)
+            const data = dataColumns[headers[i]];
+            const hasData = data.some(d => d !== null);
+            if (!hasData) continue;
+            
             series.push({ 
                 id: `s_${Date.now()}_${i}_${Math.random()}`, 
                 name: headers[i], 
-                data: dataColumns[headers[i]], 
-                color: defaultColors[(i-1) % defaultColors.length]
+                data: data,  // Contains null for missing values
+                xData: xValues,
+                color: defaultColors[idx % defaultColors.length]
             });
+            idx++;
         }
-        return { labels, series, isNumericX };
+        
+        const isNumericX = xValues.length > 0 && !isNaN(parseFloat(xValues[0]));
+        return { xValues, series, isNumericX };
     }
 
     function renderLibrary() {
@@ -825,28 +853,47 @@
         }
         
         const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        const isNumeric = chart.useNumericX === true;
         
-        const datasets = chart.series.map(s => ({
-            label: s.name,
-            data: s.data,
-            borderColor: s.color,
-            backgroundColor: 'transparent',
-            borderWidth: 2.5,
-            pointRadius: pointSize,
-            pointHoverRadius: pointSize + 2,
-            pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
-            pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
-            tension: 0.2,
-            fill: false
-        }));
+        // Build datasets with proper X/Y pairs, filtering out null values
+        const datasets = chart.series.map(s => {
+            const xData = s.xData || [];
+            const dataPoints = [];
+            
+            for (let i = 0; i < s.data.length; i++) {
+                const y = s.data[i];
+                // Skip null/undefined values (they won't appear on the chart)
+                if (y === null || y === undefined) continue;
+                
+                const xVal = xData[i] || i;
+                if (isNumeric) {
+                    dataPoints.push({ x: parseFloat(xVal), y: y });
+                } else {
+                    dataPoints.push({ x: xVal, y: y });
+                }
+            }
+            
+            return {
+                label: s.name,
+                data: dataPoints,
+                borderColor: s.color,
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointRadius: pointSize,
+                pointHoverRadius: pointSize + 2,
+                pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
+                pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
+                tension: 0.2,
+                fill: false,
+                spanGaps: false // Don't connect across missing values
+            };
+        });
         
         const finalXTitle = chart.xTitle && chart.xTitle !== 'X Axis' ? chart.xTitle : (globalXTitle || chart.xTitle || 'X Axis');
         const finalYTitle = chart.yTitle && chart.yTitle !== 'Y Axis' ? chart.yTitle : (globalYTitle || chart.yTitle || 'Y Axis');
         
         let xAxisConfig;
-        const isNumeric = chart.useNumericX === true;
-        
-        if (isNumeric && currentLabels.length > 0 && typeof currentLabels[0] === 'number') {
+        if (isNumeric) {
             xAxisConfig = {
                 type: 'linear',
                 title: { display: true, text: finalXTitle },
@@ -858,23 +905,11 @@
                 xAxisConfig.ticks = { stepSize: chart.xStep };
             }
         } else {
-            let displayLabels = [...currentLabels];
-            if (chart.xInterval && chart.xInterval > 1) {
-                displayLabels = [];
-                for (let i = 0; i < currentLabels.length; i++) {
-                    if (i % chart.xInterval === 0) {
-                        displayLabels.push(currentLabels[i]);
-                    } else {
-                        displayLabels.push('');
-                    }
-                }
-            }
             xAxisConfig = {
                 type: 'category',
                 title: { display: true, text: finalXTitle },
                 grid: { color: '#e9ecef' }
             };
-            chart._displayLabels = displayLabels;
         }
         
         const yAxisConfig = {
@@ -889,11 +924,9 @@
             yAxisConfig.ticks = { stepSize: chart.yStep };
         }
         
-        const labelsToUse = (chart._displayLabels && !isNumeric) ? chart._displayLabels : currentLabels;
-        
         const instance = new Chart(ctx, {
             type: 'line',
-            data: { labels: labelsToUse, datasets },
+            data: { datasets: datasets },
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
@@ -905,7 +938,7 @@
                             label: function(context) {
                                 let label = context.dataset.label || '';
                                 let value = context.raw;
-                                return `${label}: ${value}`;
+                                return `${label}: ${value.y}`;
                             }
                         }
                     },
@@ -949,21 +982,42 @@
         
         const isNumeric = chart.useNumericX === true;
         
-        instance.data.datasets = chart.series.map(s => ({
-            label: s.name,
-            data: s.data,
-            borderColor: s.color,
-            backgroundColor: 'transparent',
-            borderWidth: 2.5,
-            pointRadius: pointSize,
-            pointHoverRadius: pointSize + 2,
-            pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
-            pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
-            tension: 0.2,
-            fill: false
-        }));
+        // Rebuild datasets filtering out null values
+        const datasets = chart.series.map(s => {
+            const xData = s.xData || [];
+            const dataPoints = [];
+            
+            for (let i = 0; i < s.data.length; i++) {
+                const y = s.data[i];
+                if (y === null || y === undefined) continue;
+                
+                const xVal = xData[i] || i;
+                if (isNumeric) {
+                    dataPoints.push({ x: parseFloat(xVal), y: y });
+                } else {
+                    dataPoints.push({ x: xVal, y: y });
+                }
+            }
+            
+            return {
+                label: s.name,
+                data: dataPoints,
+                borderColor: s.color,
+                backgroundColor: 'transparent',
+                borderWidth: 2.5,
+                pointRadius: pointSize,
+                pointHoverRadius: pointSize + 2,
+                pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
+                pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
+                tension: 0.2,
+                fill: false,
+                spanGaps: false
+            };
+        });
         
-        if (isNumeric && currentLabels.length > 0 && typeof currentLabels[0] === 'number') {
+        instance.data.datasets = datasets;
+        
+        if (isNumeric) {
             instance.options.scales.x.type = 'linear';
             instance.options.scales.x.min = chart.xMin;
             instance.options.scales.x.max = chart.xMax;
@@ -972,21 +1026,8 @@
             } else {
                 instance.options.scales.x.ticks = {};
             }
-            instance.data.labels = currentLabels;
         } else {
             instance.options.scales.x.type = 'category';
-            let displayLabels = [...currentLabels];
-            if (chart.xInterval && chart.xInterval > 1) {
-                displayLabels = [];
-                for (let i = 0; i < currentLabels.length; i++) {
-                    if (i % chart.xInterval === 0) {
-                        displayLabels.push(currentLabels[i]);
-                    } else {
-                        displayLabels.push('');
-                    }
-                }
-            }
-            instance.data.labels = displayLabels;
             instance.options.scales.x.min = undefined;
             instance.options.scales.x.max = undefined;
             instance.options.scales.x.ticks = {};
@@ -1178,10 +1219,14 @@
         });
     }
     
-    function loadCSVAndReset(csvText, sourceName, forceNumeric = false) {
+    function loadCSVAndReset(csvText, sourceName) {
         try {
-            const { labels, series, isNumericX } = parseCSV(csvText);
-            currentLabels = labels;
+            const { xValues, series, isNumericX } = parseCSV(csvText);
+            
+            if (series.length === 0) {
+                throw new Error("No valid data series found in CSV. Make sure you have numeric columns.");
+            }
+            
             Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
             chartInstances = {};
             availableSeries = [];
@@ -1189,9 +1234,9 @@
                 id: nextChartId++,
                 title: `Main Dashboard`,
                 series: series,
-                xTitle: 'X Axis',
+                xTitle: isNumericX ? 'X Value' : 'X Axis',
                 yTitle: 'Y Axis',
-                useNumericX: forceNumeric || isNumericX,
+                useNumericX: isNumericX,
                 xMin: undefined, xMax: undefined, xStep: undefined, xInterval: undefined,
                 yMin: undefined, yMax: undefined, yStep: undefined,
                 currentTheme: "🌈 Rainbow",
@@ -1199,7 +1244,7 @@
             }];
             renderAllCharts();
             renderLibrary();
-            document.getElementById('loadStatus').innerHTML = `✅ Loaded ${labels.length} rows, ${series.length} series from ${sourceName} (X-axis: ${forceNumeric || isNumericX ? 'Numeric' : 'Categorical'})`;
+            document.getElementById('loadStatus').innerHTML = `✅ Loaded ${xValues.length} rows, ${series.length} series from ${sourceName} (X-axis: ${isNumericX ? 'Numeric' : 'Categorical'})`;
         } catch(err) { document.getElementById('loadStatus').innerHTML = `❌ Error: ${err.message}`; }
     }
     
@@ -1226,20 +1271,15 @@
     document.getElementById('applyGlobalBtn').addEventListener('click', applyGlobalSettings);
     
     document.getElementById('loadSampleBtn').addEventListener('click', () => {
-        const sample = `X,Sales Revenue,Active Users,Operating Costs\n1,42,28,22\n2,58,35,24\n3,55,42,27\n4,72,55,30\n5,88,68,35\n6,95,82,38\n7,110,91,42\n8,125,104,47\n9,140,118,52`;
-        loadCSVAndReset(sample, "Numeric Sample", true);
-    });
-    
-    document.getElementById('loadCategoricalBtn').addEventListener('click', () => {
-        const sample = `Month,Sales Revenue,Active Users,Operating Costs\nJan,42,28,22\nFeb,58,35,24\nMar,55,42,27\nApr,72,55,30\nMay,88,68,35\nJun,95,82,38\nJul,110,91,42\nAug,125,104,47\nSep,140,118,52`;
-        loadCSVAndReset(sample, "Categorical Sample", false);
+        const sample = `Hour,Data A,Data B,Data C\n1,42,,\n2,58,35,\n3,55,42,22\n4,72,55,28\n5,88,68,35\n6,95,82,42\n7,110,,48\n8,125,,,\n9,140,,,`;
+        loadCSVAndReset(sample, "Sample (Different Lengths)");
     });
     
     document.getElementById('csvFileInput').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => loadCSVAndReset(ev.target.result, file.name, false);
+        reader.onload = (ev) => loadCSVAndReset(ev.target.result, file.name);
         reader.readAsText(file);
     });
     
@@ -1249,7 +1289,7 @@
         try {
             const resp = await fetch(url);
             const text = await resp.text();
-            loadCSVAndReset(text, url, false);
+            loadCSVAndReset(text, url);
         } catch(err) { alert("Failed to load URL"); }
     });
     
