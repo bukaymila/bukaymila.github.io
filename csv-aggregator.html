@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Aggregator | By Alim Yakub (RP)</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+    <text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f6f9fc;
+            display: flex;
+            justify-content: center;
+            padding: 2rem 1rem;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .card {
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            padding: 2rem 2rem 2.5rem;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+        }
+        h1 {
+            font-weight: 500;
+            font-size: 1.9rem;
+            letter-spacing: -0.3px;
+            color: #0b1e33;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 0.2rem;
+            margin-bottom: 0.5rem;
+        }
+        .sub {
+            color: #2c5775;
+            margin-top: -0.2rem;
+            margin-bottom: 1.8rem;
+            font-size: 0.95rem;
+            border-left: 3px solid #83b8d4;
+            padding-left: 16px;
+            background: #eef5fa;
+            border-radius: 0 12px 12px 0;
+            line-height: 1.6;
+        }
+        .sub strong {
+            color: #0b2d47;
+        }
+        .upload-area {
+            background: #f0f6fe;
+            border: 2px dashed #b6d2e8;
+            border-radius: 20px;
+            padding: 2.2rem 1.5rem;
+            text-align: center;
+            margin-bottom: 2.2rem;
+            transition: 0.15s;
+        }
+        .upload-area:hover {
+            background: #e9f2fd;
+            border-color: #6f9bc0;
+        }
+        .file-input-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 16px 24px;
+        }
+        .file-input-wrapper label {
+            background: #1f4970;
+            color: white;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 3px 6px rgba(0, 20, 40, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .file-input-wrapper label:hover {
+            background: #123a5a;
+            transform: scale(1.01);
+        }
+        #fileInput {
+            display: none;
+        }
+        .file-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            justify-content: center;
+            font-size: 0.9rem;
+            margin-top: 18px;
+        }
+        .file-tag {
+            background: white;
+            padding: 4px 14px 4px 16px;
+            border-radius: 30px;
+            border: 1px solid #cbdbe9;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.02);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .file-tag button {
+            background: transparent;
+            border: none;
+            color: #8b2c2c;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1.1rem;
+            line-height: 1;
+            padding: 0 4px;
+        }
+        .file-tag button:hover {
+            color: #b11f1f;
+        }
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 18px 28px;
+            margin: 28px 0 20px;
+        }
+        .btn {
+            background: white;
+            border: 1px solid #b8cfdf;
+            padding: 10px 28px;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.95rem;
+            color: #1a3d57;
+            cursor: pointer;
+            transition: 0.12s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: #1d4b72;
+            border-color: #1d4b72;
+            color: white;
+            box-shadow: 0 4px 8px rgba(24, 64, 100, 0.15);
+        }
+        .btn-primary:hover {
+            background: #123a5a;
+            transform: translateY(-1px);
+        }
+        .btn-primary:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none;
+        }
+        .btn-success {
+            background: #1e7a5e;
+            border-color: #1e7a5e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(30, 122, 94, 0.15);
+        }
+        .btn-success:hover {
+            background: #15624a;
+            transform: translateY(-1px);
+        }
+        .btn-success:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+            transform: none;
+        }
+        .btn-outline {
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: #e8f0f8;
+            border-color: #8fb2cc;
+        }
+        .stats {
+            font-size: 0.9rem;
+            color: #1f4460;
+            background: #e9f2fa;
+            padding: 6px 16px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+            border-radius: 18px;
+            border: 1px solid #dde8f2;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 500px;
+        }
+        th {
+            background: #e5eff8;
+            color: #103a54;
+            font-weight: 600;
+            padding: 12px 10px;
+            text-align: left;
+            border-bottom: 2px solid #c0d6e8;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid #e4edf5;
+            background: white;
+        }
+        tr:hover td {
+            background: #f8fbfe;
+        }
+        .numeric {
+            font-family: 'JetBrains Mono', 'SF Mono', monospace;
+            font-weight: 450;
+        }
+        .row-header {
+            background: #f4f8fc;
+            font-weight: 500;
+            color: #1a3d57;
+        }
+        .empty-message {
+            text-align: center;
+            color: #5d7388;
+            padding: 3rem 1rem;
+            font-style: italic;
+        }
+        .footer-note {
+            margin-top: 1.8rem;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            color: #2b5779;
+            font-size: 0.9rem;
+            border-top: 1px solid #dce8f2;
+            padding-top: 1.5rem;
+        }
+        .badge {
+            background: #d2e2f0;
+            padding: 0.2rem 0.9rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #003153;
+        }
+        .stats-summary {
+            background: #eaf2fa;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+        .result-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .info-box {
+            background: #e8f4e8;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: #1a5a3a;
+            margin-bottom: 12px;
+            border-left: 4px solid #2d8f5e;
+        }
+        .info-box strong {
+            color: #0d3d25;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>📊 Row-wise CSV Aggregator</h1>
+    <div class="sub">
+	🥶 Imagine by Alim Yakub (RP) for the cold box project <br>
+        ⚡ For each row, computes <strong>AVG · MIN · MAX</strong> across all files<br>
+    </div>
+
+    <div class="upload-area">
+        <div class="file-input-wrapper">
+            <label for="fileInput">📁 Choose CSV files</label>
+            <input type="file" id="fileInput" multiple accept=".csv,.tsv,.txt" />
+            <span style="color: #3b5a77; font-size: 0.9rem;">or drag & drop</span>
+        </div>
+        <div id="fileListContainer" class="file-list"></div>
+    </div>
+
+    <div class="action-bar">
+        <button id="processBtn" class="btn btn-primary">▶ Aggregate</button>
+        <button id="clearBtn" class="btn btn-outline">🗑 Clear all</button>
+        <span id="fileCounter" class="stats">0 files loaded</span>
+    </div>
+
+    <!-- results -->
+    <div id="resultArea">
+        <div class="table-wrap" id="tableWrapper">
+            <div class="empty-message">⬆ Upload CSV files and click "Aggregate"</div>
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <span>📌 Shortest file determines row count · Only columns with <strong>all numeric values</strong> are kept</span>
+        <span class="badge">row-wise aggregation</span>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ----- state -----
+        let filesArray = [];
+        let lastResult = null;
+
+        const fileInput = document.getElementById('fileInput');
+        const fileListContainer = document.getElementById('fileListContainer');
+        const processBtn = document.getElementById('processBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const fileCounter = document.getElementById('fileCounter');
+        const tableWrapper = document.getElementById('tableWrapper');
+
+        // ----- helpers -----
+        function updateFileUI() {
+            if (filesArray.length === 0) {
+                fileListContainer.innerHTML = '<span style="color: #6d8aa8; font-size:0.9rem;">no files selected</span>';
+                fileCounter.textContent = '0 files loaded';
+                return;
+            }
+            let html = '';
+            filesArray.forEach((f, idx) => {
+                const name = f.name.length > 30 ? f.name.slice(0, 27)+'…' : f.name;
+                html += `<span class="file-tag">
+                    📄 ${name}
+                    <button data-index="${idx}" class="remove-file-btn" title="remove file">✕</button>
+                </span>`;
+            });
+            fileListContainer.innerHTML = html;
+            fileCounter.textContent = `${filesArray.length} file${filesArray.length>1?'s':''} loaded`;
+
+            document.querySelectorAll('.remove-file-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const idx = parseInt(btn.dataset.index, 10);
+                    if (!isNaN(idx) && idx >= 0 && idx < filesArray.length) {
+                        filesArray.splice(idx, 1);
+                        updateFileUI();
+                        lastResult = null;
+                        tableWrapper.innerHTML = `<div class="empty-message">⬆ Upload CSV files and click "Aggregate"</div>`;
+                    }
+                });
+            });
+        }
+
+        // ----- parse CSV (handles quoted fields) -----
+        function parseCSVToRows(text) {
+            const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+            if (lines.length === 0) return [];
+            const result = [];
+            for (let line of lines) {
+                const row = [];
+                let current = '';
+                let inQuotes = false;
+                for (let i = 0; i < line.length; i++) {
+                    const ch = line[i];
+                    if (inQuotes) {
+                        if (ch === '"' && (i+1 < line.length && line[i+1] === '"')) {
+                            current += '"';
+                            i++;
+                        } else if (ch === '"') {
+                            inQuotes = false;
+                        } else {
+                            current += ch;
+                        }
+                    } else {
+                        if (ch === '"') {
+                            inQuotes = true;
+                        } else if (ch === ',') {
+                            row.push(current.trim());
+                            current = '';
+                        } else {
+                            current += ch;
+                        }
+                    }
+                }
+                row.push(current.trim());
+                if (row.length > 0) result.push(row);
+            }
+            return result;
+        }
+
+        // ----- ROW-WISE aggregation -----
+        function aggregateFilesRowWise(files) {
+            if (!files || files.length === 0) return null;
+
+            const parsedData = [];
+            let minLength = Infinity;
+            for (let f of files) {
+                const rows = parseCSVToRows(f.text);
+                if (rows.length < 2) continue;
+                const headers = rows[0].slice(1);
+                const dataRows = rows.slice(1).map(row => row.slice(1));
+                parsedData.push({
+                    name: f.name,
+                    headers: headers,
+                    dataRows: dataRows
+                });
+                if (dataRows.length < minLength) minLength = dataRows.length;
+            }
+
+            if (parsedData.length === 0) return null;
+            if (minLength === 0) return { headers: [], rowStats: [] };
+
+            // Find common headers across all files
+            const allHeadersSet = new Set();
+            parsedData.forEach(p => p.headers.forEach(h => allHeadersSet.add(h)));
+            const allHeaders = Array.from(allHeadersSet);
+
+            const commonHeaders = allHeaders.filter(h => 
+                parsedData.every(p => p.headers.includes(h))
+            );
+
+            // Check each column: if ANY non-numeric value exists, drop the entire column
+            const numericHeaders = [];
+            for (let h of commonHeaders) {
+                let allNumeric = true;
+                for (let p of parsedData) {
+                    const idx = p.headers.indexOf(h);
+                    if (idx === -1) { allNumeric = false; break; }
+                    for (let r = 0; r < minLength; r++) {
+                        const val = p.dataRows[r]?.[idx];
+                        if (val === undefined || val === '') { allNumeric = false; break; }
+                        const num = parseFloat(val);
+                        if (isNaN(num)) { allNumeric = false; break; }
+                    }
+                    if (!allNumeric) break;
+                }
+                if (allNumeric) numericHeaders.push(h);
+            }
+
+            if (numericHeaders.length === 0) {
+                return { headers: [], rowStats: [] };
+            }
+
+            // Row-wise statistics
+            const rowStats = [];
+            for (let rowIdx = 0; rowIdx < minLength; rowIdx++) {
+                const rowData = {};
+                for (let h of numericHeaders) {
+                    const values = [];
+                    for (let p of parsedData) {
+                        const colIdx = p.headers.indexOf(h);
+                        if (colIdx !== -1) {
+                            const val = parseFloat(p.dataRows[rowIdx][colIdx]);
+                            if (!isNaN(val)) values.push(val);
+                        }
+                    }
+                    if (values.length > 0) {
+                        const sum = values.reduce((a, b) => a + b, 0);
+                        const avg = sum / values.length;
+                        const min = Math.min(...values);
+                        const max = Math.max(...values);
+                        rowData[h] = { avg, min, max };
+                    }
+                }
+                rowStats.push(rowData);
+            }
+
+            return { headers: numericHeaders, rowStats: rowStats };
+        }
+
+        // ----- render result table with download button -----
+        function renderResult(result) {
+            if (!result || !result.headers || result.headers.length === 0 || !result.rowStats || result.rowStats.length === 0) {
+                tableWrapper.innerHTML = `<div class="empty-message">📭 No numeric columns found · columns with any non-numeric values are dropped</div>`;
+                return;
+            }
+
+            const headers = result.headers;
+            const rowStats = result.rowStats;
+
+            let html = `<div class="result-controls">
+                <button id="downloadBtn" class="btn btn-success">⬇ Download CSV</button>
+            </div>`;
+            html += `<div class="stats-summary">📊 ${rowStats.length} rows · ${headers.length} numeric columns kept</div>`;
+            html += `<div class="info-box">✅ Only columns with <strong>all numeric values</strong> are included. Headers with <strong>any text or empty cells</strong> were dropped.</div>`;
+            html += `<table><thead><tr><th style="position:sticky;left:0;z-index:3;background:#e5eff8;">Row</th>`;
+            
+            for (let h of headers) {
+                html += `<th colspan="3" style="text-align:center;background:#dce8f5;">${h}</th>`;
+            }
+            html += `</tr><tr><th style="position:sticky;left:0;z-index:3;background:#e5eff8;">#</th>`;
+            for (let h of headers) {
+                html += `<th style="background:#eef4fa;font-weight:400;font-size:0.8rem;">avg</th>`;
+                html += `<th style="background:#eef4fa;font-weight:400;font-size:0.8rem;">min</th>`;
+                html += `<th style="background:#eef4fa;font-weight:400;font-size:0.8rem;">max</th>`;
+            }
+            html += `</tr></thead><tbody>`;
+
+            for (let r = 0; r < rowStats.length; r++) {
+                const row = rowStats[r];
+                html += `<tr><td class="row-header" style="position:sticky;left:0;z-index:1;background:#f4f8fc;">${r+1}</td>`;
+                for (let h of headers) {
+                    if (row[h]) {
+                        html += `<td class="numeric">${row[h].avg.toFixed(4)}</td>`;
+                        html += `<td class="numeric">${row[h].min.toFixed(4)}</td>`;
+                        html += `<td class="numeric">${row[h].max.toFixed(4)}</td>`;
+                    } else {
+                        html += `<td>—</td><td>—</td><td>—</td>`;
+                    }
+                }
+                html += `</tr>`;
+            }
+
+            html += `</tbody></table>`;
+            tableWrapper.innerHTML = html;
+
+            document.getElementById('downloadBtn').addEventListener('click', () => {
+                downloadCSV(result);
+            });
+        }
+
+        // ----- Download CSV -----
+        function downloadCSV(result) {
+            if (!result || !result.headers || result.headers.length === 0 || !result.rowStats || result.rowStats.length === 0) {
+                alert('No data to export. Please aggregate first.');
+                return;
+            }
+
+            const headers = result.headers;
+            const rowStats = result.rowStats;
+
+            let csvRows = [];
+            let headerRow = ['Row'];
+            for (let h of headers) {
+                headerRow.push(`${h}_avg`, `${h}_min`, `${h}_max`);
+            }
+            csvRows.push(headerRow.join(','));
+
+            for (let r = 0; r < rowStats.length; r++) {
+                const row = rowStats[r];
+                let dataRow = [r + 1];
+                for (let h of headers) {
+                    if (row[h]) {
+                        dataRow.push(row[h].avg.toFixed(6));
+                        dataRow.push(row[h].min.toFixed(6));
+                        dataRow.push(row[h].max.toFixed(6));
+                    } else {
+                        dataRow.push('', '', '');
+                    }
+                }
+                csvRows.push(dataRow.join(','));
+            }
+
+            const csvString = csvRows.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `aggregated_results_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(link.href);
+        }
+
+        // ----- process files -----
+        function processFiles() {
+            if (filesArray.length === 0) {
+                tableWrapper.innerHTML = `<div class="empty-message">⚠️ Please upload at least one CSV file.</div>`;
+                return;
+            }
+            const result = aggregateFilesRowWise(filesArray);
+            lastResult = result;
+            if (result && result.headers && result.headers.length > 0 && result.rowStats && result.rowStats.length > 0) {
+                renderResult(result);
+            } else {
+                tableWrapper.innerHTML = `<div class="empty-message">📭 No numeric columns found · columns with any non-numeric values are dropped</div>`;
+            }
+        }
+
+        // ----- clear all -----
+        function clearAll() {
+            filesArray = [];
+            lastResult = null;
+            fileInput.value = ''; 
+            updateFileUI();
+            tableWrapper.innerHTML = `<div class="empty-message">⬆ Upload CSV files and click "Aggregate"</div>`;
+        }
+
+        // ----- handle file selection -----
+        function handleFiles(selectedFiles) {
+            if (!selectedFiles || selectedFiles.length === 0) return;
+            const filePromises = [];
+            for (let file of selectedFiles) {
+                const promise = new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        resolve({ name: file.name, text: e.target.result });
+                    };
+                    reader.onerror = () => reject(`Error reading ${file.name}`);
+                    reader.readAsText(file);
+                });
+                filePromises.push(promise);
+            }
+
+            Promise.all(filePromises)
+                .then((fileDataArray) => {
+                    for (let fd of fileDataArray) {
+                        const exists = filesArray.some(f => f.name === fd.name && f.text === fd.text);
+                        if (!exists) {
+                            filesArray.push(fd);
+                        }
+                    }
+                    updateFileUI();
+                    lastResult = null;
+                    tableWrapper.innerHTML = `<div class="empty-message">✅ ${filesArray.length} file(s) ready · click "Aggregate"</div>`;
+                })
+                .catch(err => {
+                    alert('Error reading files: ' + err);
+                });
+        }
+
+        // ----- event listeners -----
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+            fileInput.value = '';
+        });
+
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            handleFiles(e.dataTransfer.files);
+        });
+
+        processBtn.addEventListener('click', processFiles);
+        clearBtn.addEventListener('click', clearAll);
+
+        updateFileUI();
+    })();
+</script>
+</body>
+</html>
