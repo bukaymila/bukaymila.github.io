@@ -1,0 +1,1166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Shaded Region Chart Studio | By Alim Yakub (RP)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+            gap: 15px;
+        }
+        .header h1 {
+            margin-bottom: 0;
+            font-size: 1.8rem;
+        }
+        .header-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .csv-edit-link {
+            font-size: 0.7rem;
+            color: #667eea;
+            text-decoration: none;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .csv-edit-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .bottom-link {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-decoration: none;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            z-index: 100;
+        }
+        .bottom-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .sub { color: #475569; margin-bottom: 20px; }
+        
+        .csv-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .csv-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .file-input-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        .file-input-group label {
+            display: block;
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+        .file-input-group input {
+            width: 100%;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+        }
+        .csv-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .csv-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .global-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .global-axis-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .global-axis-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .global-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .global-input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .global-input-group input {
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .action-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #e2e8f0;
+        }
+        .action-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: #2563eb; transform: translateY(-1px); }
+        .action-btn.export-all { background: #10b981; }
+        .action-btn.export-all:hover { background: #059669; }
+        
+        .shaded-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            margin-left: 10px;
+        }
+        .shaded-toggle input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        .scroll-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 10px;
+        }
+        .charts-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            min-width: min-content;
+            padding: 4px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            width: 720px;
+            flex-shrink: 0;
+        }
+        .chart-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #fafbfc;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .chart-title-input {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 200px;
+        }
+        .chart-actions { 
+            display: flex; 
+            gap: 4px;
+            align-items: center;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover { background: #e5e7eb; }
+        .export-group {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            border-left: 1px solid #e2e8f0;
+            padding-left: 8px;
+        }
+        .export-label {
+            font-size: 0.6rem;
+            color: #94a3b8;
+            margin-right: 2px;
+        }
+        .export-btn {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .export-btn:hover {
+            background: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        .export-btn.white-bg {
+            color: #1e293b;
+        }
+        .export-btn.transparent-bg {
+            color: #667eea;
+            border-color: #667eea;
+        }
+        .export-btn.transparent-bg:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .chart-controls-row {
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .chart-theme {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+        }
+        .chart-theme select {
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.7rem;
+        }
+        .apply-theme-btn {
+            padding: 3px 10px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        
+        .axis-controls {
+            padding: 10px 16px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .axis-group {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .axis-group-title {
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: #475569;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .axis-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+        }
+        .axis-row label {
+            width: 55px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .axis-row input {
+            flex: 1;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .axis-hint {
+            font-size: 0.6rem;
+            color: #6c757d;
+            margin-top: 4px;
+            padding-left: 63px;
+        }
+        
+        .canvas-wrapper {
+            padding: 16px 16px 8px 16px;
+            background: white;
+        }
+        canvas {
+            max-height: 320px;
+            width: 100%;
+            background: white;
+        }
+        
+        ::-webkit-scrollbar {
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+
+        .help-text {
+            font-size: 0.8rem;
+            color: #64748b;
+            background: #f8fafc;
+            padding: 8px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border-left: 3px solid #667eea;
+        }
+        .help-text strong { color: #334155; }
+        
+        .shade-indicator {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <h1>📐 Shaded Region Chart Studio</h1>
+        <div class="header-links">
+            <!--<a href="#" id="csvEditLinkTop1" class="csv-edit-link" target="_blank">📝 Edit CSV (Primary)</a>-->
+            <!--<a href="#" id="csvEditLinkTop2" class="csv-edit-link" target="_blank">📊 Edit CSV (Backup)</a>-->
+        </div>
+    </div>
+    <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
+
+    <div class="help-text">
+        <strong>📋 CSV Format:</strong> Expects columns like <code>Row, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code> 
+        (from the Aggregator tool). Each group creates a separate chart.
+    </div>
+
+    <div class="csv-panel">
+        <div class="csv-controls">
+            <div class="file-input-group"><label>📂 Upload CSV (from Aggregator)</label><input type="file" id="csvFileInput" accept=".csv"></div>
+            <div class="file-input-group"><label>🔗 CSV URL</label><input type="text" id="csvUrlInput" placeholder="https://example.com/data.csv"></div>
+            <button id="loadUrlBtn" class="csv-btn">Load URL</button>
+            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3);  color:white">📊 Sample Data</button>
+        </div>
+        <div id="loadStatus" style="font-size:0.7rem; margin-top:8px;">✅ Ready</div>
+    </div>
+
+    <div class="global-panel">
+        <div style="font-weight:600; margin-bottom:12px;">🌍 Global Settings</div>
+        <div class="global-axis-row">
+            <div class="global-input-group">
+                <label>📐 Global X-Axis Title</label>
+                <input type="text" id="globalXTitle" placeholder="X Axis">
+            </div>
+            <div class="global-input-group">
+                <label>📏 Global Y-Axis Title</label>
+                <input type="text" id="globalYTitle" placeholder="Y Axis">
+            </div>
+            <button id="applyGlobalBtn" class="action-btn" style="background:#3b82f6; margin-top:0;">Apply to All</button>
+        </div>
+        <div style="font-size:0.65rem; color:#6c757d; margin-top:5px;">
+            💡 Note: Global titles only apply to charts that don't have custom titles set.
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button id="exportAllBtn" class="action-btn export-all">📸 Export All (Stacked PNG)</button>
+        <div class="shaded-toggle">
+            <input type="checkbox" id="showShadedRegion" checked>
+            <label for="showShadedRegion">Show MIN/MAX Shaded Region (50% opacity) 
+                <span class="shade-indicator" style="background: rgba(102, 126, 234, 0.5);"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="scroll-container">
+        <div class="charts-grid" id="chartsGrid"></div>
+    </div>
+
+    <!--<a href="#" id="csvEditLinkBottom" class="bottom-link" target="_blank">📝 CSV Editor (alt)</a>-->
+</div>
+
+<script>
+    //document.getElementById('csvEditLinkTop1').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_1/edit';
+    //document.getElementById('csvEditLinkTop2').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_2/edit';
+    //document.getElementById('csvEditLinkBottom').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_3/edit';
+    
+    const colorThemes = {
+        "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
+        "💙 Ocean Blues": ["#ADE8F4", "#90E0EF", "#48CAE4", "#00B4D8", "#0096C7", "#0077B6", "#023E8A"],
+        "🧡 Sunset Oranges": ["#FED7AA", "#FDBA74", "#F97316", "#EA580C", "#C2410C", "#9D2A0B", "#7F1A06"],
+        "💚 Forest Greens": ["#6EE7B7", "#34D399", "#10B981", "#059669", "#047857", "#065F46", "#064E3B"],
+        "💜 Royal Purples": ["#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6", "#4C1D95"],
+        "🌸 Pink Passion": ["#F9A8D4", "#F472B6", "#EC4899", "#DB2777", "#BE185D", "#9D174D", "#831843"],
+        "🔥 Hot Reds": ["#F87171", "#EF4444", "#DC2626", "#B91C1C", "#991B1B", "#7F1D1D", "#450A0A"],
+        "💛 Golden Yellow": ["#FEF08A", "#FACC15", "#EAB308", "#CA8A04", "#A16207", "#854D0E", "#713F12"],
+        "🏔️ Mountain Teal": ["#5EEAD4", "#2DD4BF", "#14B8A6", "#0D9488", "#0F766E", "#115E59", "#134E4A"],
+        "🌊 Cool Cyan": ["#D3F0E6", "#B5E9DA", "#8FE3CF", "#29BB89", "#289672", "#1E6F5C", "#164863"],
+        "⚫ Monochrome": ["#A6A6A6", "#8C8C8C", "#737373", "#595959", "#404040", "#2D2D2D", "#1A1A1A"],
+        "🎨 Pastel": ["#F8AD9D", "#FBC4AB", "#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF"]
+    };
+
+    let chartsData = [];
+    let chartInstances = {};
+    let nextChartId = 1;
+    let globalXTitle = "";
+    let globalYTitle = "";
+    let showShadedRegion = true;
+
+    function applyThemeToChart(chartId, themeName) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart) return;
+        const colors = colorThemes[themeName];
+        if (!colors) return;
+        chart.color = colors[0];
+        rebuildChart(chartId);
+    }
+
+    function parseAggregatorCSV(csvText) {
+        const lines = csvText.trim().split(/\r?\n/);
+        if (lines.length < 2) throw new Error("CSV must have header + data");
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        const rowData = [];
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            if (values.length < headers.length) continue;
+            const row = {};
+            for (let j = 0; j < headers.length; j++) {
+                const val = parseFloat(values[j]);
+                if (!isNaN(val)) {
+                    row[headers[j]] = val;
+                }
+            }
+            if (Object.keys(row).length > 0) {
+                rowData.push(row);
+            }
+        }
+        
+        if (rowData.length === 0) throw new Error("No numeric data found in CSV");
+        
+        const columnGroups = {};
+        for (let h of headers) {
+            let base = h;
+            let type = 'avg';
+            if (h.endsWith('_avg')) { base = h.slice(0, -4); type = 'avg'; }
+            else if (h.endsWith('_min')) { base = h.slice(0, -4); type = 'min'; }
+            else if (h.endsWith('_max')) { base = h.slice(0, -4); type = 'max'; }
+            else { continue; }
+            
+            if (!columnGroups[base]) columnGroups[base] = {};
+            columnGroups[base][type] = h;
+        }
+        
+        const charts = [];
+        const defaultColors = colorThemes["🌈 Rainbow"];
+        let idx = 0;
+        const xValues = rowData.map((_, i) => i + 1);
+        
+        for (let base in columnGroups) {
+            const group = columnGroups[base];
+            if (group.avg && group.min && group.max) {
+                const avgData = rowData.map(r => r[group.avg] !== undefined ? r[group.avg] : null);
+                const minData = rowData.map(r => r[group.min] !== undefined ? r[group.min] : null);
+                const maxData = rowData.map(r => r[group.max] !== undefined ? r[group.max] : null);
+                
+                const hasData = avgData.some(d => d !== null);
+                if (hasData) {
+                    charts.push({
+                        id: `chart_${idx}`,
+                        name: base,
+                        avgData: avgData,
+                        minData: minData,
+                        maxData: maxData,
+                        xData: xValues,
+                        color: defaultColors[idx % defaultColors.length]
+                    });
+                    idx++;
+                }
+            }
+        }
+        
+        if (charts.length === 0) {
+            throw new Error("No complete avg/min/max groups found. Expected columns like: Sales_avg, Sales_min, Sales_max");
+        }
+        
+        return { charts, xValues };
+    }
+
+    function loadCSVIntoCharts(csvText, sourceName) {
+        try {
+            const { charts, xValues } = parseAggregatorCSV(csvText);
+            
+            // Clear existing charts
+            Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
+            chartInstances = {};
+            
+            // Create a chart for each group
+            chartsData = charts.map((chart, index) => ({
+                id: nextChartId++,
+                title: chart.name,
+                series: chart,
+                color: chart.color,
+                xTitle: '',
+                yTitle: '',
+                xMin: undefined, xMax: undefined, xStep: undefined,
+                yMin: undefined, yMax: undefined, yStep: undefined,
+                currentTheme: "🌈 Rainbow",
+                showShadedRegion: showShadedRegion
+            }));
+            
+            renderAllCharts();
+            document.getElementById('loadStatus').innerHTML = `✅ Loaded ${charts.length} charts from ${sourceName}`;
+        } catch(err) {
+            document.getElementById('loadStatus').innerHTML = `❌ Error: ${err.message}`;
+        }
+    }
+
+    function renderAllCharts() {
+        const grid = document.getElementById('chartsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        
+        if (chartsData.length === 0) {
+            grid.innerHTML = '<div style="width:100%; text-align:center; padding:40px;">No charts. Load data to get started.</div>';
+            return;
+        }
+        
+        chartsData.forEach(chart => {
+            const card = createChartCard(chart);
+            grid.appendChild(card);
+        });
+    }
+
+    function createChartCard(chart) {
+        const card = document.createElement('div');
+        card.className = 'chart-card';
+        card.setAttribute('data-chart-id', chart.id);
+        
+        const header = document.createElement('div');
+        header.className = 'chart-header';
+        header.innerHTML = `
+            <input type="text" class="chart-title-input" value="${escapeHtml(chart.title)}">
+            <div class="chart-actions">
+                <button class="icon-btn delete-btn" title="Delete Chart">🗑️</button>
+                <div class="export-group">
+                    <span class="export-label">Export:</span>
+                    <button class="export-btn white-bg" data-chart-id="${chart.id}" data-bg="white">⬜ White</button>
+                    <button class="export-btn transparent-bg" data-chart-id="${chart.id}" data-bg="transparent">▢ Transparent</button>
+                </div>
+            </div>
+        `;
+        
+        const controlsRow = document.createElement('div');
+        controlsRow.className = 'chart-controls-row';
+        controlsRow.innerHTML = `
+            <div class="chart-theme">
+                <span>🎨 Theme:</span>
+                <select class="chart-theme-select">
+                    ${Object.keys(colorThemes).map(t => `<option value="${t}" ${chart.currentTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+                <button class="apply-theme-btn">Apply</button>
+            </div>
+        `;
+        
+        const axisRow = document.createElement('div');
+        axisRow.className = 'axis-controls';
+        axisRow.innerHTML = `
+            <div class="axis-group">
+                <div class="axis-group-title">📐 X-Axis Settings</div>
+                <div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value="${escapeHtml(chart.xTitle || '')}"></div>
+                <div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any" value="${chart.xMin !== undefined ? chart.xMin : ''}"></div>
+                <div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any" value="${chart.xMax !== undefined ? chart.xMax : ''}"></div>
+                <div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any" value="${chart.xStep !== undefined ? chart.xStep : ''}"></div>
+                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
+            </div>
+            <div class="axis-group">
+                <div class="axis-group-title">📏 Y-Axis Settings</div>
+                <div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value="${escapeHtml(chart.yTitle || '')}"></div>
+                <div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any" value="${chart.yMin !== undefined ? chart.yMin : ''}"></div>
+                <div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any" value="${chart.yMax !== undefined ? chart.yMax : ''}"></div>
+                <div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any" value="${chart.yStep !== undefined ? chart.yStep : ''}"></div>
+                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
+            </div>
+        `;
+        
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.className = 'canvas-wrapper';
+        const canvas = document.createElement('canvas');
+        canvas.id = `canvas_${chart.id}`;
+        canvas.style.maxHeight = '320px';
+        canvasWrapper.appendChild(canvas);
+        
+        card.appendChild(header);
+        card.appendChild(controlsRow);
+        card.appendChild(axisRow);
+        card.appendChild(canvasWrapper);
+        
+        // Event listeners
+        const titleInput = header.querySelector('.chart-title-input');
+        titleInput.addEventListener('change', (e) => { chart.title = e.target.value; rebuildChart(chart.id); });
+        
+        const deleteBtn = header.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Delete chart "${chart.title}"?`)) {
+                deleteChart(chart.id);
+            }
+        });
+        
+        // Export buttons
+        const exportBtns = header.querySelectorAll('.export-btn');
+        exportBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const chartId = parseInt(btn.dataset.chartId);
+                const bgType = btn.dataset.bg;
+                exportSingleChart(chartId, bgType);
+            });
+        });
+        
+        const themeSelect = controlsRow.querySelector('.chart-theme-select');
+        const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
+        applyThemeBtn.addEventListener('click', () => {
+            chart.currentTheme = themeSelect.value;
+            applyThemeToChart(chart.id, themeSelect.value);
+        });
+        
+        const xTitleInput = axisRow.querySelector('.x-title');
+        const yTitleInput = axisRow.querySelector('.y-title');
+        const xMinInput = axisRow.querySelector('.x-min');
+        const xMaxInput = axisRow.querySelector('.x-max');
+        const xStepInput = axisRow.querySelector('.x-step');
+        const yMinInput = axisRow.querySelector('.y-min');
+        const yMaxInput = axisRow.querySelector('.y-max');
+        const yStepInput = axisRow.querySelector('.y-step');
+        
+        xTitleInput.addEventListener('change', (e) => { chart.xTitle = e.target.value; rebuildChart(chart.id); });
+        yTitleInput.addEventListener('change', (e) => { chart.yTitle = e.target.value; rebuildChart(chart.id); });
+        xMinInput.addEventListener('change', (e) => { chart.xMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        xMaxInput.addEventListener('change', (e) => { chart.xMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        xStepInput.addEventListener('change', (e) => { chart.xStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        yMinInput.addEventListener('change', (e) => { chart.yMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        yMaxInput.addEventListener('change', (e) => { chart.yMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        yStepInput.addEventListener('change', (e) => { chart.yStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
+        
+        buildChart(chart.id, canvas);
+        return card;
+    }
+
+    function hexToRgba(hex, alpha) {
+        const r = parseInt(hex.slice(1,3), 16);
+        const g = parseInt(hex.slice(3,5), 16);
+        const b = parseInt(hex.slice(5,7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    function buildChart(chartId, canvas) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart) return;
+        
+        if (chartInstances[chartId]) {
+            chartInstances[chartId].destroy();
+            delete chartInstances[chartId];
+        }
+        
+        const ctx = canvas.getContext('2d');
+        const showShade = chart.showShadedRegion !== undefined ? chart.showShadedRegion : showShadedRegion;
+        const color = chart.color || '#667eea';
+        const shadeColor = hexToRgba(color, 0.5);
+        
+        const series = chart.series;
+        const labels = series.xData.map(x => x.toString());
+        
+        // Build datasets
+        const datasets = [];
+        
+        // MIN dataset (invisible line, needed for fill)
+        const minData = [];
+        for (let i = 0; i < series.avgData.length; i++) {
+            minData.push(series.minData[i] !== null && series.minData[i] !== undefined ? series.minData[i] : null);
+        }
+        
+        datasets.push({
+            label: 'MIN',
+            data: minData,
+            borderColor: 'transparent',
+            backgroundColor: 'transparent',
+            borderWidth: 2,
+            borderDash: [5, 5],
+            pointRadius: 0,
+            fill: false,
+            order: 2,
+            spanGaps: false,
+            tension: 0.2
+        });
+        
+        // MAX dataset (invisible line, but with fill between)
+        const maxData = [];
+        for (let i = 0; i < series.avgData.length; i++) {
+            maxData.push(series.maxData[i] !== null && series.maxData[i] !== undefined ? series.maxData[i] : null);
+        }
+        
+        if (showShade) {
+            datasets.push({
+                label: 'MAX',
+                data: maxData,
+                borderColor: 'transparent',
+                backgroundColor: shadeColor,
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 0,
+                fill: {
+                    target: '-1',
+                    above: shadeColor
+                },
+                order: 2,
+                spanGaps: false,
+                tension: 0.2
+            });
+        }
+        
+        // AVG line dataset (solid line, no points visible, but with legend color)
+        const avgData = [];
+        for (let i = 0; i < series.avgData.length; i++) {
+            avgData.push(series.avgData[i] !== null && series.avgData[i] !== undefined ? series.avgData[i] : null);
+        }
+        
+        datasets.push({
+            label: chart.title,
+            data: avgData,
+            borderColor: color,
+            backgroundColor: 'transparent',
+            borderWidth: 3,
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            pointBackgroundColor: color,
+            pointBorderColor: color,
+            pointStyle: 'circle',
+            tension: 0.2,
+            fill: false,
+            order: 0,
+            spanGaps: false
+        });
+        
+        // Get axis titles - use empty string if not set
+        let xTitle = chart.xTitle || '';
+        let yTitle = chart.yTitle || '';
+        
+        // If no individual title set, use global title
+        if (!xTitle && globalXTitle) xTitle = globalXTitle;
+        if (!yTitle && globalYTitle) yTitle = globalYTitle;
+        
+        const instance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                if (context.dataset.label === 'MIN' || context.dataset.label === 'MAX') {
+                                    return null;
+                                }
+                                return `${context.dataset.label}: ${context.raw}`;
+                            },
+                            afterBody: function(tooltipItems) {
+                                if (!showShade) return null;
+                                const index = tooltipItems[0].dataIndex;
+                                const chart = tooltipItems[0].chart;
+                                const minDataset = chart.data.datasets.find(d => d.label === 'MIN');
+                                const maxDataset = chart.data.datasets.find(d => d.label === 'MAX');
+                                if (minDataset && maxDataset) {
+                                    const min = minDataset.data[index];
+                                    const max = maxDataset.data[index];
+                                    if (min !== null && min !== undefined && max !== null && max !== undefined) {
+                                        return [`MIN: ${min}`, `MAX: ${max}`];
+                                    }
+                                }
+                                return null;
+                            }
+                        }
+                    },
+                    legend: {
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 12,
+                            pointStyle: 'circle',
+                            filter: function(legendItem) {
+                                return legendItem.text !== 'MIN' && legendItem.text !== 'MAX';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: !!xTitle,
+                            text: xTitle
+                        },
+                        min: chart.xMin,
+                        max: chart.xMax,
+                        grid: { color: '#e9ecef' },
+                        ticks: {
+                            stepSize: chart.xStep
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: !!yTitle,
+                            text: yTitle
+                        },
+                        min: chart.yMin,
+                        max: chart.yMax,
+                        beginAtZero: true,
+                        grid: { color: '#e9ecef' },
+                        ticks: {
+                            stepSize: chart.yStep
+                        }
+                    }
+                }
+            }
+        });
+        
+        chartInstances[chartId] = instance;
+    }
+
+    function rebuildChart(chartId) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart) return;
+        
+        const canvas = document.getElementById(`canvas_${chart.id}`);
+        if (!canvas) return;
+        
+        buildChart(chartId, canvas);
+    }
+    
+    function deleteChart(chartId) {
+        if (chartInstances[chartId]) {
+            chartInstances[chartId].destroy();
+        }
+        delete chartInstances[chartId];
+        chartsData = chartsData.filter(c => c.id !== chartId);
+        renderAllCharts();
+    }
+    
+    async function exportSingleChart(chartId, bgType) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart || !chartInstances[chartId]) return;
+        
+        const canvas = document.getElementById(`canvas_${chart.id}`);
+        if (!canvas) return;
+        
+        const scale = 4;
+        const chartWidth = canvas.width;
+        const chartHeight = canvas.height;
+        
+        const titleFontSize = 28 * scale;
+        const titleHeight = 80 * scale;
+        const padding = 40 * scale;
+        
+        const chartCanvas = document.createElement('canvas');
+        chartCanvas.width = chartWidth * scale;
+        chartCanvas.height = chartHeight * scale;
+        const chartCtx = chartCanvas.getContext('2d');
+        
+        if (bgType === 'white') {
+            // White background
+            chartCtx.fillStyle = '#ffffff';
+            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+        }
+        // For transparent, don't fill background
+        
+        chartCtx.scale(scale, scale);
+        chartCtx.drawImage(canvas, 0, 0);
+        
+        // Create final canvas with title
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = chartCanvas.width;
+        finalCanvas.height = chartCanvas.height + titleHeight + padding;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        // For white background, fill with white
+        if (bgType === 'white') {
+            finalCtx.fillStyle = '#ffffff';
+            finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+        }
+        // For transparent, leave empty (transparent)
+        
+        finalCtx.fillStyle = '#1e293b';
+        finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
+        finalCtx.textAlign = 'center';
+        finalCtx.textBaseline = 'middle';
+        finalCtx.fillText(chart.title, finalCanvas.width / 2, titleHeight / 2);
+        
+        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding/2);
+        
+        const bgSuffix = bgType === 'white' ? '_white' : '_transparent';
+        finalCanvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${chart.title.replace(/[^a-z0-9]/gi, '_')}${bgSuffix}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    async function exportAllChartsStacked() {
+        if (chartsData.length === 0) {
+            alert("No charts to export");
+            return;
+        }
+        
+        const scale = 2;
+        const titleHeight = 60;
+        const spacing = 40;
+        const padding = 20;
+        
+        const capturedCharts = [];
+        let maxWidth = 0;
+        
+        for (const chart of chartsData) {
+            const canvas = document.getElementById(`canvas_${chart.id}`);
+            if (!canvas) continue;
+            
+            const chartCanvas = document.createElement('canvas');
+            chartCanvas.width = canvas.width * scale;
+            chartCanvas.height = canvas.height * scale;
+            const ctx = chartCanvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
+            ctx.scale(scale, scale);
+            ctx.drawImage(canvas, 0, 0);
+            
+            maxWidth = Math.max(maxWidth, chartCanvas.width);
+            
+            capturedCharts.push({
+                title: chart.title,
+                canvas: chartCanvas,
+                width: chartCanvas.width,
+                height: chartCanvas.height
+            });
+        }
+        
+        let totalHeight = padding;
+        capturedCharts.forEach((chart, idx) => {
+            totalHeight += titleHeight + chart.height;
+            if (idx < capturedCharts.length - 1) totalHeight += spacing;
+        });
+        totalHeight += padding;
+        
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = maxWidth + (padding * 2);
+        finalCanvas.height = totalHeight;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        finalCtx.fillStyle = '#ffffff';
+        finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+        
+        let currentY = padding;
+        for (const chart of capturedCharts) {
+            finalCtx.fillStyle = '#1e293b';
+            finalCtx.font = `bold 24px system-ui, -apple-system, sans-serif`;
+            finalCtx.textAlign = 'center';
+            finalCtx.textBaseline = 'middle';
+            finalCtx.fillText(chart.title, finalCanvas.width / 2, currentY + (titleHeight / 2));
+            
+            const xOffset = (finalCanvas.width - chart.width) / 2;
+            finalCtx.drawImage(chart.canvas, xOffset, currentY + titleHeight);
+            
+            currentY += titleHeight + chart.height + spacing;
+        }
+        
+        finalCanvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'all_charts_stacked.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    function applyGlobalSettings() {
+        const newGlobalXTitle = document.getElementById('globalXTitle').value;
+        const newGlobalYTitle = document.getElementById('globalYTitle').value;
+        
+        if (newGlobalXTitle !== undefined) globalXTitle = newGlobalXTitle;
+        if (newGlobalYTitle !== undefined) globalYTitle = newGlobalYTitle;
+        
+        chartsData.forEach(chart => {
+            rebuildChart(chart.id);
+        });
+    }
+    
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    
+    // Event listeners
+    document.getElementById('exportAllBtn').addEventListener('click', exportAllChartsStacked);
+    document.getElementById('applyGlobalBtn').addEventListener('click', applyGlobalSettings);
+    
+    document.getElementById('showShadedRegion').addEventListener('change', (e) => {
+        showShadedRegion = e.target.checked;
+        chartsData.forEach(chart => {
+            chart.showShadedRegion = showShadedRegion;
+            rebuildChart(chart.id);
+        });
+        const indicator = document.querySelector('.shade-indicator');
+        if (indicator) {
+            if (showShadedRegion) {
+                indicator.style.background = 'rgba(102, 126, 234, 0.5)';
+            } else {
+                indicator.style.background = 'rgba(200, 200, 200, 0.3)';
+            }
+        }
+    });
+    
+    document.getElementById('loadSampleBtn').addEventListener('click', () => {
+        const sample = `Row,Sales_avg,Sales_min,Sales_max,Profit_avg,Profit_min,Profit_max
+1,42,35,48,12,8,16
+2,58,48,65,18,12,24
+3,55,42,68,15,9,21
+4,72,60,85,25,18,32
+5,88,72,100,32,24,40
+6,95,82,110,38,30,46
+7,110,90,125,45,35,55
+8,125,105,140,52,42,62
+9,140,120,155,60,50,70`;
+        loadCSVIntoCharts(sample, "Sample Data");
+    });
+    
+    document.getElementById('csvFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => loadCSVIntoCharts(ev.target.result, file.name);
+        reader.readAsText(file);
+    });
+    
+    document.getElementById('loadUrlBtn').addEventListener('click', async () => {
+        const url = document.getElementById('csvUrlInput').value;
+        if (!url) return;
+        try {
+            const resp = await fetch(url);
+            const text = await resp.text();
+            loadCSVIntoCharts(text, url);
+        } catch(err) { alert("Failed to load URL"); }
+    });
+    
+    // Load sample on startup
+    setTimeout(() => { 
+        document.getElementById('loadSampleBtn').click(); 
+    }, 200);
+</script>
+</body>
+</html>
