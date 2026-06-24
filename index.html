@@ -13,10 +13,9 @@
             box-sizing: border-box;
         }
 
-        /* Make everything full screen, no scrolling by default */
         html, body {
             height: 100%;
-            overflow: hidden; /* Prevents scrolling */
+            overflow: hidden; /* No scrolling */
         }
 
         body {
@@ -39,7 +38,6 @@
             justify-content: center;
         }
 
-        /* Header area - compact but visible */
         .header {
             text-align: center;
             margin-bottom: 2rem;
@@ -62,16 +60,15 @@
             margin-top: 0.25rem;
         }
 
-        /* Grid: exactly 4 columns, fills available space */
+        /* Grid: exactly 3 columns for 6 items (2 rows) */
         .grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr); /* Fixed 4 columns */
+            grid-template-columns: repeat(3, 1fr);
             gap: 1.5rem;
             flex: 1;
-            min-height: 0; /* Allows grid to shrink properly */
+            min-height: 0;
         }
 
-        /* GIANT BUTTON CARD - fills entire grid cell */
         .tool-card {
             background: white;
             border-radius: 2rem;
@@ -83,8 +80,7 @@
             display: flex;
             flex-direction: column;
             cursor: pointer;
-            position: relative;
-            height: 100%; /* Fills entire grid cell height */
+            height: 100%;
         }
 
         .tool-card:hover {
@@ -92,7 +88,6 @@
             box-shadow: 0 35px 50px -15px rgba(0, 0, 0, 0.5);
         }
 
-        /* Visual area - grows to fill space */
         .visual-area {
             flex: 3;
             min-height: 0;
@@ -103,21 +98,26 @@
             overflow: hidden;
         }
 
-        /* Individual gradient backgrounds */
-        .visual-area[data-tool="line-chart"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+        /* Updated gradients for 6 tools */
         .visual-area[data-tool="u07b-extract"] {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
         }
         .visual-area[data-tool="csv-edit"] {
             background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
         }
-        .visual-area[data-tool="stl-viewer"] {
+        .visual-area[data-tool="csv-aggregator"] {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
+        .visual-area[data-tool="line-chart"] {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .visual-area[data-tool="shaded-chart"] {
+            background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
+        }
+        .visual-area[data-tool="stl-viewer"] {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        }
 
-        /* Giant responsive icon */
         .giant-icon {
             font-size: clamp(3rem, 12vw, 8rem);
             filter: drop-shadow(0 8px 20px rgba(0,0,0,0.2));
@@ -128,7 +128,6 @@
             transform: scale(1.1) rotate(5deg);
         }
 
-        /* Decorative animation */
         .visual-area::before {
             content: '';
             position: absolute;
@@ -145,7 +144,6 @@
             opacity: 1;
         }
 
-        /* Content area with title - compact but readable */
         .card-content {
             flex: 1;
             padding: 1.25rem 1rem 1.5rem;
@@ -205,14 +203,13 @@
             transform: translateX(4px);
         }
 
-        /* For screens smaller than 1000px, reduce gap slightly */
+        /* Responsive adjustments */
         @media (max-width: 1000px) {
             .grid {
                 gap: 1rem;
             }
         }
 
-        /* For screens smaller than 800px, keep 4 columns but smaller text */
         @media (max-width: 800px) {
             .grid {
                 gap: 0.8rem;
@@ -225,7 +222,6 @@
             }
         }
 
-        /* For very small screens (phones), still 4 columns but ultra compact */
         @media (max-width: 600px) {
             body {
                 padding: 0.5rem;
@@ -243,16 +239,6 @@
                 margin-bottom: 0.4rem;
             }
         }
-
-        /* If more than 4 tools are added, scrolling becomes available */
-        @media (min-height: 1200px) {
-            body {
-                overflow: auto;
-            }
-            html {
-                overflow: auto;
-            }
-        }
     </style>
 </head>
 <body>
@@ -263,18 +249,6 @@
     </div>
 
     <div class="grid">
-        <!-- Line Chart -->
-        <a href="https://bukaymila.github.io/line-chart" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="line-chart">
-                <div class="giant-icon">📈</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">🎨 Line Chart Studio</div>
-                <div class="tool-url">bukaymila.github.io/line-chart</div>
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
-
         <!-- U07B Extractor -->
         <a href="https://bukaymila.github.io/U07B-extract" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="visual-area" data-tool="u07b-extract">
@@ -299,7 +273,43 @@
             </div>
         </a>
 
-        <!-- STL Viewer -->
+        <!-- CSV Aggregator -->
+        <a href="https://bukaymila.github.io/csv-aggregator" target="_blank" rel="noopener noreferrer" class="tool-card">
+            <div class="visual-area" data-tool="csv-aggregator">
+                <div class="giant-icon">📈</div>
+            </div>
+            <div class="card-content">
+                <div class="tool-title">📊 Row CSV Aggregator</div>
+                <div class="tool-url">bukaymila.github.io/csv-aggregator</div>
+                <div class="launch-badge">Launch</div>
+            </div>
+        </a>
+
+        <!-- Line Chart Studio -->
+        <a href="https://bukaymila.github.io/line-chart" target="_blank" rel="noopener noreferrer" class="tool-card">
+            <div class="visual-area" data-tool="line-chart">
+                <div class="giant-icon">📉</div>
+            </div>
+            <div class="card-content">
+                <div class="tool-title">🎨 Line Chart Studio</div>
+                <div class="tool-url">bukaymila.github.io/line-chart</div>
+                <div class="launch-badge">Launch</div>
+            </div>
+        </a>
+
+        <!-- Shaded Region Chart Studio -->
+        <a href="https://bukaymila.github.io/shaded-chart" target="_blank" rel="noopener noreferrer" class="tool-card">
+            <div class="visual-area" data-tool="shaded-chart">
+                <div class="giant-icon">📐</div>
+            </div>
+            <div class="card-content">
+                <div class="tool-title">📐 Shaded Region Chart Studio</div>
+                <div class="tool-url">bukaymila.github.io/shaded-chart</div>
+                <div class="launch-badge">Launch</div>
+            </div>
+        </a>
+
+        <!-- STL 3D Viewer -->
         <a href="https://bukaymila.github.io/stl-viewer" target="_blank" rel="noopener noreferrer" class="tool-card">
             <div class="visual-area" data-tool="stl-viewer">
                 <div class="giant-icon">🔷</div>
