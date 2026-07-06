@@ -244,7 +244,7 @@
             border: 1px solid #e2e8f0;
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            width: 720px;
+            width: 820px;
             flex-shrink: 0;
         }
         .chart-card.dragging-over {
@@ -324,6 +324,72 @@
             border: 1px solid #cbd5e1;
             border-radius: 6px;
         }
+        
+        .chart-extras {
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .ref-line-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ref-line-control input {
+            width: 80px;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .ref-line-control select {
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .ref-line-btn {
+            padding: 3px 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .ref-line-btn:hover { background: #2563eb; }
+        .ref-line-btn.remove { background: #ef4444; }
+        .ref-line-btn.remove:hover { background: #dc2626; }
+        
+        .decimate-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .decimate-control input {
+            width: 60px;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .decimate-btn {
+            padding: 3px 12px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .decimate-btn:hover { background: #7c3aed; }
+        .decimate-btn.reset { background: #6b7280; }
+        .decimate-btn.reset:hover { background: #4b5563; }
         
         .axis-controls {
             padding: 10px 16px;
@@ -429,6 +495,7 @@
         .canvas-wrapper {
             padding: 16px 16px 8px 16px;
             background: white;
+            position: relative;
         }
         canvas {
             max-height: 320px;
@@ -453,9 +520,7 @@
 <div class="dashboard">
     <div class="header">
         <h1>🎨 Line Chart Studio</h1>
-	<div class="header-links">
-            <!--<a href="#" id="csvEditLink" class="csv-edit-link" target="_blank">📝 Click here for CSV processor</a>-->
-            <!--<a href="#" id="csvEditLink2" class="csv-edit-link" target="_blank">📊 Click here for U07B_extractor</a>-->
+        <div class="header-links">
         </div>
     </div>
     <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
@@ -465,7 +530,7 @@
             <div class="file-input-group"><label>📂 Upload CSV</label><input type="file" id="csvFileInput" accept=".csv"></div>
             <div class="file-input-group"><label>🔗 CSV URL</label><input type="text" id="csvUrlInput" placeholder="https://example.com/data.csv"></div>
             <button id="loadUrlBtn" class="csv-btn">Load URL</button>
-            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3);  color:white">📊 Sample (Different Lengths)</button>
+            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3); color:white">📊 Sample (Different Lengths)</button>
         </div>
         <div id="loadStatus" style="font-size:0.7rem; margin-top:8px;">✅ Ready</div>
     </div>
@@ -507,15 +572,9 @@
     <div class="scroll-container">
         <div class="charts-grid" id="chartsGrid"></div>
     </div>
-
-    <!--<a href="#" id="csvEditLinkBottom" class="bottom-link" target="_blank">📝 CSV Editor (alt)</a>-->
 </div>
 
 <script>
-    //document.getElementById('csvEditLinkTop1').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_1/edit';
-    //document.getElementById('csvEditLinkTop2').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_2/edit';
-    //document.getElementById('csvEditLinkBottom').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_3/edit';
-    
     const colorThemes = {
         "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
         "💙 Ocean Blues": ["#ADE8F4", "#90E0EF", "#48CAE4", "#00B4D8", "#0096C7", "#0077B6", "#023E8A"],
@@ -531,6 +590,9 @@
         "🎨 Pastel": ["#F8AD9D", "#FBC4AB", "#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF"]
     };
 
+    const pointShapes = ['circle', 'rect', 'triangle', 'cross', 'rectRot'];
+    const shapeLabels = ['● Circle', '■ Square', '▲ Triangle', '✚ Cross', '◆ Diamond'];
+
     let chartsData = [];
     let availableSeries = [];
     let chartInstances = {};
@@ -538,6 +600,81 @@
     let globalPointSize = 3;
     let globalXTitle = "";
     let globalYTitle = "";
+
+    // Custom plugin to draw reference lines
+    const referenceLinePlugin = {
+        id: 'referenceLinePlugin',
+        afterDraw: function(chart) {
+            const chartId = chart.canvas.id.replace('canvas_', '');
+            const chartData = chartsData.find(c => c.id === parseInt(chartId));
+            if (!chartData || !chartData.referenceLines || chartData.referenceLines.length === 0) return;
+            
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            if (!xAxis || !yAxis) return;
+            
+            const xStart = xAxis.left;
+            const xEnd = xAxis.right;
+            const yStart = yAxis.top;
+            const yEnd = yAxis.bottom;
+            const isNumeric = chartData.useNumericX === true;
+            
+            chartData.referenceLines.forEach((ref) => {
+                if (ref.type === 'y') {
+                    const yPixel = yAxis.getPixelForValue(ref.value);
+                    if (yPixel >= yStart && yPixel <= yEnd) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([6, 4]);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(xStart, yPixel);
+                        ctx.lineTo(xEnd, yPixel);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+                
+                if (ref.type === 'x') {
+                    let xPixel;
+                    if (isNumeric) {
+                        xPixel = xAxis.getPixelForValue(ref.value);
+                    } else {
+                        let labelIndex = -1;
+                        if (chartData.series.length > 0) {
+                            const xData = chartData.series[0].xData || [];
+                            labelIndex = xData.indexOf(String(ref.value));
+                            if (labelIndex === -1) {
+                                const numVal = parseFloat(ref.value);
+                                if (!isNaN(numVal)) {
+                                    labelIndex = xData.indexOf(numVal);
+                                }
+                            }
+                        }
+                        if (labelIndex !== -1) {
+                            xPixel = xAxis.getPixelForValue(labelIndex);
+                        } else {
+                            xPixel = null;
+                        }
+                    }
+                    
+                    if (xPixel !== null && xPixel >= xStart && xPixel <= xEnd) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([6, 4]);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(xPixel, yStart);
+                        ctx.lineTo(xPixel, yEnd);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+    };
 
     function applyThemeToChart(chartId, themeName) {
         const chart = chartsData.find(c => c.id === chartId);
@@ -566,11 +703,10 @@
             xValues.push(values[0]);
             for (let j = 1; j < headers.length; j++) {
                 const val = values[j] || '';
-                // IMPORTANT: Only push numeric values, skip empty/blank cells
                 if (val !== '' && !isNaN(parseFloat(val))) {
                     dataColumns[headers[j]].push(parseFloat(val));
                 } else {
-                    dataColumns[headers[j]].push(null); // null = missing value
+                    dataColumns[headers[j]].push(null);
                 }
             }
         }
@@ -579,7 +715,6 @@
         const defaultColors = colorThemes["🌈 Rainbow"];
         let idx = 0;
         for (let i = 1; i < headers.length; i++) {
-            // Filter out series that are completely empty (all nulls)
             const data = dataColumns[headers[i]];
             const hasData = data.some(d => d !== null);
             if (!hasData) continue;
@@ -587,9 +722,10 @@
             series.push({ 
                 id: `s_${Date.now()}_${i}_${Math.random()}`, 
                 name: headers[i], 
-                data: data,  // Contains null for missing values
+                data: data,
                 xData: xValues,
-                color: defaultColors[idx % defaultColors.length]
+                color: defaultColors[idx % defaultColors.length],
+                pointShape: 'circle'
             });
             idx++;
         }
@@ -698,6 +834,28 @@
             </div>
         `;
         
+        const extrasRow = document.createElement('div');
+        extrasRow.className = 'chart-extras';
+        extrasRow.innerHTML = `
+            <div class="ref-line-control">
+                <span>📏 Reference:</span>
+                <select class="ref-axis-select">
+                    <option value="y">Y</option>
+                    <option value="x">X</option>
+                </select>
+                <input type="number" class="ref-line-input" placeholder="value" step="any">
+                <button class="ref-line-btn">Add Line</button>
+                <button class="ref-line-btn remove">Remove Last</button>
+            </div>
+            <div class="decimate-control">
+                <span>📉 Show every:</span>
+                <input type="number" class="decimate-input" value="${chart.decimate || 1}" min="1" step="1">
+                <span style="font-size:0.65rem;">point(s)</span>
+                <button class="decimate-btn">Apply</button>
+                <button class="decimate-btn reset">Reset</button>
+            </div>
+        `;
+        
         const axisRow = document.createElement('div');
         axisRow.className = 'axis-controls';
         axisRow.innerHTML = `
@@ -738,9 +896,17 @@
                 tag.setAttribute('draggable', 'true');
                 tag.setAttribute('data-series-id', series.id);
                 tag.setAttribute('data-chart-id', chart.id);
+                
+                const shapeOptions = pointShapes.map((s, i) => 
+                    `<option value="${s}" ${series.pointShape === s ? 'selected' : ''}>${shapeLabels[i]}</option>`
+                ).join('');
+                
                 tag.innerHTML = `
                     <input type="color" class="series-color" value="${series.color}">
                     <input type="text" class="series-name" value="${escapeHtml(series.name)}">
+                    <select class="series-shape" style="font-size:0.65rem; padding:1px 4px; border-radius:4px; border:1px solid #ccc;">
+                        ${shapeOptions}
+                    </select>
                     <span class="remove-series" title="Remove to library">📤</span>
                 `;
                 seriesDiv.appendChild(tag);
@@ -756,6 +922,7 @@
         
         card.appendChild(header);
         card.appendChild(controlsRow);
+        card.appendChild(extrasRow);
         card.appendChild(axisRow);
         card.appendChild(seriesDiv);
         card.appendChild(canvasWrapper);
@@ -786,6 +953,66 @@
         pointInput.addEventListener('change', (e) => {
             chart.pointSize = parseFloat(e.target.value);
             updateChart(chart.id);
+        });
+        
+        const refAxisSelect = extrasRow.querySelector('.ref-axis-select');
+        const refInput = extrasRow.querySelector('.ref-line-input');
+        const refAddBtn = extrasRow.querySelector('.ref-line-btn');
+        const refRemoveBtn = extrasRow.querySelector('.ref-line-btn.remove');
+        
+        refAddBtn.addEventListener('click', () => {
+            const val = parseFloat(refInput.value);
+            if (isNaN(val) || val === null || val === undefined) {
+                alert('Please enter a valid number');
+                return;
+            }
+            if (!chart.referenceLines) chart.referenceLines = [];
+            const axis = refAxisSelect.value;
+            chart.referenceLines.push({ type: axis, value: val });
+            refInput.value = '';
+            updateChart(chart.id);
+        });
+        
+        refRemoveBtn.addEventListener('click', () => {
+            if (chart.referenceLines && chart.referenceLines.length > 0) {
+                chart.referenceLines.pop();
+                updateChart(chart.id);
+            }
+        });
+        
+        refInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                refAddBtn.click();
+            }
+        });
+        
+        const decimateInput = extrasRow.querySelector('.decimate-input');
+        const decimateBtn = extrasRow.querySelector('.decimate-btn');
+        const resetBtn = extrasRow.querySelector('.decimate-btn.reset');
+        
+        decimateBtn.addEventListener('click', () => {
+            const val = parseInt(decimateInput.value);
+            if (isNaN(val) || val < 1) {
+                alert('Please enter a positive number');
+                return;
+            }
+            chart.decimate = val;
+            updateChart(chart.id);
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            chart.decimate = 1;
+            decimateInput.value = 1;
+            updateChart(chart.id);
+        });
+        
+        const shapeSelects = seriesDiv.querySelectorAll('.series-shape');
+        shapeSelects.forEach((select, idx) => {
+            const series = chart.series[idx];
+            select.addEventListener('change', (e) => {
+                series.pointShape = e.target.value;
+                updateChart(chart.id);
+            });
         });
         
         const xTitleInput = axisRow.querySelector('.x-title');
@@ -854,15 +1081,15 @@
         
         const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
         const isNumeric = chart.useNumericX === true;
+        const decimate = chart.decimate || 1;
         
-        // Build datasets with proper X/Y pairs, filtering out null values
         const datasets = chart.series.map(s => {
             const xData = s.xData || [];
+            const shape = s.pointShape || 'circle';
             const dataPoints = [];
             
             for (let i = 0; i < s.data.length; i++) {
                 const y = s.data[i];
-                // Skip null/undefined values (they won't appear on the chart)
                 if (y === null || y === undefined) continue;
                 
                 const xVal = xData[i] || i;
@@ -873,20 +1100,26 @@
                 }
             }
             
-            return {
+            const dataset = {
                 label: s.name,
                 data: dataPoints,
                 borderColor: s.color,
-                backgroundColor: 'transparent',
+                backgroundColor: s.color,
                 borderWidth: 2.5,
                 pointRadius: pointSize,
                 pointHoverRadius: pointSize + 2,
+                pointStyle: shape,
                 pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
                 pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
                 tension: 0.2,
                 fill: false,
-                spanGaps: false // Don't connect across missing values
+                spanGaps: false
             };
+            
+            // Store shape for legend
+            dataset._shape = shape;
+            
+            return dataset;
         });
         
         const finalXTitle = chart.xTitle && chart.xTitle !== 'X Axis' ? chart.xTitle : (globalXTitle || chart.xTitle || 'X Axis');
@@ -944,20 +1177,19 @@
                     },
                     legend: {
                         labels: { 
-                            usePointStyle: true, 
-                            boxWidth: 12, 
-                            pointStyle: 'circle',
-                            generateLabels: (chart) => {
-                                const original = Chart.defaults.plugins.legend.labels.generateLabels;
-                                const labels = original(chart);
-                                labels.forEach(label => {
-                                    const dataset = chart.data.datasets.find(d => d.label === label.text);
-                                    if (dataset) {
-                                        label.fillStyle = dataset.borderColor;
-                                        label.strokeStyle = dataset.borderColor;
-                                    }
-                                });
-                                return labels;
+                            usePointStyle: true,
+                            boxWidth: 12,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (!data || !data.datasets) return [];
+                                return data.datasets.map((dataset, i) => ({
+                                    text: dataset.label || 'Unnamed',
+                                    fillStyle: dataset.borderColor || '#000',
+                                    strokeStyle: dataset.borderColor || '#000',
+                                    pointStyle: dataset.pointStyle || 'circle',
+                                    datasetIndex: i,
+                                    hidden: chart.getDatasetMeta(i)?.hidden || false
+                                }));
                             }
                         }
                     }
@@ -966,9 +1198,38 @@
                     x: xAxisConfig,
                     y: yAxisConfig
                 }
-            }
+            },
+            plugins: [referenceLinePlugin]
         });
         chartInstances[chartId] = instance;
+        
+        // Apply decimation after creation
+        applyDecimationToChart(chartId);
+    }
+    
+    function applyDecimationToChart(chartId) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart || !chartInstances[chartId]) return;
+        const instance = chartInstances[chartId];
+        const decimate = chart.decimate || 1;
+        const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        
+        // Update each dataset's pointRadius based on decimation
+        instance.data.datasets.forEach((dataset) => {
+            // We need to override pointRadius per point
+            // Chart.js v4 supports pointRadius as a function
+            // But we need to set it at the dataset level
+            // We'll use the pointRadius property
+            dataset.pointRadius = function(context) {
+                const index = context.dataIndex;
+                if (decimate > 1 && index % decimate !== 0) {
+                    return 0;
+                }
+                return pointSize;
+            };
+        });
+        
+        instance.update();
     }
     
     function updateChart(chartId) {
@@ -976,15 +1237,16 @@
         if (!chart || !chartInstances[chartId]) return;
         const instance = chartInstances[chartId];
         const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        const decimate = chart.decimate || 1;
         
         const finalXTitle = chart.xTitle && chart.xTitle !== 'X Axis' ? chart.xTitle : (globalXTitle || chart.xTitle || 'X Axis');
         const finalYTitle = chart.yTitle && chart.yTitle !== 'Y Axis' ? chart.yTitle : (globalYTitle || chart.yTitle || 'Y Axis');
         
         const isNumeric = chart.useNumericX === true;
         
-        // Rebuild datasets filtering out null values
         const datasets = chart.series.map(s => {
             const xData = s.xData || [];
+            const shape = s.pointShape || 'circle';
             const dataPoints = [];
             
             for (let i = 0; i < s.data.length; i++) {
@@ -999,20 +1261,29 @@
                 }
             }
             
-            return {
+            const dataset = {
                 label: s.name,
                 data: dataPoints,
                 borderColor: s.color,
-                backgroundColor: 'transparent',
+                backgroundColor: s.color,
                 borderWidth: 2.5,
-                pointRadius: pointSize,
+                pointRadius: function(context) {
+                    const index = context.dataIndex;
+                    if (decimate > 1 && index % decimate !== 0) {
+                        return 0;
+                    }
+                    return pointSize;
+                },
                 pointHoverRadius: pointSize + 2,
+                pointStyle: shape,
                 pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
                 pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
                 tension: 0.2,
                 fill: false,
                 spanGaps: false
             };
+            
+            return dataset;
         });
         
         instance.data.datasets = datasets;
@@ -1042,6 +1313,22 @@
             instance.options.scales.y.ticks = { stepSize: chart.yStep };
         } else {
             instance.options.scales.y.ticks = {};
+        }
+        
+        // Update legend
+        if (instance.options.plugins && instance.options.plugins.legend) {
+            instance.options.plugins.legend.labels.generateLabels = function(chart) {
+                const data = chart.data;
+                if (!data || !data.datasets) return [];
+                return data.datasets.map((dataset, i) => ({
+                    text: dataset.label || 'Unnamed',
+                    fillStyle: dataset.borderColor || '#000',
+                    strokeStyle: dataset.borderColor || '#000',
+                    pointStyle: dataset.pointStyle || 'circle',
+                    datasetIndex: i,
+                    hidden: chart.getDatasetMeta(i)?.hidden || false
+                }));
+            };
         }
         
         instance.update();
@@ -1240,7 +1527,9 @@
                 xMin: undefined, xMax: undefined, xStep: undefined, xInterval: undefined,
                 yMin: undefined, yMax: undefined, yStep: undefined,
                 currentTheme: "🌈 Rainbow",
-                pointSize: globalPointSize
+                pointSize: globalPointSize,
+                decimate: 1,
+                referenceLines: []
             }];
             renderAllCharts();
             renderLibrary();
@@ -1259,7 +1548,9 @@
             xMin: undefined, xMax: undefined, xStep: undefined, xInterval: undefined,
             yMin: undefined, yMax: undefined, yStep: undefined,
             currentTheme: "🌈 Rainbow",
-            pointSize: globalPointSize
+            pointSize: globalPointSize,
+            decimate: 1,
+            referenceLines: []
         });
         renderAllCharts();
     }
