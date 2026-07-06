@@ -69,7 +69,7 @@ No installation required — just open the HTML file in any modern browser. All 
 **`bukaymila.github.io/line-chart`**
 
 ### Description
-An interactive data visualization tool designed for creating, customizing, and exporting multi‑line charts with ease. Built for the cold box project by Alim Yakub (RP), it allows users to upload CSV data, drag and drop series between charts, and fine‑tune every visual element — from axis ranges and point shapes to color themes and reference lines.
+An interactive data visualization tool designed for creating, customizing, and exporting multi‑line charts with ease. It allows users to upload CSV data, drag and drop series between charts, and fine‑tune every visual element — from axis ranges and point shapes to color themes and reference lines.
 
 ### Key Features
 - 📊 **Drag & Drop Series Management** — Move data series between charts effortlessly
