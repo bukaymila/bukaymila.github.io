@@ -429,15 +429,13 @@
     <div class="header">
         <h1>📐 Shaded Region Chart Studio</h1>
         <div class="header-links">
-            <!--<a href="#" id="csvEditLinkTop1" class="csv-edit-link" target="_blank">📝 Edit CSV (Primary)</a>-->
-            <!--<a href="#" id="csvEditLinkTop2" class="csv-edit-link" target="_blank">📊 Edit CSV (Backup)</a>-->
         </div>
     </div>
     <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
 
     <div class="help-text">
-        <strong>📋 CSV Format:</strong> Expects columns like <code>Row, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code> 
-        (from the Aggregator tool). Each group creates a separate chart.
+        <strong>📋 CSV Format:</strong> Expects columns like <code>Time, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code> 
+        (from the Aggregator tool). The first column is used as X-axis values. Each group creates a separate chart.
     </div>
 
     <div class="csv-panel">
@@ -481,14 +479,9 @@
     <div class="scroll-container">
         <div class="charts-grid" id="chartsGrid"></div>
     </div>
-
-    <!--<a href="#" id="csvEditLinkBottom" class="bottom-link" target="_blank">📝 CSV Editor (alt)</a>-->
 </div>
 
 <script>
-    //document.getElementById('csvEditLinkTop1').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_1/edit';
-    //document.getElementById('csvEditLinkTop2').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_2/edit';
-    //document.getElementById('csvEditLinkBottom').href = 'https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID_3/edit';
     
     const colorThemes = {
         "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
@@ -526,12 +519,36 @@
         if (lines.length < 2) throw new Error("CSV must have header + data");
         const headers = lines[0].split(',').map(h => h.trim());
         
+        // Extract X-values from the first column
+        const xValues = [];
         const rowData = [];
+        
+        // Check if first column contains numeric values
+        let isNumericX = false;
+        let numericCheckDone = false;
+        
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
             if (values.length < headers.length) continue;
+            
+            // First column is the X-value
+            const xVal = values[0];
+            xValues.push(xVal);
+            
+            // Check if this x-value is numeric (for the first few rows)
+            if (!numericCheckDone && i <= 3) {
+                const num = parseFloat(xVal);
+                if (!isNaN(num)) {
+                    isNumericX = true;
+                } else {
+                    isNumericX = false;
+                    numericCheckDone = true;
+                }
+            }
+            
+            // Parse numeric data from remaining columns
             const row = {};
-            for (let j = 0; j < headers.length; j++) {
+            for (let j = 1; j < headers.length; j++) {
                 const val = parseFloat(values[j]);
                 if (!isNaN(val)) {
                     row[headers[j]] = val;
@@ -543,9 +560,13 @@
         }
         
         if (rowData.length === 0) throw new Error("No numeric data found in CSV");
+        if (xValues.length === 0) throw new Error("No X-axis values found in first column");
         
         const columnGroups = {};
         for (let h of headers) {
+            // Skip the first column (it's the X-axis)
+            if (h === headers[0]) continue;
+            
             let base = h;
             let type = 'avg';
             if (h.endsWith('_avg')) { base = h.slice(0, -4); type = 'avg'; }
@@ -560,7 +581,6 @@
         const charts = [];
         const defaultColors = colorThemes["🌈 Rainbow"];
         let idx = 0;
-        const xValues = rowData.map((_, i) => i + 1);
         
         for (let base in columnGroups) {
             const group = columnGroups[base];
@@ -578,7 +598,8 @@
                         minData: minData,
                         maxData: maxData,
                         xData: xValues,
-                        color: defaultColors[idx % defaultColors.length]
+                        color: defaultColors[idx % defaultColors.length],
+                        isNumericX: isNumericX
                     });
                     idx++;
                 }
@@ -589,12 +610,12 @@
             throw new Error("No complete avg/min/max groups found. Expected columns like: Sales_avg, Sales_min, Sales_max");
         }
         
-        return { charts, xValues };
+        return { charts, xValues, isNumericX };
     }
 
     function loadCSVIntoCharts(csvText, sourceName) {
         try {
-            const { charts, xValues } = parseAggregatorCSV(csvText);
+            const { charts, xValues, isNumericX } = parseAggregatorCSV(csvText);
             
             // Clear existing charts
             Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
@@ -611,7 +632,8 @@
                 xMin: undefined, xMax: undefined, xStep: undefined,
                 yMin: undefined, yMax: undefined, yStep: undefined,
                 currentTheme: "🌈 Rainbow",
-                showShadedRegion: showShadedRegion
+                showShadedRegion: showShadedRegion,
+                isNumericX: isNumericX
             }));
             
             renderAllCharts();
@@ -665,6 +687,9 @@
                     ${Object.keys(colorThemes).map(t => `<option value="${t}" ${chart.currentTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
                 </select>
                 <button class="apply-theme-btn">Apply</button>
+            </div>
+            <div style="font-size:0.65rem; color:#94a3b8;">
+                ${chart.isNumericX ? '📊 Numeric X-axis' : '📝 Categorical X-axis'}
             </div>
         `;
         
@@ -771,9 +796,13 @@
         const showShade = chart.showShadedRegion !== undefined ? chart.showShadedRegion : showShadedRegion;
         const color = chart.color || '#667eea';
         const shadeColor = hexToRgba(color, 0.5);
+        const isNumericX = chart.isNumericX || false;
         
         const series = chart.series;
-        const labels = series.xData.map(x => x.toString());
+        
+        // For numeric X, use the actual numeric values as data points
+        // For categorical, use the string values as labels
+        const xData = isNumericX ? series.xData.map(x => parseFloat(x)) : series.xData.map(x => x.toString());
         
         // Build datasets
         const datasets = [];
@@ -784,67 +813,150 @@
             minData.push(series.minData[i] !== null && series.minData[i] !== undefined ? series.minData[i] : null);
         }
         
-        datasets.push({
-            label: 'MIN',
-            data: minData,
-            borderColor: 'transparent',
-            backgroundColor: 'transparent',
-            borderWidth: 2,
-            borderDash: [5, 5],
-            pointRadius: 0,
-            fill: false,
-            order: 2,
-            spanGaps: false,
-            tension: 0.2
-        });
+        // For numeric X, we need to create data points with x and y
+        const minPoints = [];
+        const maxPoints = [];
+        const avgPoints = [];
         
-        // MAX dataset (invisible line, but with fill between)
-        const maxData = [];
         for (let i = 0; i < series.avgData.length; i++) {
-            maxData.push(series.maxData[i] !== null && series.maxData[i] !== undefined ? series.maxData[i] : null);
+            const xVal = isNumericX ? parseFloat(series.xData[i]) : i;
+            const avgVal = series.avgData[i];
+            const minVal = series.minData[i];
+            const maxVal = series.maxData[i];
+            
+            if (avgVal !== null && avgVal !== undefined) {
+                avgPoints.push({ x: xVal, y: avgVal });
+            }
+            if (minVal !== null && minVal !== undefined) {
+                minPoints.push({ x: xVal, y: minVal });
+            }
+            if (maxVal !== null && maxVal !== undefined) {
+                maxPoints.push({ x: xVal, y: maxVal });
+            }
         }
         
-        if (showShade) {
+        if (isNumericX) {
+            // For numeric X, use object data format {x, y}
+            
+            // MIN dataset (invisible)
             datasets.push({
-                label: 'MAX',
-                data: maxData,
+                label: 'MIN',
+                data: minPoints,
                 borderColor: 'transparent',
-                backgroundColor: shadeColor,
+                backgroundColor: 'transparent',
                 borderWidth: 2,
                 borderDash: [5, 5],
                 pointRadius: 0,
-                fill: {
-                    target: '-1',
-                    above: shadeColor
-                },
+                fill: false,
                 order: 2,
                 spanGaps: false,
-                tension: 0.2
+                tension: 0.2,
+                showInLegend: false
             });
+            
+            // MAX dataset with fill
+            if (showShade) {
+                datasets.push({
+                    label: 'MAX',
+                    data: maxPoints,
+                    borderColor: 'transparent',
+                    backgroundColor: shadeColor,
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: {
+                        target: '-1',
+                        above: shadeColor
+                    },
+                    order: 2,
+                    spanGaps: false,
+                    tension: 0.2,
+                    showInLegend: false
+                });
+            }
+            
+            // AVG line dataset
+            datasets.push({
+                label: chart.title,
+                data: avgPoints,
+                borderColor: color,
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                pointBackgroundColor: color,
+                pointBorderColor: color,
+                pointStyle: 'circle',
+                tension: 0.2,
+                fill: false,
+                order: 0,
+                spanGaps: false
+            });
+        } else {
+            // For categorical X, use labels and simple data arrays
+            const labels = series.xData.map(x => x.toString());
+            const minDataArray = series.minData.map(d => d !== null && d !== undefined ? d : null);
+            const maxDataArray = series.maxData.map(d => d !== null && d !== undefined ? d : null);
+            const avgDataArray = series.avgData.map(d => d !== null && d !== undefined ? d : null);
+            
+            // MIN dataset (invisible)
+            datasets.push({
+                label: 'MIN',
+                data: minDataArray,
+                borderColor: 'transparent',
+                backgroundColor: 'transparent',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                pointRadius: 0,
+                fill: false,
+                order: 2,
+                spanGaps: false,
+                tension: 0.2,
+                showInLegend: false
+            });
+            
+            // MAX dataset with fill
+            if (showShade) {
+                datasets.push({
+                    label: 'MAX',
+                    data: maxDataArray,
+                    borderColor: 'transparent',
+                    backgroundColor: shadeColor,
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    pointRadius: 0,
+                    fill: {
+                        target: '-1',
+                        above: shadeColor
+                    },
+                    order: 2,
+                    spanGaps: false,
+                    tension: 0.2,
+                    showInLegend: false
+                });
+            }
+            
+            // AVG line dataset
+            datasets.push({
+                label: chart.title,
+                data: avgDataArray,
+                borderColor: color,
+                backgroundColor: 'transparent',
+                borderWidth: 3,
+                pointRadius: 0,
+                pointHoverRadius: 0,
+                pointBackgroundColor: color,
+                pointBorderColor: color,
+                pointStyle: 'circle',
+                tension: 0.2,
+                fill: false,
+                order: 0,
+                spanGaps: false
+            });
+            
+            // Set the labels for categorical
+            chart._labels = labels;
         }
-        
-        // AVG line dataset (solid line, no points visible, but with legend color)
-        const avgData = [];
-        for (let i = 0; i < series.avgData.length; i++) {
-            avgData.push(series.avgData[i] !== null && series.avgData[i] !== undefined ? series.avgData[i] : null);
-        }
-        
-        datasets.push({
-            label: chart.title,
-            data: avgData,
-            borderColor: color,
-            backgroundColor: 'transparent',
-            borderWidth: 3,
-            pointRadius: 0,
-            pointHoverRadius: 0,
-            pointBackgroundColor: color,
-            pointBorderColor: color,
-            pointStyle: 'circle',
-            tension: 0.2,
-            fill: false,
-            order: 0,
-            spanGaps: false
-        });
         
         // Get axis titles - use empty string if not set
         let xTitle = chart.xTitle || '';
@@ -854,12 +966,69 @@
         if (!xTitle && globalXTitle) xTitle = globalXTitle;
         if (!yTitle && globalYTitle) yTitle = globalYTitle;
         
+        // Configure x-axis based on whether it's numeric or categorical
+        let xAxisConfig;
+        let dataConfig = {};
+        
+        if (isNumericX) {
+            // For numeric X, use linear scale
+            xAxisConfig = {
+                type: 'linear',
+                title: {
+                    display: !!xTitle,
+                    text: xTitle
+                },
+                min: chart.xMin,
+                max: chart.xMax,
+                grid: { color: '#e9ecef' },
+                ticks: {
+                    stepSize: chart.xStep,
+                    callback: function(value) {
+                        // Format as integer if it's a whole number
+                        if (Number.isInteger(value)) {
+                            return value.toString();
+                        }
+                        return value;
+                    }
+                }
+            };
+            dataConfig = { datasets: datasets };
+        } else {
+            // For categorical X, use category scale with labels
+            xAxisConfig = {
+                type: 'category',
+                title: {
+                    display: !!xTitle,
+                    text: xTitle
+                },
+                grid: { color: '#e9ecef' },
+                ticks: {
+                    stepSize: chart.xStep
+                }
+            };
+            dataConfig = {
+                labels: chart._labels || series.xData.map(x => x.toString()),
+                datasets: datasets
+            };
+        }
+        
+        const yAxisConfig = {
+            title: {
+                display: !!yTitle,
+                text: yTitle
+            },
+            min: chart.yMin,
+            max: chart.yMax,
+            beginAtZero: true,
+            grid: { color: '#e9ecef' },
+            ticks: {
+                stepSize: chart.yStep
+            }
+        };
+        
         const instance = new Chart(ctx, {
             type: 'line',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
+            data: dataConfig,
             options: {
                 responsive: true,
                 maintainAspectRatio: true,
@@ -872,7 +1041,11 @@
                                 if (context.dataset.label === 'MIN' || context.dataset.label === 'MAX') {
                                     return null;
                                 }
-                                return `${context.dataset.label}: ${context.raw}`;
+                                let value = context.raw;
+                                if (typeof value === 'object' && value !== null) {
+                                    value = value.y;
+                                }
+                                return `${context.dataset.label}: ${value}`;
                             },
                             afterBody: function(tooltipItems) {
                                 if (!showShade) return null;
@@ -881,8 +1054,10 @@
                                 const minDataset = chart.data.datasets.find(d => d.label === 'MIN');
                                 const maxDataset = chart.data.datasets.find(d => d.label === 'MAX');
                                 if (minDataset && maxDataset) {
-                                    const min = minDataset.data[index];
-                                    const max = maxDataset.data[index];
+                                    let min = minDataset.data[index];
+                                    let max = maxDataset.data[index];
+                                    if (typeof min === 'object' && min !== null) min = min.y;
+                                    if (typeof max === 'object' && max !== null) max = max.y;
                                     if (min !== null && min !== undefined && max !== null && max !== undefined) {
                                         return [`MIN: ${min}`, `MAX: ${max}`];
                                     }
@@ -903,32 +1078,8 @@
                     }
                 },
                 scales: {
-                    x: {
-                        type: 'category',
-                        title: {
-                            display: !!xTitle,
-                            text: xTitle
-                        },
-                        min: chart.xMin,
-                        max: chart.xMax,
-                        grid: { color: '#e9ecef' },
-                        ticks: {
-                            stepSize: chart.xStep
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: !!yTitle,
-                            text: yTitle
-                        },
-                        min: chart.yMin,
-                        max: chart.yMax,
-                        beginAtZero: true,
-                        grid: { color: '#e9ecef' },
-                        ticks: {
-                            stepSize: chart.yStep
-                        }
-                    }
+                    x: xAxisConfig,
+                    y: yAxisConfig
                 }
             }
         });
@@ -1128,16 +1279,19 @@
     });
     
     document.getElementById('loadSampleBtn').addEventListener('click', () => {
-        const sample = `Row,Sales_avg,Sales_min,Sales_max,Profit_avg,Profit_min,Profit_max
-1,42,35,48,12,8,16
-2,58,48,65,18,12,24
-3,55,42,68,15,9,21
-4,72,60,85,25,18,32
-5,88,72,100,32,24,40
-6,95,82,110,38,30,46
-7,110,90,125,45,35,55
-8,125,105,140,52,42,62
-9,140,120,155,60,50,70`;
+        const sample = `Time,Sales_avg,Sales_min,Sales_max,Profit_avg,Profit_min,Profit_max
+0.17,42,35,48,12,8,16
+0.33,58,48,65,18,12,24
+0.50,55,42,68,15,9,21
+0.67,72,60,85,25,18,32
+0.83,88,72,100,32,24,40
+1.00,95,82,110,38,30,46
+1.17,110,90,125,45,35,55
+1.33,125,105,140,52,42,62
+1.50,140,120,155,60,50,70
+1.67,145,125,160,65,55,75
+1.83,150,130,170,70,60,80
+2.00,155,135,175,75,65,85`;
         loadCSVIntoCharts(sample, "Sample Data");
     });
     
