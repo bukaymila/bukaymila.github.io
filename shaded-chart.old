@@ -205,26 +205,6 @@
             cursor: pointer;
         }
         
-        .view-toggle {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 0.85rem;
-            padding: 4px 12px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-        }
-        .view-toggle label {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            cursor: pointer;
-        }
-        .view-toggle input[type="radio"] {
-            cursor: pointer;
-        }
-        
         .scroll-container {
             overflow-x: auto;
             overflow-y: visible;
@@ -245,10 +225,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             width: 720px;
             flex-shrink: 0;
-        }
-        .chart-card.stacked {
-            width: 100%;
-            max-width: 1400px;
         }
         .chart-header {
             padding: 12px 16px;
@@ -413,9 +389,6 @@
             width: 100%;
             background: white;
         }
-        .chart-card.stacked canvas {
-            max-height: 500px;
-        }
         
         ::-webkit-scrollbar {
             height: 8px;
@@ -448,81 +421,6 @@
             margin-left: 4px;
             vertical-align: middle;
             border: 1px solid #ccc;
-        }
-        
-        .series-color-indicator {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            margin-right: 4px;
-            vertical-align: middle;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .legend-hint {
-            font-size: 0.7rem;
-            color: #64748b;
-            margin-left: 8px;
-        }
-        
-        /* Color picker styles for stacked chart */
-        .color-picker-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 3px 6px;
-            border-radius: 4px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        .color-picker-row:hover {
-            background: #f1f5f9;
-        }
-        .color-picker-row label {
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: #334155;
-            min-width: 60px;
-        }
-        .color-picker-row input[type="color"] {
-            width: 32px;
-            height: 32px;
-            padding: 2px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            cursor: pointer;
-            background: white;
-        }
-        .color-picker-row input[type="color"]:hover {
-            border-color: #667eea;
-        }
-        .color-picker-row .color-hex {
-            font-size: 0.65rem;
-            font-family: monospace;
-            color: #64748b;
-            min-width: 60px;
-        }
-        .color-picker-section {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            margin-top: 4px;
-        }
-        .color-picker-section-title {
-            font-weight: 700;
-            font-size: 0.7rem;
-            color: #475569;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -569,22 +467,11 @@
     </div>
 
     <div class="action-bar">
-        <div class="view-toggle">
-            <span style="font-weight:500;">📊 View Mode:</span>
-            <label>
-                <input type="radio" name="viewMode" value="separate" checked>
-                Separate Charts
-            </label>
-            <label>
-                <input type="radio" name="viewMode" value="stacked">
-                Stacked Chart
-            </label>
-        </div>
         <button id="exportAllBtn" class="action-btn export-all">📸 Export All (Stacked PNG)</button>
         <div class="shaded-toggle">
             <input type="checkbox" id="showShadedRegion" checked>
-            <label for="showShadedRegion">Show MIN/MAX Shaded Region (25% opacity) 
-                <span class="shade-indicator" style="background: rgba(102, 126, 234, 0.25);"></span>
+            <label for="showShadedRegion">Show MIN/MAX Shaded Region (50% opacity) 
+                <span class="shade-indicator" style="background: rgba(102, 126, 234, 0.5);"></span>
             </label>
         </div>
     </div>
@@ -617,8 +504,6 @@
     let globalXTitle = "";
     let globalYTitle = "";
     let showShadedRegion = true;
-    let viewMode = 'separate'; // 'separate' or 'stacked'
-    let rawCSVData = null; // Store raw CSV data for switching views
 
     function applyThemeToChart(chartId, themeName) {
         const chart = chartsData.find(c => c.id === chartId);
@@ -732,9 +617,6 @@
         try {
             const { charts, xValues, isNumericX } = parseAggregatorCSV(csvText);
             
-            // Store raw data for view switching
-            rawCSVData = { charts, xValues, isNumericX, sourceName };
-            
             // Clear existing charts
             Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
             chartInstances = {};
@@ -771,183 +653,10 @@
             return;
         }
         
-        if (viewMode === 'stacked') {
-            // Create a single stacked chart
-            const card = createStackedChartCard();
+        chartsData.forEach(chart => {
+            const card = createChartCard(chart);
             grid.appendChild(card);
-        } else {
-            // Create separate charts
-            chartsData.forEach(chart => {
-                const card = createChartCard(chart);
-                grid.appendChild(card);
-            });
-        }
-    }
-
-    function createStackedChartCard() {
-        const card = document.createElement('div');
-        card.className = 'chart-card stacked';
-        card.setAttribute('data-chart-id', 'stacked');
-        
-        const header = document.createElement('div');
-        header.className = 'chart-header';
-        header.innerHTML = `
-            <input type="text" class="chart-title-input" value="Stacked View - All Series" style="width:250px;">
-            <div class="chart-actions">
-                <div class="export-group">
-                    <span class="export-label">Export:</span>
-                    <button class="export-btn white-bg" data-chart-id="stacked" data-bg="white">⬜ White</button>
-                    <button class="export-btn transparent-bg" data-chart-id="stacked" data-bg="transparent">▢ Transparent</button>
-                </div>
-            </div>
-        `;
-        
-        const controlsRow = document.createElement('div');
-        controlsRow.className = 'chart-controls-row';
-        controlsRow.innerHTML = `
-            <div class="chart-theme">
-                <span>🎨 Theme:</span>
-                <select class="chart-theme-select">
-                    ${Object.keys(colorThemes).map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-                <button class="apply-theme-btn">Apply Theme</button>
-                <span style="font-size:0.6rem; color:#94a3b8; margin-left:4px;">(or use color pickers below)</span>
-            </div>
-            <div class="legend-hint">
-                📊 Showing ${chartsData.length} series with shaded regions
-                ${chartsData[0]?.isNumericX ? '• Numeric X-axis' : '• Categorical X-axis'}
-            </div>
-        `;
-        
-        // Color picker section
-        const colorPickerSection = document.createElement('div');
-        colorPickerSection.className = 'color-picker-section';
-        colorPickerSection.innerHTML = `<div class="color-picker-section-title">🎨 Series Colors (click to change)</div>`;
-        
-        const colorPickerGroup = document.createElement('div');
-        colorPickerGroup.className = 'color-picker-group';
-        
-        chartsData.forEach((chart, idx) => {
-            const row = document.createElement('div');
-            row.className = 'color-picker-row';
-            row.innerHTML = `
-                <label>${escapeHtml(chart.title)}</label>
-                <input type="color" class="series-color-picker" data-index="${idx}" value="${chart.color}">
-                <span class="color-hex">${chart.color}</span>
-            `;
-            colorPickerGroup.appendChild(row);
         });
-        
-        colorPickerSection.appendChild(colorPickerGroup);
-        
-        const axisRow = document.createElement('div');
-        axisRow.className = 'axis-controls';
-        axisRow.innerHTML = `
-            <div class="axis-group">
-                <div class="axis-group-title">📐 X-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value=""></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-            <div class="axis-group">
-                <div class="axis-group-title">📏 Y-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value=""></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-        `;
-        
-        const canvasWrapper = document.createElement('div');
-        canvasWrapper.className = 'canvas-wrapper';
-        const canvas = document.createElement('canvas');
-        canvas.id = `canvas_stacked`;
-        canvas.style.maxHeight = '500px';
-        canvasWrapper.appendChild(canvas);
-        
-        // Build the card with all sections
-        card.appendChild(header);
-        card.appendChild(controlsRow);
-        card.appendChild(colorPickerSection);
-        card.appendChild(axisRow);
-        card.appendChild(canvasWrapper);
-        
-        // Event listeners for color pickers
-        colorPickerGroup.querySelectorAll('.series-color-picker').forEach(picker => {
-            picker.addEventListener('input', (e) => {
-                const idx = parseInt(e.target.dataset.index);
-                const color = e.target.value;
-                chartsData[idx].color = color;
-                // Update hex display
-                const hexSpan = e.target.parentElement.querySelector('.color-hex');
-                if (hexSpan) hexSpan.textContent = color;
-                rebuildStackedChart();
-            });
-        });
-        
-        // Event listeners
-        const titleInput = header.querySelector('.chart-title-input');
-        titleInput.addEventListener('change', () => {
-            card.dataset.stackedTitle = titleInput.value;
-            rebuildStackedChart();
-        });
-        
-        // Export buttons
-        const exportBtns = header.querySelectorAll('.export-btn');
-        exportBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const bgType = btn.dataset.bg;
-                exportStackedChart(bgType);
-            });
-        });
-        
-        const themeSelect = controlsRow.querySelector('.chart-theme-select');
-        const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
-        applyThemeBtn.addEventListener('click', () => {
-            const colors = colorThemes[themeSelect.value];
-            chartsData.forEach((chart, idx) => {
-                chart.color = colors[idx % colors.length];
-            });
-            // Update color pickers
-            colorPickerGroup.querySelectorAll('.series-color-picker').forEach((picker, idx) => {
-                if (idx < chartsData.length) {
-                    picker.value = chartsData[idx].color;
-                    const hexSpan = picker.parentElement.querySelector('.color-hex');
-                    if (hexSpan) hexSpan.textContent = chartsData[idx].color;
-                }
-            });
-            rebuildStackedChart();
-        });
-        
-        const xTitleInput = axisRow.querySelector('.x-title');
-        const yTitleInput = axisRow.querySelector('.y-title');
-        const xMinInput = axisRow.querySelector('.x-min');
-        const xMaxInput = axisRow.querySelector('.x-max');
-        const xStepInput = axisRow.querySelector('.x-step');
-        const yMinInput = axisRow.querySelector('.y-min');
-        const yMaxInput = axisRow.querySelector('.y-max');
-        const yStepInput = axisRow.querySelector('.y-step');
-        
-        // Store axis settings for stacked chart
-        const axisSettings = { xTitle: '', yTitle: '', xMin: undefined, xMax: undefined, xStep: undefined, yMin: undefined, yMax: undefined, yStep: undefined };
-        
-        xTitleInput.addEventListener('change', (e) => { axisSettings.xTitle = e.target.value; rebuildStackedChart(); });
-        yTitleInput.addEventListener('change', (e) => { axisSettings.yTitle = e.target.value; rebuildStackedChart(); });
-        xMinInput.addEventListener('change', (e) => { axisSettings.xMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        xMaxInput.addEventListener('change', (e) => { axisSettings.xMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        xStepInput.addEventListener('change', (e) => { axisSettings.xStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yMinInput.addEventListener('change', (e) => { axisSettings.yMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yMaxInput.addEventListener('change', (e) => { axisSettings.yMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yStepInput.addEventListener('change', (e) => { axisSettings.yStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        
-        // Store axis settings on card for use in rebuild
-        card._axisSettings = axisSettings;
-        
-        buildStackedChart(canvas, axisSettings);
-        return card;
     }
 
     function createChartCard(chart) {
@@ -978,11 +687,6 @@
                     ${Object.keys(colorThemes).map(t => `<option value="${t}" ${chart.currentTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
                 </select>
                 <button class="apply-theme-btn">Apply</button>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <label style="font-size:0.7rem; color:#475569;">Color:</label>
-                <input type="color" class="chart-color-picker" value="${chart.color}" style="width:30px; height:30px; padding:2px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer;">
-                <span style="font-size:0.65rem; color:#94a3b8;">${chart.color}</span>
             </div>
             <div style="font-size:0.65rem; color:#94a3b8;">
                 ${chart.isNumericX ? '📊 Numeric X-axis' : '📝 Categorical X-axis'}
@@ -1043,24 +747,11 @@
             });
         });
         
-        // Color picker for individual chart
-        const colorPicker = controlsRow.querySelector('.chart-color-picker');
-        colorPicker.addEventListener('input', (e) => {
-            chart.color = e.target.value;
-            const hexSpan = e.target.parentElement.querySelector('span:last-child');
-            if (hexSpan) hexSpan.textContent = chart.color;
-            rebuildChart(chart.id);
-        });
-        
         const themeSelect = controlsRow.querySelector('.chart-theme-select');
         const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
         applyThemeBtn.addEventListener('click', () => {
             chart.currentTheme = themeSelect.value;
             applyThemeToChart(chart.id, themeSelect.value);
-            // Update color picker
-            colorPicker.value = chart.color;
-            const hexSpan = colorPicker.parentElement.querySelector('span:last-child');
-            if (hexSpan) hexSpan.textContent = chart.color;
         });
         
         const xTitleInput = axisRow.querySelector('.x-title');
@@ -1092,297 +783,6 @@
         return `rgba(${r}, ${g}, ${b}, ${alpha})`;
     }
 
-    function buildStackedChart(canvas, axisSettings) {
-        if (chartInstances['stacked']) {
-            chartInstances['stacked'].destroy();
-            delete chartInstances['stacked'];
-        }
-        
-        const ctx = canvas.getContext('2d');
-        const isNumericX = chartsData[0]?.isNumericX || false;
-        const xData = isNumericX ? chartsData[0]?.series.xData.map(x => parseFloat(x)) : chartsData[0]?.series.xData.map(x => x.toString());
-        
-        const datasets = [];
-        
-        chartsData.forEach((chart, idx) => {
-            const color = chart.color || '#667eea';
-            // Changed from 0.5 to 0.25 for less transparency (more opaque)
-            const shadeColor = hexToRgba(color, 0.25);
-            const series = chart.series;
-            
-            if (isNumericX) {
-                const minPoints = [];
-                const maxPoints = [];
-                const avgPoints = [];
-                
-                for (let i = 0; i < series.avgData.length; i++) {
-                    const xVal = parseFloat(series.xData[i]);
-                    const avgVal = series.avgData[i];
-                    const minVal = series.minData[i];
-                    const maxVal = series.maxData[i];
-                    
-                    if (avgVal !== null && avgVal !== undefined) {
-                        avgPoints.push({ x: xVal, y: avgVal });
-                    }
-                    if (minVal !== null && minVal !== undefined) {
-                        minPoints.push({ x: xVal, y: minVal });
-                    }
-                    if (maxVal !== null && maxVal !== undefined) {
-                        maxPoints.push({ x: xVal, y: maxVal });
-                    }
-                }
-                
-                // MIN dataset (invisible)
-                datasets.push({
-                    label: `${chart.title} (MIN)`,
-                    data: minPoints,
-                    borderColor: 'transparent',
-                    backgroundColor: 'transparent',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    fill: false,
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false,
-                    _seriesIndex: idx
-                });
-                
-                // MAX dataset with fill
-                if (showShadedRegion) {
-                    datasets.push({
-                        label: `${chart.title} (MAX)`,
-                        data: maxPoints,
-                        borderColor: 'transparent',
-                        backgroundColor: shadeColor,
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        fill: {
-                            target: `-1`,
-                            above: shadeColor
-                        },
-                        order: 2,
-                        spanGaps: false,
-                        tension: 0.2,
-                        showInLegend: false,
-                        _seriesIndex: idx
-                    });
-                }
-                
-                // AVG line dataset
-                datasets.push({
-                    label: chart.title,
-                    data: avgPoints,
-                    borderColor: color,
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    pointBackgroundColor: color,
-                    pointBorderColor: color,
-                    pointStyle: 'circle',
-                    tension: 0.2,
-                    fill: false,
-                    order: 0,
-                    spanGaps: false,
-                    _seriesIndex: idx
-                });
-            } else {
-                const labels = series.xData.map(x => x.toString());
-                const minDataArray = series.minData.map(d => d !== null && d !== undefined ? d : null);
-                const maxDataArray = series.maxData.map(d => d !== null && d !== undefined ? d : null);
-                const avgDataArray = series.avgData.map(d => d !== null && d !== undefined ? d : null);
-                
-                // MIN dataset (invisible)
-                datasets.push({
-                    label: `${chart.title} (MIN)`,
-                    data: minDataArray,
-                    borderColor: 'transparent',
-                    backgroundColor: 'transparent',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    fill: false,
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false,
-                    _seriesIndex: idx
-                });
-                
-                // MAX dataset with fill
-                if (showShadedRegion) {
-                    datasets.push({
-                        label: `${chart.title} (MAX)`,
-                        data: maxDataArray,
-                        borderColor: 'transparent',
-                        backgroundColor: shadeColor,
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        fill: {
-                            target: `-1`,
-                            above: shadeColor
-                        },
-                        order: 2,
-                        spanGaps: false,
-                        tension: 0.2,
-                        showInLegend: false,
-                        _seriesIndex: idx
-                    });
-                }
-                
-                // AVG line dataset
-                datasets.push({
-                    label: chart.title,
-                    data: avgDataArray,
-                    borderColor: color,
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    pointBackgroundColor: color,
-                    pointBorderColor: color,
-                    pointStyle: 'circle',
-                    tension: 0.2,
-                    fill: false,
-                    order: 0,
-                    spanGaps: false,
-                    _seriesIndex: idx
-                });
-                
-                // Store labels for later
-                if (idx === 0) {
-                    canvas._labels = labels;
-                }
-            }
-        });
-        
-        // Get axis titles
-        let xTitle = axisSettings?.xTitle || '';
-        let yTitle = axisSettings?.yTitle || '';
-        if (!xTitle && globalXTitle) xTitle = globalXTitle;
-        if (!yTitle && globalYTitle) yTitle = globalYTitle;
-        
-        let xAxisConfig;
-        let dataConfig = {};
-        
-        if (isNumericX) {
-            xAxisConfig = {
-                type: 'linear',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
-                min: axisSettings?.xMin,
-                max: axisSettings?.xMax,
-                grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: axisSettings?.xStep,
-                    callback: function(value) {
-                        if (Number.isInteger(value)) {
-                            return value.toString();
-                        }
-                        return value;
-                    }
-                }
-            };
-            dataConfig = { datasets: datasets };
-        } else {
-            xAxisConfig = {
-                type: 'category',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
-                grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: axisSettings?.xStep
-                }
-            };
-            dataConfig = {
-                labels: canvas._labels || chartsData[0]?.series.xData.map(x => x.toString()),
-                datasets: datasets
-            };
-        }
-        
-        const yAxisConfig = {
-            title: {
-                display: !!yTitle,
-                text: yTitle
-            },
-            min: axisSettings?.yMin,
-            max: axisSettings?.yMax,
-            beginAtZero: true,
-            grid: { color: '#e9ecef' },
-            ticks: {
-                stepSize: axisSettings?.yStep
-            }
-        };
-        
-        const instance = new Chart(ctx, {
-            type: 'line',
-            data: dataConfig,
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: {
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        callbacks: {
-                            label: function(context) {
-                                if (context.dataset.label?.includes('MIN') || context.dataset.label?.includes('MAX')) {
-                                    return null;
-                                }
-                                let value = context.raw;
-                                if (typeof value === 'object' && value !== null) {
-                                    value = value.y;
-                                }
-                                return `${context.dataset.label}: ${value}`;
-                            },
-                            afterBody: function(tooltipItems) {
-                                if (!showShadedRegion) return null;
-                                const index = tooltipItems[0].dataIndex;
-                                const chart = tooltipItems[0].chart;
-                                const items = [];
-                                // Get all series data
-                                for (let i = 0; i < chartsData.length; i++) {
-                                    const minDataset = chart.data.datasets.find(d => d._seriesIndex === i && d.label?.includes('MIN'));
-                                    const maxDataset = chart.data.datasets.find(d => d._seriesIndex === i && d.label?.includes('MAX'));
-                                    if (minDataset && maxDataset) {
-                                        let min = minDataset.data[index];
-                                        let max = maxDataset.data[index];
-                                        if (typeof min === 'object' && min !== null) min = min.y;
-                                        if (typeof max === 'object' && max !== null) max = max.y;
-                                        if (min !== null && min !== undefined && max !== null && max !== undefined) {
-                                            items.push(`${chartsData[i].title}: ${min} - ${max}`);
-                                        }
-                                    }
-                                }
-                                return items.length > 0 ? items : null;
-                            }
-                        }
-                    },
-                    legend: {
-                        labels: {
-                            usePointStyle: true,
-                            boxWidth: 12,
-                            pointStyle: 'circle',
-                            filter: function(legendItem) {
-                                return !legendItem.text.includes('MIN') && !legendItem.text.includes('MAX');
-                            }
-                        }
-                    }
-                },
-                scales: {
-                    x: xAxisConfig,
-                    y: yAxisConfig
-                }
-            }
-        });
-        
-        chartInstances['stacked'] = instance;
-    }
-
     function buildChart(chartId, canvas) {
         const chart = chartsData.find(c => c.id === chartId);
         if (!chart) return;
@@ -1395,8 +795,7 @@
         const ctx = canvas.getContext('2d');
         const showShade = chart.showShadedRegion !== undefined ? chart.showShadedRegion : showShadedRegion;
         const color = chart.color || '#667eea';
-        // Changed from 0.5 to 0.25 for less transparency (more opaque)
-        const shadeColor = hexToRgba(color, 0.25);
+        const shadeColor = hexToRgba(color, 0.5);
         const isNumericX = chart.isNumericX || false;
         
         const series = chart.series;
@@ -1698,14 +1097,6 @@
         buildChart(chartId, canvas);
     }
     
-    function rebuildStackedChart() {
-        const canvas = document.getElementById('canvas_stacked');
-        if (!canvas) return;
-        const card = canvas.closest('.chart-card');
-        const axisSettings = card?._axisSettings || {};
-        buildStackedChart(canvas, axisSettings);
-    }
-    
     function deleteChart(chartId) {
         if (chartInstances[chartId]) {
             chartInstances[chartId].destroy();
@@ -1736,22 +1127,27 @@
         const chartCtx = chartCanvas.getContext('2d');
         
         if (bgType === 'white') {
+            // White background
             chartCtx.fillStyle = '#ffffff';
             chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
         }
+        // For transparent, don't fill background
         
         chartCtx.scale(scale, scale);
         chartCtx.drawImage(canvas, 0, 0);
         
+        // Create final canvas with title
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = chartCanvas.width;
         finalCanvas.height = chartCanvas.height + titleHeight + padding;
         const finalCtx = finalCanvas.getContext('2d');
         
+        // For white background, fill with white
         if (bgType === 'white') {
             finalCtx.fillStyle = '#ffffff';
             finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
         }
+        // For transparent, leave empty (transparent)
         
         finalCtx.fillStyle = '#1e293b';
         finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
@@ -1766,63 +1162,6 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.download = `${chart.title.replace(/[^a-z0-9]/gi, '_')}${bgSuffix}.png`;
-            link.href = url;
-            link.click();
-            URL.revokeObjectURL(url);
-        });
-    }
-    
-    async function exportStackedChart(bgType) {
-        const canvas = document.getElementById('canvas_stacked');
-        if (!canvas) return;
-        
-        const card = canvas.closest('.chart-card');
-        const title = card?.querySelector('.chart-title-input')?.value || 'Stacked_Chart';
-        
-        const scale = 4;
-        const chartWidth = canvas.width;
-        const chartHeight = canvas.height;
-        
-        const titleFontSize = 32 * scale;
-        const titleHeight = 100 * scale;
-        const padding = 40 * scale;
-        
-        const chartCanvas = document.createElement('canvas');
-        chartCanvas.width = chartWidth * scale;
-        chartCanvas.height = chartHeight * scale;
-        const chartCtx = chartCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            chartCtx.fillStyle = '#ffffff';
-            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
-        }
-        
-        chartCtx.scale(scale, scale);
-        chartCtx.drawImage(canvas, 0, 0);
-        
-        const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = chartCanvas.width;
-        finalCanvas.height = chartCanvas.height + titleHeight + padding;
-        const finalCtx = finalCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            finalCtx.fillStyle = '#ffffff';
-            finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-        }
-        
-        finalCtx.fillStyle = '#1e293b';
-        finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
-        finalCtx.textAlign = 'center';
-        finalCtx.textBaseline = 'middle';
-        finalCtx.fillText(title, finalCanvas.width / 2, titleHeight / 2);
-        
-        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding/2);
-        
-        const bgSuffix = bgType === 'white' ? '_white' : '_transparent';
-        finalCanvas.toBlob(blob => {
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.download = `${title.replace(/[^a-z0-9]/gi, '_')}_stacked${bgSuffix}.png`;
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
@@ -1912,31 +1251,14 @@
         if (newGlobalXTitle !== undefined) globalXTitle = newGlobalXTitle;
         if (newGlobalYTitle !== undefined) globalYTitle = newGlobalYTitle;
         
-        if (viewMode === 'stacked') {
-            rebuildStackedChart();
-        } else {
-            chartsData.forEach(chart => {
-                rebuildChart(chart.id);
-            });
-        }
+        chartsData.forEach(chart => {
+            rebuildChart(chart.id);
+        });
     }
     
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
     
-    function switchViewMode(mode) {
-        viewMode = mode;
-        renderAllCharts();
-    }
-    
     // Event listeners
-    document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                switchViewMode(e.target.value);
-            }
-        });
-    });
-    
     document.getElementById('exportAllBtn').addEventListener('click', exportAllChartsStacked);
     document.getElementById('applyGlobalBtn').addEventListener('click', applyGlobalSettings);
     
@@ -1944,18 +1266,12 @@
         showShadedRegion = e.target.checked;
         chartsData.forEach(chart => {
             chart.showShadedRegion = showShadedRegion;
+            rebuildChart(chart.id);
         });
-        if (viewMode === 'stacked') {
-            rebuildStackedChart();
-        } else {
-            chartsData.forEach(chart => {
-                rebuildChart(chart.id);
-            });
-        }
         const indicator = document.querySelector('.shade-indicator');
         if (indicator) {
             if (showShadedRegion) {
-                indicator.style.background = 'rgba(102, 126, 234, 0.25)';
+                indicator.style.background = 'rgba(102, 126, 234, 0.5)';
             } else {
                 indicator.style.background = 'rgba(200, 200, 200, 0.3)';
             }
@@ -1977,21 +1293,13 @@
 1.83,150,130,170,70,60,80
 2.00,155,135,175,75,65,85`;
         loadCSVIntoCharts(sample, "Sample Data");
-        // Switch to stacked view by default to show the feature
-        document.querySelector('input[name="viewMode"][value="stacked"]').checked = true;
-        switchViewMode('stacked');
     });
     
     document.getElementById('csvFileInput').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
-        reader.onload = (ev) => {
-            loadCSVIntoCharts(ev.target.result, file.name);
-            // Switch to stacked view
-            document.querySelector('input[name="viewMode"][value="stacked"]').checked = true;
-            switchViewMode('stacked');
-        };
+        reader.onload = (ev) => loadCSVIntoCharts(ev.target.result, file.name);
         reader.readAsText(file);
     });
     
@@ -2002,12 +1310,10 @@
             const resp = await fetch(url);
             const text = await resp.text();
             loadCSVIntoCharts(text, url);
-            document.querySelector('input[name="viewMode"][value="stacked"]').checked = true;
-            switchViewMode('stacked');
         } catch(err) { alert("Failed to load URL"); }
     });
     
-    // Load sample on startup and show stacked view
+    // Load sample on startup
     setTimeout(() => { 
         document.getElementById('loadSampleBtn').click(); 
     }, 200);

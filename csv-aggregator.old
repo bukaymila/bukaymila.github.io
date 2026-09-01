@@ -49,6 +49,9 @@
             border-radius: 0 12px 12px 0;
             line-height: 1.6;
         }
+        .sub strong {
+            color: #0b2d47;
+        }
         .upload-area {
             background: #f0f6fe;
             border: 2px dashed #b6d2e8;
@@ -125,7 +128,6 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            align-items: center;
             gap: 18px 28px;
             margin: 28px 0 20px;
         }
@@ -282,29 +284,14 @@
         .info-box strong {
             color: #0d3d25;
         }
-        .debug-info {
-            background: #fef3e8;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            color: #7a4a1a;
-            margin: 8px 0;
-            border-left: 3px solid #d4872a;
-            display: none;
-        }
-        .debug-info.show {
-            display: block;
-        }
     </style>
 </head>
 <body>
 <div class="card">
-    <h1>📊 CSV Aggregator (Header Grouping)</h1>
+    <h1>📊 Row-wise CSV Aggregator</h1>
     <div class="sub">
-        🥶 Made for the cold box project<br>
-        ⚡ Groups columns by <strong>header name</strong> (across all files)<br>
-        📌 First column (X-axis) is ignored · Only numeric values are kept<br>
-        🔄 Duplicate headers are automatically combined
+	🥶 Imagine by Alim Yakub (RP) for the cold box project <br>
+        ⚡ For each row, computes <strong>AVG · MIN · MAX</strong> across all files<br>
     </div>
 
     <div class="upload-area">
@@ -322,8 +309,6 @@
         <span id="fileCounter" class="stats">0 files loaded</span>
     </div>
 
-    <div id="debugInfo" class="debug-info"></div>
-
     <!-- results -->
     <div id="resultArea">
         <div class="table-wrap" id="tableWrapper">
@@ -332,8 +317,8 @@
     </div>
 
     <div class="footer-note">
-        <span>📌 Shortest file determines row count · Columns grouped by <strong>header name</strong></span>
-        <span class="badge">header-based aggregation</span>
+        <span>📌 Shortest file determines row count · Only columns with <strong>all numeric values</strong> are kept</span>
+        <span class="badge">row-wise aggregation</span>
     </div>
 </div>
 
@@ -349,7 +334,6 @@
         const clearBtn = document.getElementById('clearBtn');
         const fileCounter = document.getElementById('fileCounter');
         const tableWrapper = document.getElementById('tableWrapper');
-        const debugInfo = document.getElementById('debugInfo');
 
         // ----- helpers -----
         function updateFileUI() {
@@ -377,7 +361,6 @@
                         updateFileUI();
                         lastResult = null;
                         tableWrapper.innerHTML = `<div class="empty-message">⬆ Upload CSV files and click "Aggregate"</div>`;
-                        debugInfo.classList.remove('show');
                     }
                 });
             });
@@ -420,146 +403,84 @@
             return result;
         }
 
-        // ----- AGGREGATION: Group by header name (not position) -----
-        function aggregateFilesByHeader(files) {
+        // ----- ROW-WISE aggregation -----
+        function aggregateFilesRowWise(files) {
             if (!files || files.length === 0) return null;
 
-            // Parse all files
             const parsedData = [];
             let minLength = Infinity;
-            
             for (let f of files) {
                 const rows = parseCSVToRows(f.text);
                 if (rows.length < 2) continue;
-                
-                // Get headers (skip first column)
                 const headers = rows[0].slice(1);
-                // Get data rows (skip first column of each row)
                 const dataRows = rows.slice(1).map(row => row.slice(1));
-                
                 parsedData.push({
                     name: f.name,
                     headers: headers,
                     dataRows: dataRows
                 });
-                
-                if (dataRows.length < minLength) {
-                    minLength = dataRows.length;
-                }
+                if (dataRows.length < minLength) minLength = dataRows.length;
             }
 
-            if (parsedData.length === 0) {
-                debugInfo.textContent = '❌ No valid CSV files found (need at least header + 1 data row)';
-                debugInfo.classList.add('show');
-                return null;
-            }
-            
-            if (minLength === 0) {
-                debugInfo.textContent = '❌ Files have headers but no data rows';
-                debugInfo.classList.add('show');
-                return { headers: [], rowStats: [] };
-            }
+            if (parsedData.length === 0) return null;
+            if (minLength === 0) return { headers: [], rowStats: [] };
 
-            // STEP 1: Collect all unique header names (ignoring empty headers)
-            const headerMap = new Map(); // headerName -> array of {fileIdx, colIdx}
-            
-            for (let fileIdx = 0; fileIdx < parsedData.length; fileIdx++) {
-                const p = parsedData[fileIdx];
-                for (let colIdx = 0; colIdx < p.headers.length; colIdx++) {
-                    const header = p.headers[colIdx].trim();
-                    if (header === '') continue;
-                    
-                    if (!headerMap.has(header)) {
-                        headerMap.set(header, []);
-                    }
-                    headerMap.get(header).push({ fileIdx, colIdx });
-                }
-            }
+            // Find common headers across all files
+            const allHeadersSet = new Set();
+            parsedData.forEach(p => p.headers.forEach(h => allHeadersSet.add(h)));
+            const allHeaders = Array.from(allHeadersSet);
 
-            if (headerMap.size === 0) {
-                debugInfo.textContent = '❌ No headers found in files';
-                debugInfo.classList.add('show');
-                return { headers: [], rowStats: [] };
-            }
+            const commonHeaders = allHeaders.filter(h => 
+                parsedData.every(p => p.headers.includes(h))
+            );
 
-            // STEP 2: For each header, check if ALL values are numeric across all occurrences
-            const validHeaders = [];
-            
-            for (let [headerName, occurrences] of headerMap) {
+            // Check each column: if ANY non-numeric value exists, drop the entire column
+            const numericHeaders = [];
+            for (let h of commonHeaders) {
                 let allNumeric = true;
-                let hasData = false;
-                
-                // Check each occurrence
-                for (let occ of occurrences) {
-                    const p = parsedData[occ.fileIdx];
-                    const colIdx = occ.colIdx;
-                    
-                    // Check all rows up to minLength
+                for (let p of parsedData) {
+                    const idx = p.headers.indexOf(h);
+                    if (idx === -1) { allNumeric = false; break; }
                     for (let r = 0; r < minLength; r++) {
-                        const val = p.dataRows[r]?.[colIdx];
-                        if (val === undefined || val === '') { 
-                            allNumeric = false; 
-                            break; 
-                        }
+                        const val = p.dataRows[r]?.[idx];
+                        if (val === undefined || val === '') { allNumeric = false; break; }
                         const num = parseFloat(val);
-                        if (isNaN(num)) { 
-                            allNumeric = false; 
-                            break; 
-                        }
-                        hasData = true;
+                        if (isNaN(num)) { allNumeric = false; break; }
                     }
                     if (!allNumeric) break;
                 }
-                
-                if (allNumeric && hasData) {
-                    validHeaders.push(headerName);
-                }
+                if (allNumeric) numericHeaders.push(h);
             }
 
-            if (validHeaders.length === 0) {
-                debugInfo.textContent = '❌ No numeric columns found (columns with any non-numeric values are dropped)';
-                debugInfo.classList.add('show');
+            if (numericHeaders.length === 0) {
                 return { headers: [], rowStats: [] };
             }
 
-            // STEP 3: For each row, group values by header name and compute stats
+            // Row-wise statistics
             const rowStats = [];
-            
             for (let rowIdx = 0; rowIdx < minLength; rowIdx++) {
                 const rowData = {};
-                
-                for (let headerName of validHeaders) {
+                for (let h of numericHeaders) {
                     const values = [];
-                    const occurrences = headerMap.get(headerName);
-                    
-                    // Collect all values for this header from all occurrences
-                    for (let occ of occurrences) {
-                        const p = parsedData[occ.fileIdx];
-                        const colIdx = occ.colIdx;
-                        const val = parseFloat(p.dataRows[rowIdx][colIdx]);
-                        if (!isNaN(val)) {
-                            values.push(val);
+                    for (let p of parsedData) {
+                        const colIdx = p.headers.indexOf(h);
+                        if (colIdx !== -1) {
+                            const val = parseFloat(p.dataRows[rowIdx][colIdx]);
+                            if (!isNaN(val)) values.push(val);
                         }
                     }
-                    
-                    // Compute statistics across all occurrences
                     if (values.length > 0) {
                         const sum = values.reduce((a, b) => a + b, 0);
                         const avg = sum / values.length;
                         const min = Math.min(...values);
                         const max = Math.max(...values);
-                        rowData[headerName] = { avg, min, max };
+                        rowData[h] = { avg, min, max };
                     }
                 }
                 rowStats.push(rowData);
             }
 
-            // Debug info
-            const totalOccurrences = validHeaders.reduce((sum, h) => sum + headerMap.get(h).length, 0);
-            debugInfo.textContent = `✅ Processed ${parsedData.length} files · ${minLength} rows · ${validHeaders.length} unique headers (${totalOccurrences} total columns grouped)`;
-            debugInfo.classList.add('show');
-
-            return { headers: validHeaders, rowStats: rowStats };
+            return { headers: numericHeaders, rowStats: rowStats };
         }
 
         // ----- render result table with download button -----
@@ -575,8 +496,8 @@
             let html = `<div class="result-controls">
                 <button id="downloadBtn" class="btn btn-success">⬇ Download CSV</button>
             </div>`;
-            html += `<div class="stats-summary">📊 ${rowStats.length} rows · ${headers.length} unique headers grouped</div>`;
-            html += `<div class="info-box">✅ Columns with the <strong>same header name</strong> are grouped together (even across different files).</div>`;
+            html += `<div class="stats-summary">📊 ${rowStats.length} rows · ${headers.length} numeric columns kept</div>`;
+            html += `<div class="info-box">✅ Only columns with <strong>all numeric values</strong> are included. Headers with <strong>any text or empty cells</strong> were dropped.</div>`;
             html += `<table><thead><tr><th style="position:sticky;left:0;z-index:3;background:#e5eff8;">Row</th>`;
             
             for (let h of headers) {
@@ -660,14 +581,10 @@
         function processFiles() {
             if (filesArray.length === 0) {
                 tableWrapper.innerHTML = `<div class="empty-message">⚠️ Please upload at least one CSV file.</div>`;
-                debugInfo.textContent = '⚠️ No files uploaded';
-                debugInfo.classList.add('show');
                 return;
             }
-            
-            const result = aggregateFilesByHeader(filesArray);
+            const result = aggregateFilesRowWise(filesArray);
             lastResult = result;
-            
             if (result && result.headers && result.headers.length > 0 && result.rowStats && result.rowStats.length > 0) {
                 renderResult(result);
             } else {
@@ -682,7 +599,6 @@
             fileInput.value = ''; 
             updateFileUI();
             tableWrapper.innerHTML = `<div class="empty-message">⬆ Upload CSV files and click "Aggregate"</div>`;
-            debugInfo.classList.remove('show');
         }
 
         // ----- handle file selection -----
@@ -712,7 +628,6 @@
                     updateFileUI();
                     lastResult = null;
                     tableWrapper.innerHTML = `<div class="empty-message">✅ ${filesArray.length} file(s) ready · click "Aggregate"</div>`;
-                    debugInfo.classList.remove('show');
                 })
                 .catch(err => {
                     alert('Error reading files: ' + err);
