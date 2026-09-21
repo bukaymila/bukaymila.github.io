@@ -15,7 +15,7 @@
 
         html, body {
             height: 100%;
-            overflow: hidden; /* No scrolling */
+            overflow: hidden;
         }
 
         body {
@@ -26,6 +26,31 @@
             align-items: center;
             justify-content: center;
             padding: 1rem;
+        }
+
+        /* ===== EASTER EGG DOG TRIGGER (top-left) ===== */
+        .dog-trigger {
+            position: fixed;
+            top: 12px;
+            left: 14px;
+            font-size: 1.6rem;
+            cursor: pointer;
+            user-select: none;
+            z-index: 2000;
+            transition: transform 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+            line-height: 1;
+            opacity: 0.7;
+        }
+
+        .dog-trigger:hover {
+            transform: scale(1.25) rotate(-6deg);
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+            opacity: 1;
+        }
+
+        .dog-trigger:active {
+            transform: scale(0.95);
         }
 
         .container {
@@ -60,7 +85,6 @@
             margin-top: 0.25rem;
         }
 
-        /* Grid: exactly 3 columns for 6 items (2 rows) */
         .grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -98,25 +122,12 @@
             overflow: hidden;
         }
 
-        /* Updated gradients for 6 tools */
-        .visual-area[data-tool="u07b-extract"] {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .visual-area[data-tool="csv-edit"] {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-        .visual-area[data-tool="csv-aggregator"] {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-        .visual-area[data-tool="line-chart"] {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .visual-area[data-tool="shaded-chart"] {
-            background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%);
-        }
-        .visual-area[data-tool="stl-viewer"] {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
+        .visual-area[data-tool="u07b-extract"] { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .visual-area[data-tool="csv-edit"] { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .visual-area[data-tool="csv-aggregator"] { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+        .visual-area[data-tool="line-chart"] { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .visual-area[data-tool="shaded-chart"] { background: linear-gradient(135deg, #fccb90 0%, #d57eeb 100%); }
+        .visual-area[data-tool="stl-viewer"] { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
 
         .giant-icon {
             font-size: clamp(3rem, 12vw, 8rem);
@@ -140,9 +151,7 @@
             transition: opacity 0.5s;
         }
 
-        .tool-card:hover .visual-area::before {
-            opacity: 1;
-        }
+        .tool-card:hover .visual-area::before { opacity: 1; }
 
         .card-content {
             flex: 1;
@@ -203,124 +212,743 @@
             transform: translateX(4px);
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 1000px) {
-            .grid {
-                gap: 1rem;
-            }
+        /* ============================================================
+           PET OVERLAY (Easter egg — hidden until dog is clicked)
+           ============================================================ */
+        .pet-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 1500;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+            animation: fadeIn 0.25s ease;
         }
 
+        .pet-overlay.active { display: flex; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .pet-modal {
+            position: relative;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.85); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* pet close button */
+        .pet-close {
+            position: absolute;
+            top: -14px;
+            right: -14px;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #e2e8f0;
+            color: #475569;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+            transition: all 0.15s ease;
+            z-index: 20;
+            line-height: 1;
+            padding: 0;
+        }
+
+        .pet-close:hover {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+            transform: rotate(90deg) scale(1.08);
+        }
+
+        /* ---- pet wrapper ---- */
+        .pet-wrapper {
+            width: 340px;
+            max-width: 90vw;
+            background: #ffffff;
+            border-radius: 2.5rem;
+            padding: 1.6rem 1.4rem 1.5rem 1.4rem;
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid #e9edf4;
+        }
+
+        .pet-name {
+            text-align: center;
+            font-weight: 500;
+            font-size: 0.72rem;
+            letter-spacing: 0.3px;
+            color: #6d7b8c;
+            text-transform: uppercase;
+            margin-bottom: 0.2rem;
+        }
+
+        .roam-zone {
+            position: relative;
+            width: 100%;
+            height: 150px;
+            background: #f0f4fa;
+            border-radius: 2rem;
+            margin: 0.5rem 0 0.7rem 0;
+            border: 1px solid #e2e8f2;
+            overflow: hidden;
+            box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .monster {
+            position: absolute;
+            font-size: 3rem;
+            line-height: 1;
+            cursor: pointer;
+            user-select: none;
+            transition: left 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        transform 0.2s ease;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+            will-change: left, top, transform;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            margin: -2rem 0 0 -2rem;
+            text-align: center;
+        }
+
+        .monster.flip {
+            animation: flip 0.5s ease;
+        }
+
+        @keyframes flip {
+            0% { transform: rotate(0deg) scale(1); }
+            30% { transform: rotate(180deg) scale(1.2); }
+            60% { transform: rotate(360deg) scale(0.95); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .poop {
+            position: absolute;
+            font-size: 1.4rem;
+            line-height: 1;
+            pointer-events: none;
+            user-select: none;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.08));
+            opacity: 0;
+            animation: poopPop 0.35s ease forwards;
+            z-index: 1;
+        }
+
+        @keyframes poopPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+            70% { opacity: 1; transform: translate(-50%, -50%) scale(1.15); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .stat-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            margin: 0.6rem 0 0.6rem 0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.68rem;
+            font-weight: 500;
+            color: #2e3a4b;
+            width: 58px;
+            letter-spacing: 0.2px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stat-label span { font-size: 0.85rem; }
+
+        .bar-bg {
+            flex: 1;
+            height: 8px;
+            background: #e3e8f0;
+            border-radius: 100px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 100px;
+            transition: width 0.3s ease;
+        }
+
+        .fill-hunger { background: #f4b942; }
+        .fill-happy { background: #5ec9b3; }
+        .fill-clean { background: #6fa8dc; }
+
+        .bar-segments {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            pointer-events: none;
+        }
+
+        .bar-segments div {
+            flex: 1;
+            border-right: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .bar-segments div:last-child { border-right: none; }
+
+        .waste-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.3rem;
+            margin: 0.15rem 0 0.1rem 0;
+        }
+
+        .waste-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            transition: background 0.2s;
+        }
+
+        .waste-dot.active {
+            background: #b08b6b;
+            box-shadow: 0 0 0 2px rgba(176, 139, 107, 0.2);
+        }
+
+        .actions {
+            display: flex;
+            gap: 0.45rem;
+            justify-content: center;
+            margin-top: 0.55rem;
+        }
+
+        .pet-btn {
+            flex: 1;
+            background: #f2f5fa;
+            border: 1px solid #dfe5ed;
+            border-radius: 3rem;
+            padding: 0.5rem 0.3rem;
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: #1e2b3c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+            font-family: inherit;
+            user-select: none;
+        }
+
+        .pet-btn:hover {
+            background: #e8eef8;
+            border-color: #cbd5e2;
+            transform: translateY(-1px);
+        }
+
+        .pet-btn:active {
+            transform: translateY(1px);
+            background: #dbe3ef;
+            box-shadow: none;
+        }
+
+        .pet-btn .btn-icon { font-size: 0.85rem; line-height: 1; }
+
+        .status-message {
+            text-align: center;
+            font-size: 0.62rem;
+            color: #7c8a9c;
+            min-height: 1.5rem;
+            margin: 0.4rem 0 0.05rem 0;
+            font-weight: 400;
+            padding: 0 0.3rem;
+            letter-spacing: 0.2px;
+        }
+
+        .embed-hint {
+            font-size: 0.52rem;
+            text-align: center;
+            color: #b7c2d0;
+            margin-top: 0.6rem;
+            border-top: 1px dashed #e2e8f2;
+            padding-top: 0.55rem;
+            letter-spacing: 0.2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 1000px) { .grid { gap: 1rem; } }
+
         @media (max-width: 800px) {
-            .grid {
-                gap: 0.8rem;
-            }
-            .card-content {
-                padding: 0.8rem 0.8rem 1rem;
-            }
-            .launch-badge {
-                padding: 0.35rem 0.8rem;
-            }
+            .grid { gap: 0.8rem; }
+            .card-content { padding: 0.8rem 0.8rem 1rem; }
+            .launch-badge { padding: 0.35rem 0.8rem; }
         }
 
         @media (max-width: 600px) {
-            body {
-                padding: 0.5rem;
-            }
-            .grid {
-                gap: 0.5rem;
-            }
-            .card-content {
-                padding: 0.6rem 0.4rem 0.8rem;
-            }
-            .tool-title {
-                margin-bottom: 0.25rem;
-            }
-            .tool-url {
-                margin-bottom: 0.4rem;
-            }
+            body { padding: 0.5rem; }
+            .grid { gap: 0.5rem; }
+            .card-content { padding: 0.6rem 0.4rem 0.8rem; }
+            .tool-title { margin-bottom: 0.25rem; }
+            .tool-url { margin-bottom: 0.4rem; }
+            .dog-trigger { font-size: 1.3rem; top: 8px; left: 10px; }
+            .pet-wrapper { width: 300px; }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1>⚡ COLD BOX LAUNCHPAD</h1>
-        <div class="subhead">cold box stuff · alim yakub (rp)</div>
+
+    <!-- ===== EASTER EGG DOG TRIGGER (top-left) ===== -->
+    <div class="dog-trigger" id="dogTrigger" title="🐶 ...?">🐶</div>
+
+    <!-- ===== PET OVERLAY (hidden until dog is clicked) ===== -->
+    <div class="pet-overlay" id="petOverlay">
+        <div class="pet-modal">
+            <button class="pet-close" id="petClose" aria-label="Close pet">✕</button>
+
+            <div class="pet-wrapper">
+                <div class="pet-name">🐣 BUBBLES · ROAMING MONSTER</div>
+
+                <div class="roam-zone" id="roamZone">
+                    <div class="monster" id="monster" title="Click to pet!">👾</div>
+                </div>
+
+                <div class="stat-group">
+                    <div class="stat-item">
+                        <div class="stat-label"><span>🍖</span> Feed</div>
+                        <div class="bar-bg">
+                            <div class="bar-fill fill-hunger" id="hungerBar" style="width:100%"></div>
+                            <div class="bar-segments"><div></div><div></div><div></div></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label"><span>💖</span> Happy</div>
+                        <div class="bar-bg">
+                            <div class="bar-fill fill-happy" id="happyBar" style="width:100%"></div>
+                            <div class="bar-segments"><div></div><div></div><div></div></div>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label"><span>🧼</span> Clean</div>
+                        <div class="bar-bg">
+                            <div class="bar-fill fill-clean" id="cleanBar" style="width:100%"></div>
+                            <div class="bar-segments"><div></div><div></div><div></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="waste-row" id="wasteDots">
+                    <div class="waste-dot" id="waste1"></div>
+                    <div class="waste-dot" id="waste2"></div>
+                    <div class="waste-dot" id="waste3"></div>
+                </div>
+
+                <div class="actions">
+                    <button class="pet-btn" id="feedBtn"><span class="btn-icon">🍖</span> Feed</button>
+                    <button class="pet-btn" id="petBtn"><span class="btn-icon">✋</span> Pet</button>
+                    <button class="pet-btn" id="cleanBtn"><span class="btn-icon">🧹</span> Clean</button>
+                </div>
+
+                <div class="status-message" id="statusMsg">Bubbles is happy to see you! 💕</div>
+                <div class="embed-hint">⚡ never dies · click monster to pet</div>
+            </div>
+        </div>
     </div>
 
-    <div class="grid">
-        <!-- U07B Extractor -->
-        <a href="U07B-extract.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="u07b-extract">
-                <div class="giant-icon">🌡️</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">🌡️ U07B Extractor</div>
-                <!-- <div class="tool-url">bukaymila.github.io/U07B-extract</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ COLD BOX LAUNCHPAD</h1>
+            <div class="subhead">cold box stuff · alim yakub (rp)</div>
+        </div>
 
-        <!-- CSV Processor -->
-        <a href="csv-edit.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="csv-edit">
-                <div class="giant-icon">📊</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">📊 CSV Processor</div>
-                <!-- <div class="tool-url">bukaymila.github.io/csv-edit</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+        <div class="grid">
+            <a href="U07B-extract.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="u07b-extract"><div class="giant-icon">🌡️</div></div>
+                <div class="card-content">
+                    <div class="tool-title">🌡️ U07B Extractor</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
 
-        <!-- CSV Aggregator -->
-        <a href="csv-aggregator.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="csv-aggregator">
-                <div class="giant-icon">📈</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">📊 Row CSV Aggregator</div>
-                <!-- <div class="tool-url">bukaymila.github.io/csv-aggregator</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+            <a href="csv-edit.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="csv-edit"><div class="giant-icon">📊</div></div>
+                <div class="card-content">
+                    <div class="tool-title">📊 CSV Processor</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
 
-        <!-- Line Chart Studio -->
-        <a href="line-chart.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="line-chart">
-                <div class="giant-icon">📉</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">🎨 Line Chart Studio</div>
-                <!-- <div class="tool-url">bukaymila.github.io/line-chart</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+            <a href="csv-aggregator.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="csv-aggregator"><div class="giant-icon">📈</div></div>
+                <div class="card-content">
+                    <div class="tool-title">📊 Row CSV Aggregator</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
 
-        <!-- Shaded Region Chart Studio -->
-        <a href="shaded-chart.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="shaded-chart">
-                <div class="giant-icon">📐</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">📐 Shaded Region Chart Studio</div>
-                <!-- <div class="tool-url">bukaymila.github.io/shaded-chart</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+            <a href="line-chart.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="line-chart"><div class="giant-icon">📉</div></div>
+                <div class="card-content">
+                    <div class="tool-title">🎨 Line Chart Studio</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
 
-        <!-- STL 3D Viewer -->
-        <a href="stl-viewer.html" target="_blank" rel="noopener noreferrer" class="tool-card">
-            <div class="visual-area" data-tool="stl-viewer">
-                <div class="giant-icon">🔷</div>
-            </div>
-            <div class="card-content">
-                <div class="tool-title">🧊 STL 3D Viewer</div>
-                <!-- <div class="tool-url">bukaymila.github.io/stl-viewer</div> -->
-                <div class="launch-badge">Launch</div>
-            </div>
-        </a>
+            <a href="shaded-chart.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="shaded-chart"><div class="giant-icon">📐</div></div>
+                <div class="card-content">
+                    <div class="tool-title">📐 Shaded Region Chart Studio</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
+
+            <a href="stl-viewer.html" target="_blank" rel="noopener noreferrer" class="tool-card">
+                <div class="visual-area" data-tool="stl-viewer"><div class="giant-icon">🔷</div></div>
+                <div class="card-content">
+                    <div class="tool-title">🧊 STL 3D Viewer</div>
+                    <div class="launch-badge">Launch</div>
+                </div>
+            </a>
+        </div>
     </div>
-</div>
+
+    <script>
+    /* ============================================================
+       PET GAME (EASTER EGG)
+       - Timers only run while the overlay is open
+       - Closing resets ALL state (bars, poops, position, timers)
+       ============================================================ */
+    (function() {
+        // ---- DOM refs ----
+        const dogTrigger = document.getElementById('dogTrigger');
+        const petOverlay = document.getElementById('petOverlay');
+        const petClose   = document.getElementById('petClose');
+
+        const hungerBar = document.getElementById('hungerBar');
+        const happyBar  = document.getElementById('happyBar');
+        const cleanBar  = document.getElementById('cleanBar');
+        const monster   = document.getElementById('monster');
+        const roamZone  = document.getElementById('roamZone');
+        const statusMsg = document.getElementById('statusMsg');
+        const waste1    = document.getElementById('waste1');
+        const waste2    = document.getElementById('waste2');
+        const waste3    = document.getElementById('waste3');
+        const feedBtn   = document.getElementById('feedBtn');
+        const petBtn    = document.getElementById('petBtn');
+        const cleanBtn  = document.getElementById('cleanBtn');
+
+        // ---- Tunables ----
+        const MAX_POOPS = 3;
+        const DECAY_HUNGER          = 4;    // base 1 (faster now)
+        const DECAY_HAPPY_BASE      = 2.8;  // base 0.7
+        const DECAY_HAPPY_WITH_POOP = 4;    // base 1 when any poop on ground
+        const DECAY_INTERVAL_MS     = 4000;
+
+        // ---- Live state (re-initialized on every open) ----
+        let hunger, happiness, cleanliness;
+        let poopElements = [];
+        let lastX = null, lastY = null;
+        let messageTimeout = null;
+        let decayInterval = null;
+        let isRunning = false;
+
+        // ---- Helpers ----
+        const clamp = (v, min = 0, max = 100) => Math.min(max, Math.max(min, v));
+
+        function snapToThirds(value) {
+            if (value <= 16) return 0;
+            if (value <= 49) return 33.33;
+            if (value <= 82) return 66.66;
+            return 100;
+        }
+
+        function updateCleanlinessFromPoopCount() {
+            const count = poopElements.length;
+            cleanliness = clamp(Math.round(((MAX_POOPS - count) / MAX_POOPS) * 100));
+        }
+
+        // ---- Poop management ----
+        function addPoopAt(x, y) {
+            if (poopElements.length >= MAX_POOPS) return false;
+
+            const poop = document.createElement('div');
+            poop.className = 'poop';
+            poop.textContent = '💩';
+            poop.style.left = x + 'px';
+            poop.style.top  = y + 'px';
+            roamZone.appendChild(poop);
+            poopElements.push(poop);
+
+            updateCleanlinessFromPoopCount();
+            updateUI();
+            return true;
+        }
+
+        function clearAllPoops() {
+            poopElements.forEach(p => { if (p.parentNode) p.remove(); });
+            poopElements = [];
+            updateCleanlinessFromPoopCount();
+            updateUI();
+        }
+
+        // ---- Movement ----
+        function moveMonster() {
+            const rect = roamZone.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const monsterSize = 64;
+            const padding = 12;
+            const maxX = Math.max(padding, rect.width  - monsterSize - padding);
+            const maxY = Math.max(padding, rect.height - monsterSize - padding);
+
+            const randomX = Math.random() * maxX;
+            const randomY = Math.random() * maxY;
+
+            // Chance to leave a poop at previous position
+            if (lastX !== null && lastY !== null && Math.random() < 0.45) {
+                addPoopAt(lastX + 32, lastY + 32);
+            }
+
+            monster.style.left = randomX + 'px';
+            monster.style.top  = randomY + 'px';
+            lastX = randomX;
+            lastY = randomY;
+        }
+
+        // ---- Face ----
+        function updateMonsterFace() {
+            const allGood = hunger > 65 && happiness > 65 && cleanliness > 65;
+            const anyLow  = hunger < 30 || happiness < 30 || cleanliness < 30;
+
+            if (allGood) {
+                const happy = ['😊','😄','🥰','😍','🤩','😎','🥳'];
+                monster.textContent = happy[Math.floor(Math.random() * happy.length)];
+            } else if (anyLow) {
+                const gentle = ['😌','🙂','😇','🤗','😺','🐣'];
+                monster.textContent = gentle[Math.floor(Math.random() * gentle.length)];
+            } else {
+                const neutral = ['😐','🙂','😊','😺','🐶','🐕','👾','🤖'];
+                monster.textContent = neutral[Math.floor(Math.random() * neutral.length)];
+            }
+
+            if (hunger < 20)     monster.textContent = '🍖';
+            if (cleanliness < 20) monster.textContent = '🧼';
+            if (happiness < 20)  monster.textContent = '💖';
+        }
+
+        // ---- UI refresh ----
+        function updateUI() {
+            hungerBar.style.width = snapToThirds(hunger) + '%';
+            happyBar.style.width  = snapToThirds(happiness) + '%';
+            cleanBar.style.width  = snapToThirds(cleanliness) + '%';
+
+            const activeDots = Math.min(3, poopElements.length);
+            waste1.classList.toggle('active', activeDots >= 1);
+            waste2.classList.toggle('active', activeDots >= 2);
+            waste3.classList.toggle('active', activeDots >= 3);
+
+            updateMonsterFace();
+        }
+
+        // ---- Status message ----
+        function setMessage(text, duration = 2000) {
+            statusMsg.textContent = text;
+            if (messageTimeout) clearTimeout(messageTimeout);
+            messageTimeout = setTimeout(() => {
+                if (hunger < 30)       statusMsg.textContent = 'Bubbles is a bit hungry… 🍖';
+                else if (happiness < 30) statusMsg.textContent = 'Bubbles wants some pets! ✋';
+                else if (cleanliness < 30) statusMsg.textContent = 'A little mess, but Bubbles is fine! 🧹';
+                else                    statusMsg.textContent = 'Bubbles is happy to see you! 💕';
+            }, duration);
+        }
+
+        // ---- Flip animation ----
+        function doFlip() {
+            monster.classList.add('flip');
+            setTimeout(() => monster.classList.remove('flip'), 550);
+        }
+
+        // ---- Actions ----
+        function feed() {
+            hunger = clamp(hunger + 35);
+            happiness = clamp(happiness + 10);
+
+            if (poopElements.length < MAX_POOPS && Math.random() < 0.6 && lastX !== null) {
+                addPoopAt(lastX + 32, lastY + 32);
+            }
+            updateUI();
+            setMessage('🍖 Yum! Bubbles enjoyed that.', 1500);
+            moveMonster();
+        }
+
+        function pet() {
+            happiness = clamp(happiness + 35);
+            updateUI();
+            setMessage('💕 Bubbles loves the attention!', 1500);
+            doFlip();
+            moveMonster();
+        }
+
+        function clean() {
+            clearAllPoops();
+            happiness = clamp(happiness + 10);
+            updateUI();
+            setMessage('🧼 All clean! Bubbles feels fresh.', 1500);
+            moveMonster();
+        }
+
+        // ---- Passive decay ----
+        function decay() {
+            if (!isRunning) return;
+
+            hunger = clamp(hunger - DECAY_HUNGER);
+
+            // Happiness decays faster if ANY poop is on the ground
+            if (poopElements.length > 0) {
+                happiness = clamp(happiness - DECAY_HAPPY_WITH_POOP);
+            } else {
+                happiness = clamp(happiness - DECAY_HAPPY_BASE);
+            }
+
+            // Chance for a new poop
+            if (poopElements.length < MAX_POOPS && Math.random() < 0.15 && lastX !== null) {
+                addPoopAt(lastX + 32, lastY + 32);
+            }
+
+            updateUI();
+            moveMonster();
+
+            // Gentle status hint
+            if (hunger < 30)           statusMsg.textContent = 'Bubbles could use a snack… 🍖';
+            else if (happiness < 30)   statusMsg.textContent = 'Bubbles would love some pets! ✋';
+            else if (cleanliness < 30) statusMsg.textContent = 'A little cleanup would be nice 🧹';
+            else if (poopElements.length >= 2) statusMsg.textContent = 'Bubbles made a tiny mess… 🧻';
+        }
+
+        // ---- Start / Stop ----
+        function startGame() {
+            // --- Full reset every time ---
+            hunger = 100;
+            happiness = 100;
+            cleanliness = 100;
+
+            // Remove any leftover poop elements
+            poopElements.forEach(p => { if (p.parentNode) p.remove(); });
+            poopElements = [];
+
+            if (messageTimeout) { clearTimeout(messageTimeout); messageTimeout = null; }
+
+            // Reset monster to a known starting position
+            lastX = 60;
+            lastY = 60;
+            monster.style.left = '60px';
+            monster.style.top  = '60px';
+            monster.classList.remove('flip');
+            monster.textContent = '👾';
+
+            updateCleanlinessFromPoopCount();
+            updateUI();
+            setMessage('🐣 Bubbles says hi! Click me to pet.', 3000);
+
+            isRunning = true;
+            // Place monster randomly after overlay has rendered (so we have real dimensions)
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (!isRunning) return;
+                moveMonster();
+                if (decayInterval) clearInterval(decayInterval);
+                decayInterval = setInterval(decay, DECAY_INTERVAL_MS);
+            }));
+        }
+
+        function stopGame() {
+            isRunning = false;
+            if (decayInterval) { clearInterval(decayInterval); decayInterval = null; }
+            if (messageTimeout) { clearTimeout(messageTimeout); messageTimeout = null; }
+
+            // Clean out all poop DOM so next open starts fresh
+            poopElements.forEach(p => { if (p.parentNode) p.remove(); });
+            poopElements = [];
+
+            // Reset visuals to a clean "closed" state
+            hungerBar.style.width = '100%';
+            happyBar.style.width  = '100%';
+            cleanBar.style.width  = '100%';
+            waste1.classList.remove('active');
+            waste2.classList.remove('active');
+            waste3.classList.remove('active');
+            monster.classList.remove('flip');
+            statusMsg.textContent = 'Bubbles is happy to see you! 💕';
+        }
+
+        // ---- Open / Close ----
+        function openPet() {
+            petOverlay.classList.add('active');
+            startGame();
+        }
+
+        function closePet() {
+            stopGame();
+            petOverlay.classList.remove('active');
+        }
+
+        // ---- Events ----
+        dogTrigger.addEventListener('click', openPet);
+        petClose.addEventListener('click', closePet);
+
+        // Click outside the modal closes it too
+        petOverlay.addEventListener('click', (e) => {
+            if (e.target === petOverlay) closePet();
+        });
+
+        // Escape key closes
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && petOverlay.classList.contains('active')) closePet();
+        });
+
+        // Buttons
+        feedBtn.addEventListener('click', feed);
+        petBtn.addEventListener('click', pet);
+        cleanBtn.addEventListener('click', clean);
+
+        // Monster direct click = pet
+        monster.addEventListener('click', (e) => {
+            e.stopPropagation();
+            pet();
+        });
+
+        // Re-place monster if the window resizes while open
+        window.addEventListener('resize', () => {
+            if (isRunning) moveMonster();
+        });
+    })();
+    </script>
 </body>
 </html>
