@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Line Chart Studio | By Alim Yakub (RP)</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+    <text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+            gap: 15px;
+        }
+        .header h1 {
+            margin-bottom: 0;
+            font-size: 1.8rem;
+        }
+        .header-links {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .csv-edit-link {
+            font-size: 0.7rem;
+            color: #667eea;
+            text-decoration: none;
+            background: #f0f0f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+        }
+        .csv-edit-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .bottom-link {
+            position: fixed;
+            bottom: 15px;
+            right: 20px;
+            font-size: 0.65rem;
+            color: #94a3b8;
+            text-decoration: none;
+            background: rgba(255,255,255,0.8);
+            padding: 4px 10px;
+            border-radius: 20px;
+            transition: all 0.2s;
+            backdrop-filter: blur(4px);
+            z-index: 100;
+        }
+        .bottom-link:hover {
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .sub { color: #475569; margin-bottom: 20px; }
+        
+        .csv-panel {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+        .csv-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .file-input-group {
+            flex: 1;
+            min-width: 180px;
+        }
+        .file-input-group label {
+            display: block;
+            font-size: 0.7rem;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+        .file-input-group input {
+            width: 100%;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: none;
+            font-size: 0.85rem;
+        }
+        .csv-btn {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        .library-panel {
+            background: #fefce8;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 2px dashed #cbd5e1;
+        }
+        .library-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #854d0e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .library-series {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            min-height: 60px;
+        }
+        .library-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 6px 14px 6px 10px;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.85rem;
+            cursor: grab;
+            transition: all 0.2s;
+        }
+        .library-tag:active { cursor: grabbing; }
+        .library-tag:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .library-color { width: 20px; height: 20px; border-radius: 4px; border: 1px solid #ccc; }
+        
+        .global-panel {
+            background: white;
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .global-axis-row {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .global-axis-row:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .global-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+            min-width: 150px;
+        }
+        .global-input-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #334155;
+        }
+        .global-input-group input {
+            padding: 6px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .action-bar {
+            background: white;
+            border-radius: 16px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid #e2e8f0;
+        }
+        .action-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: #2563eb; transform: translateY(-1px); }
+        .action-btn.export-all { background: #10b981; }
+        .action-btn.export-all:hover { background: #059669; }
+        .action-btn.add-chart { background: #8b5cf6; }
+        .action-btn.add-chart:hover { background: #7c3aed; }
+        
+        .scroll-container {
+            overflow-x: auto;
+            overflow-y: visible;
+            padding-bottom: 10px;
+        }
+        .charts-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+            min-width: min-content;
+            padding: 4px;
+        }
+        .chart-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            width: 820px;
+            flex-shrink: 0;
+        }
+        .chart-card.dragging-over {
+            border: 2px dashed #3b82f6;
+            background: #f0f9ff;
+        }
+        .chart-header {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #fafbfc;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .chart-title-input {
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 5px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            width: 200px;
+        }
+        .chart-actions { display: flex; gap: 6px; }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 5px 8px;
+            border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .icon-btn:hover { background: #e5e7eb; }
+        
+        .chart-controls-row {
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .chart-theme {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+        }
+        .chart-theme select {
+            padding: 3px 6px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            font-size: 0.7rem;
+        }
+        .apply-theme-btn {
+            padding: 3px 10px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .point-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+        }
+        .point-control input {
+            width: 80px;
+            padding: 3px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+        }
+        
+        .chart-extras {
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .ref-line-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .ref-line-control input {
+            width: 80px;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .ref-line-control select {
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .ref-line-btn {
+            padding: 3px 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .ref-line-btn:hover { background: #2563eb; }
+        .ref-line-btn.remove { background: #ef4444; }
+        .ref-line-btn.remove:hover { background: #dc2626; }
+        
+        .decimate-control {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .decimate-control input {
+            width: 60px;
+            padding: 3px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .decimate-btn {
+            padding: 3px 12px;
+            background: #8b5cf6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.65rem;
+        }
+        .decimate-btn:hover { background: #7c3aed; }
+        .decimate-btn.reset { background: #6b7280; }
+        .decimate-btn.reset:hover { background: #4b5563; }
+        
+        .axis-controls {
+            padding: 10px 16px;
+            background: #f1f5f9;
+            border-bottom: 1px solid #e2e8f0;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .axis-group {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+        .axis-group-title {
+            font-weight: 700;
+            font-size: 0.7rem;
+            color: #475569;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .axis-type-toggle {
+            font-size: 0.6rem;
+            background: #e2e8f0;
+            padding: 2px 6px;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+        .axis-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 6px;
+            font-size: 0.7rem;
+        }
+        .axis-row label {
+            width: 55px;
+            font-weight: 600;
+            color: #334155;
+        }
+        .axis-row input {
+            flex: 1;
+            padding: 4px 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 0.7rem;
+        }
+        .axis-hint {
+            font-size: 0.6rem;
+            color: #6c757d;
+            margin-top: 4px;
+            padding-left: 63px;
+        }
+        
+        .series-list {
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            min-height: 48px;
+        }
+        .series-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: white;
+            padding: 4px 10px 4px 6px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            font-size: 0.75rem;
+            cursor: grab;
+        }
+        .series-tag:active { cursor: grabbing; }
+        .series-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
+        .series-name {
+            border: none;
+            background: transparent;
+            font-size: 0.75rem;
+            width: 100px;
+            padding: 2px 4px;
+        }
+        .remove-series {
+            cursor: pointer;
+            color: #ef4444;
+            font-weight: bold;
+            padding: 0 3px;
+        }
+        
+        .canvas-wrapper {
+            padding: 16px 16px 8px 16px;
+            background: white;
+            position: relative;
+        }
+        canvas {
+            max-height: 320px;
+            width: 100%;
+            background: white;
+        }
+        
+        ::-webkit-scrollbar {
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <h1>🎨 Line Chart Studio</h1>
+        <div class="header-links">
+        </div>
+    </div>
+    <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
+
+    <div class="csv-panel">
+        <div class="csv-controls">
+            <div class="file-input-group"><label>📂 Upload CSV</label><input type="file" id="csvFileInput" accept=".csv"></div>
+            <div class="file-input-group"><label>🔗 CSV URL</label><input type="text" id="csvUrlInput" placeholder="https://example.com/data.csv"></div>
+            <button id="loadUrlBtn" class="csv-btn">Load URL</button>
+            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3); color:white">📊 Sample (Different Lengths)</button>
+        </div>
+        <div id="loadStatus" style="font-size:0.7rem; margin-top:8px;">✅ Ready</div>
+    </div>
+
+    <div class="library-panel">
+        <div class="library-title">📚 Available Series Library — Drag any series back into charts</div>
+        <div class="library-series" id="librarySeriesContainer">
+            <div style="color:#9ca3af;">✨ No available series — remove series from charts to see them here</div>
+        </div>
+    </div>
+
+    <div class="global-panel">
+        <div style="font-weight:600; margin-bottom:12px;">🌍 Global Settings</div>
+        <div class="global-axis-row">
+            <div class="global-input-group">
+                <label>📐 Global X-Axis Title</label>
+                <input type="text" id="globalXTitle" placeholder="Leave empty to keep individual">
+            </div>
+            <div class="global-input-group">
+                <label>📏 Global Y-Axis Title</label>
+                <input type="text" id="globalYTitle" placeholder="Leave empty to keep individual">
+            </div>
+            <div class="global-input-group">
+                <label>⚫ Global Point Size</label>
+                <input type="number" id="globalPointSize" min="0" max="10" step="0.5" value="3">
+            </div>
+            <button id="applyGlobalBtn" class="action-btn" style="background:#3b82f6; margin-top:0;">Apply to All</button>
+        </div>
+        <div style="font-size:0.65rem; color:#6c757d; margin-top:5px;">
+            💡 Note: Global titles only apply to charts that don't have custom titles set. Individual chart titles override global.
+        </div>
+    </div>
+
+    <div class="action-bar">
+        <button id="exportAllBtn" class="action-btn export-all">📸 Export All (Stacked PNG)</button>
+        <button id="addChartBtn" class="action-btn add-chart">➕ Add New Chart</button>
+    </div>
+
+    <div class="scroll-container">
+        <div class="charts-grid" id="chartsGrid"></div>
+    </div>
+</div>
+
+<script>
+    const colorThemes2 = {
+        "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
+        "💙 Ocean Blues": ["#ADE8F4", "#90E0EF", "#48CAE4", "#00B4D8", "#0096C7", "#0077B6", "#023E8A"],
+        "🧡 Sunset Oranges": ["#FED7AA", "#FDBA74", "#F97316", "#EA580C", "#C2410C", "#9D2A0B", "#7F1A06"],
+        "💚 Forest Greens": ["#6EE7B7", "#34D399", "#10B981", "#059669", "#047857", "#065F46", "#064E3B"],
+        "💜 Royal Purples": ["#C4B5FD", "#A78BFA", "#8B5CF6", "#7C3AED", "#6D28D9", "#5B21B6", "#4C1D95"],
+        "🌸 Pink Passion": ["#F9A8D4", "#F472B6", "#EC4899", "#DB2777", "#BE185D", "#9D174D", "#831843"],
+        "🔥 Hot Reds": ["#F87171", "#EF4444", "#DC2626", "#B91C1C", "#991B1B", "#7F1D1D", "#450A0A"],
+        "💛 Golden Yellow": ["#FEF08A", "#FACC15", "#EAB308", "#CA8A04", "#A16207", "#854D0E", "#713F12"],
+        "🏔️ Mountain Teal": ["#5EEAD4", "#2DD4BF", "#14B8A6", "#0D9488", "#0F766E", "#115E59", "#134E4A"],
+        "🌊 Cool Cyan": ["#D3F0E6", "#B5E9DA", "#8FE3CF", "#29BB89", "#289672", "#1E6F5C", "#164863"],
+        "⚫ Monochrome": ["#A6A6A6", "#8C8C8C", "#737373", "#595959", "#404040", "#2D2D2D", "#1A1A1A"],
+        "🎨 Pastel": ["#F8AD9D", "#FBC4AB", "#FFD6A5", "#FDFFB6", "#CAFFBF", "#9BF6FF", "#A0C4FF"],
+        "🟩 RP Colours": ["#B6DE7A", "#8CC94A", "#6FB01E", "#589617", "#447A0F", "#2F5708", "#1A3A04"]
+    };
+
+    const colorThemes = {
+        "🌈 Rainbow": ["#E63946", "#F4A261", "#E9C46A", "#2A9D8F", "#457B9D", "#5E60CE", "#9B2226"],
+        "💙 Ocean Blues": ["#A8DADC", "#6FB3D2", "#3E8EC4", "#1D6FA5", "#0F5C8C", "#0A4066", "#062A47"],
+        "🧡 Sunset Oranges": ["#FCD5A8", "#F4A45C", "#E8762B", "#D45A14", "#B34410", "#8E2F0B", "#661F06"],
+        "💚 Forest Greens": ["#A7E0B5", "#5FC77F", "#2FA55C", "#1E8449", "#176B3B", "#0F522D", "#08381E"],
+        "💜 Royal Purples": ["#CDB8F5", "#A98BEE", "#8763DE", "#6A3FC7", "#542DA8", "#3F2085", "#2B1460"],
+        "🌸 Pink Passion": ["#F7B6D2", "#EF7FAB", "#DE4E86", "#C42E66", "#A21F4F", "#7E153B", "#5A0D28"],
+        "🔥 Hot Reds": ["#F59A9A", "#E85D5D", "#D12F2F", "#B31F1F", "#911616", "#6E1010", "#4A0808"],
+        "💛 Golden Yellow": ["#FBE7A1", "#F2CE4B", "#DDAF1E", "#BD8F12", "#9A720C", "#775608", "#523B05"],
+        "🏔️ Mountain Teal": ["#A3E6D8", "#5FCFBB", "#2BAF9A", "#1A8E7B", "#137260", "#0D5748", "#083B31"],
+        "🌊 Cool Cyan": ["#BEE9E3", "#7FD3C9", "#3FB8AD", "#1E9A8F", "#167A71", "#0F5B54", "#0A3D38"],
+        "⚫ Monochrome": ["#B3B3B3", "#8F8F8F", "#6B6B6B", "#4D4D4D", "#333333", "#1F1F1F", "#0F0F0F"],
+        "🎨 Pastel": ["#F2A9A0", "#F4C29A", "#F3D488", "#E8E38A", "#BFE39B", "#9AD9D9", "#9DB8E8"],
+        "🟩 RP Colours": ["#B6DE7A", "#8CC94A", "#6FB01E", "#589617", "#447A0F", "#2F5708", "#1A3A04"]
+    };
+
+    const pointShapes = ['circle', 'rect', 'triangle', 'cross', 'rectRot'];
+    const shapeLabels = ['● Circle', '■ Square', '▲ Triangle', '✚ Cross', '◆ Diamond'];
+
+    let chartsData = [];
+    let availableSeries = [];
+    let chartInstances = {};
+    let nextChartId = 1;
+    let globalPointSize = 3;
+    let globalXTitle = "";
+    let globalYTitle = "";
+
+    // Custom plugin to draw reference lines
+    const referenceLinePlugin = {
+        id: 'referenceLinePlugin',
+        afterDraw: function(chart) {
+            const chartId = chart.canvas.id.replace('canvas_', '');
+            const chartData = chartsData.find(c => c.id === parseInt(chartId));
+            if (!chartData || !chartData.referenceLines || chartData.referenceLines.length === 0) return;
+            
+            const ctx = chart.ctx;
+            const xAxis = chart.scales.x;
+            const yAxis = chart.scales.y;
+            
+            if (!xAxis || !yAxis) return;
+            
+            const xStart = xAxis.left;
+            const xEnd = xAxis.right;
+            const yStart = yAxis.top;
+            const yEnd = yAxis.bottom;
+            const isNumeric = chartData.useNumericX === true;
+            
+            chartData.referenceLines.forEach((ref) => {
+                if (ref.type === 'y') {
+                    const yPixel = yAxis.getPixelForValue(ref.value);
+                    if (yPixel >= yStart && yPixel <= yEnd) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([6, 4]);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(xStart, yPixel);
+                        ctx.lineTo(xEnd, yPixel);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+                
+                if (ref.type === 'x') {
+                    let xPixel;
+                    if (isNumeric) {
+                        xPixel = xAxis.getPixelForValue(ref.value);
+                    } else {
+                        let labelIndex = -1;
+                        if (chartData.series.length > 0) {
+                            const xData = chartData.series[0].xData || [];
+                            labelIndex = xData.indexOf(String(ref.value));
+                            if (labelIndex === -1) {
+                                const numVal = parseFloat(ref.value);
+                                if (!isNaN(numVal)) {
+                                    labelIndex = xData.indexOf(numVal);
+                                }
+                            }
+                        }
+                        if (labelIndex !== -1) {
+                            xPixel = xAxis.getPixelForValue(labelIndex);
+                        } else {
+                            xPixel = null;
+                        }
+                    }
+                    
+                    if (xPixel !== null && xPixel >= xStart && xPixel <= xEnd) {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.setLineDash([6, 4]);
+                        ctx.strokeStyle = '#000000';
+                        ctx.lineWidth = 2;
+                        ctx.moveTo(xPixel, yStart);
+                        ctx.lineTo(xPixel, yEnd);
+                        ctx.stroke();
+                        ctx.restore();
+                    }
+                }
+            });
+        }
+    };
+
+    function applyThemeToChart(chartId, themeName) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart) return;
+        const colors = colorThemes[themeName];
+        if (!colors) return;
+        chart.series.forEach((series, idx) => {
+            series.color = colors[idx % colors.length];
+        });
+        updateChart(chartId);
+    }
+
+    function parseCSV(csvText) {
+        const lines = csvText.trim().split(/\r?\n/);
+        if (lines.length < 2) throw new Error("CSV must have header + data");
+        const headers = lines[0].split(',').map(h => h.trim());
+        
+        const xValues = [];
+        const dataColumns = {};
+        for (let i = 1; i < headers.length; i++) dataColumns[headers[i]] = [];
+        
+        for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            if (values.length < headers.length) continue;
+            
+            xValues.push(values[0]);
+            for (let j = 1; j < headers.length; j++) {
+                const val = values[j] || '';
+                if (val !== '' && !isNaN(parseFloat(val))) {
+                    dataColumns[headers[j]].push(parseFloat(val));
+                } else {
+                    dataColumns[headers[j]].push(null);
+                }
+            }
+        }
+        
+        const series = [];
+        const defaultColors = colorThemes["🌈 Rainbow"];
+        let idx = 0;
+        for (let i = 1; i < headers.length; i++) {
+            const data = dataColumns[headers[i]];
+            const hasData = data.some(d => d !== null);
+            if (!hasData) continue;
+            
+            series.push({ 
+                id: `s_${Date.now()}_${i}_${Math.random()}`, 
+                name: headers[i], 
+                data: data,
+                xData: xValues,
+                color: defaultColors[idx % defaultColors.length],
+                pointShape: 'circle'
+            });
+            idx++;
+        }
+        
+        const isNumericX = xValues.length > 0 && !isNaN(parseFloat(xValues[0]));
+        return { xValues, series, isNumericX };
+    }
+
+    function renderLibrary() {
+        const container = document.getElementById('librarySeriesContainer');
+        if (!container) return;
+        if (availableSeries.length === 0) {
+            container.innerHTML = '<div style="color:#9ca3af;">✨ No available series — remove series from charts to see them here</div>';
+            return;
+        }
+        container.innerHTML = '';
+        availableSeries.forEach(series => {
+            const tag = document.createElement('div');
+            tag.className = 'library-tag';
+            tag.setAttribute('draggable', 'true');
+            tag.setAttribute('data-series-id', series.id);
+            tag.setAttribute('data-source', 'library');
+            tag.innerHTML = `
+                <div class="library-color" style="background: ${series.color};"></div>
+                <span style="font-weight:500;">${escapeHtml(series.name)}</span>
+                <span style="font-size:0.65rem;">(drag to chart)</span>
+            `;
+            tag.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ seriesId: series.id, source: 'library' }));
+                e.dataTransfer.effectAllowed = 'copy';
+            });
+            container.appendChild(tag);
+        });
+    }
+
+    function moveSeriesToLibrary(seriesId, sourceChartId) {
+        const sourceChart = chartsData.find(c => c.id === sourceChartId);
+        if (!sourceChart) return;
+        const seriesIndex = sourceChart.series.findIndex(s => s.id === seriesId);
+        if (seriesIndex === -1) return;
+        const series = sourceChart.series[seriesIndex];
+        sourceChart.series.splice(seriesIndex, 1);
+        if (!availableSeries.find(s => s.id === seriesId)) availableSeries.push(series);
+        renderAllCharts();
+        renderLibrary();
+    }
+
+    function moveSeriesFromLibraryToChart(seriesId, targetChartId) {
+        const seriesIndex = availableSeries.findIndex(s => s.id === seriesId);
+        if (seriesIndex === -1) return;
+        const series = availableSeries[seriesIndex];
+        const targetChart = chartsData.find(c => c.id === targetChartId);
+        if (!targetChart) return;
+        availableSeries.splice(seriesIndex, 1);
+        targetChart.series.push(series);
+        renderAllCharts();
+        renderLibrary();
+    }
+
+    function renderAllCharts() {
+        const grid = document.getElementById('chartsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        
+        if (chartsData.length === 0) {
+            grid.innerHTML = '<div style="width:100%; text-align:center; padding:40px;">No charts. Click "Add Chart" to start.</div>';
+            return;
+        }
+        
+        chartsData.forEach(chart => {
+            const card = createChartCard(chart);
+            grid.appendChild(card);
+        });
+        attachDragDropListeners();
+    }
+
+    function createChartCard(chart) {
+        const card = document.createElement('div');
+        card.className = 'chart-card';
+        card.setAttribute('data-chart-id', chart.id);
+        
+        const header = document.createElement('div');
+        header.className = 'chart-header';
+        header.innerHTML = `
+            <input type="text" class="chart-title-input" value="${escapeHtml(chart.title)}">
+            <div class="chart-actions">
+                <button class="icon-btn export-chart" title="Export High-Quality PNG">📸</button>
+                <button class="icon-btn delete-btn" title="Delete Chart">🗑️</button>
+            </div>
+        `;
+        
+        const controlsRow = document.createElement('div');
+        controlsRow.className = 'chart-controls-row';
+        controlsRow.innerHTML = `
+            <div class="chart-theme">
+                <span>🎨 Theme:</span>
+                <select class="chart-theme-select">
+                    ${Object.keys(colorThemes).map(t => `<option value="${t}" ${chart.currentTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+                <button class="apply-theme-btn">Apply</button>
+            </div>
+            <div class="point-control">
+                <span>⚫ Point Size:</span>
+                <input type="number" class="point-size-input" min="0" max="10" step="0.5" value="${chart.pointSize !== undefined ? chart.pointSize : globalPointSize}">
+                <span style="font-size:0.65rem;">(0 = invisible points)</span>
+            </div>
+        `;
+        
+        const extrasRow = document.createElement('div');
+        extrasRow.className = 'chart-extras';
+        extrasRow.innerHTML = `
+            <div class="ref-line-control">
+                <span>📏 Reference:</span>
+                <select class="ref-axis-select">
+                    <option value="y">Y</option>
+                    <option value="x">X</option>
+                </select>
+                <input type="number" class="ref-line-input" placeholder="value" step="any">
+                <button class="ref-line-btn">Add Line</button>
+                <button class="ref-line-btn remove">Remove Last</button>
+            </div>
+            <div class="decimate-control">
+                <span>📉 Show every:</span>
+                <input type="number" class="decimate-input" value="${chart.decimate || 1}" min="1" step="1">
+                <span style="font-size:0.65rem;">point(s)</span>
+                <button class="decimate-btn">Apply</button>
+                <button class="decimate-btn reset">Reset</button>
+            </div>
+        `;
+        
+        const axisRow = document.createElement('div');
+        axisRow.className = 'axis-controls';
+        axisRow.innerHTML = `
+            <div class="axis-group">
+                <div class="axis-group-title">
+                    📐 X-Axis Settings
+                    <span class="axis-type-toggle" data-axis="x">${chart.useNumericX ? 'Numeric' : 'Categorical'}</span>
+                </div>
+                <div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value="${escapeHtml(chart.xTitle || 'X Axis')}"></div>
+                <div class="axis-row numeric-x" style="${chart.useNumericX ? '' : 'display:none'}"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any" value="${chart.xMin !== undefined ? chart.xMin : ''}"></div>
+                <div class="axis-row numeric-x" style="${chart.useNumericX ? '' : 'display:none'}"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any" value="${chart.xMax !== undefined ? chart.xMax : ''}"></div>
+                <div class="axis-row numeric-x" style="${chart.useNumericX ? '' : 'display:none'}"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any" value="${chart.xStep !== undefined ? chart.xStep : ''}"></div>
+                <div class="axis-hint numeric-x" style="${chart.useNumericX ? '' : 'display:none'}">Tick interval (e.g., 10, 20, 50)</div>
+                <div class="axis-row categorical-x" style="${chart.useNumericX ? 'display:none' : ''}"><label>Label Every:</label><input type="number" class="x-interval" placeholder="1" step="1" min="1" value="${chart.xInterval !== undefined ? chart.xInterval : ''}"></div>
+                <div class="axis-hint categorical-x" style="${chart.useNumericX ? 'display:none' : ''}">Show every Nth label (1=all, 2=every other)</div>
+            </div>
+            <div class="axis-group">
+                <div class="axis-group-title">
+                    📏 Y-Axis Settings
+                </div>
+                <div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value="${escapeHtml(chart.yTitle || 'Y Axis')}"></div>
+                <div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any" value="${chart.yMin !== undefined ? chart.yMin : ''}"></div>
+                <div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any" value="${chart.yMax !== undefined ? chart.yMax : ''}"></div>
+                <div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any" value="${chart.yStep !== undefined ? chart.yStep : ''}"></div>
+                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
+            </div>
+        `;
+        
+        const seriesDiv = document.createElement('div');
+        seriesDiv.className = 'series-list';
+        seriesDiv.innerHTML = `<strong>📊 Series:</strong> `;
+        if (chart.series.length === 0) {
+            seriesDiv.innerHTML += '<span style="color:#9ca3af;">Drop series here from library</span>';
+        } else {
+            chart.series.forEach((series, idx) => {
+                const tag = document.createElement('div');
+                tag.className = 'series-tag';
+                tag.setAttribute('draggable', 'true');
+                tag.setAttribute('data-series-id', series.id);
+                tag.setAttribute('data-chart-id', chart.id);
+                
+                const shapeOptions = pointShapes.map((s, i) => 
+                    `<option value="${s}" ${series.pointShape === s ? 'selected' : ''}>${shapeLabels[i]}</option>`
+                ).join('');
+                
+                tag.innerHTML = `
+                    <input type="color" class="series-color" value="${series.color}">
+                    <input type="text" class="series-name" value="${escapeHtml(series.name)}">
+                    <select class="series-shape" style="font-size:0.65rem; padding:1px 4px; border-radius:4px; border:1px solid #ccc;">
+                        ${shapeOptions}
+                    </select>
+                    <span class="remove-series" title="Remove to library">📤</span>
+                `;
+                seriesDiv.appendChild(tag);
+            });
+        }
+        
+        const canvasWrapper = document.createElement('div');
+        canvasWrapper.className = 'canvas-wrapper';
+        const canvas = document.createElement('canvas');
+        canvas.id = `canvas_${chart.id}`;
+        canvas.style.maxHeight = '320px';
+        canvasWrapper.appendChild(canvas);
+        
+        card.appendChild(header);
+        card.appendChild(controlsRow);
+        card.appendChild(extrasRow);
+        card.appendChild(axisRow);
+        card.appendChild(seriesDiv);
+        card.appendChild(canvasWrapper);
+        
+        const titleInput = header.querySelector('.chart-title-input');
+        titleInput.addEventListener('change', (e) => { chart.title = e.target.value; updateChart(chart.id); });
+        
+        const exportBtn = header.querySelector('.export-chart');
+        exportBtn.addEventListener('click', () => exportSingleChartHighQuality(chart.id));
+        
+        const deleteBtn = header.querySelector('.delete-btn');
+        deleteBtn.addEventListener('click', () => {
+            if (confirm(`Delete chart "${chart.title}"?`)) {
+                chart.series.forEach(s => { if (!availableSeries.find(as => as.id === s.id)) availableSeries.push(s); });
+                deleteChart(chart.id);
+                renderLibrary();
+            }
+        });
+        
+        const themeSelect = controlsRow.querySelector('.chart-theme-select');
+        const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
+        applyThemeBtn.addEventListener('click', () => {
+            chart.currentTheme = themeSelect.value;
+            applyThemeToChart(chart.id, themeSelect.value);
+        });
+        
+        const pointInput = controlsRow.querySelector('.point-size-input');
+        pointInput.addEventListener('change', (e) => {
+            chart.pointSize = parseFloat(e.target.value);
+            updateChart(chart.id);
+        });
+        
+        const refAxisSelect = extrasRow.querySelector('.ref-axis-select');
+        const refInput = extrasRow.querySelector('.ref-line-input');
+        const refAddBtn = extrasRow.querySelector('.ref-line-btn');
+        const refRemoveBtn = extrasRow.querySelector('.ref-line-btn.remove');
+        
+        refAddBtn.addEventListener('click', () => {
+            const val = parseFloat(refInput.value);
+            if (isNaN(val) || val === null || val === undefined) {
+                alert('Please enter a valid number');
+                return;
+            }
+            if (!chart.referenceLines) chart.referenceLines = [];
+            const axis = refAxisSelect.value;
+            chart.referenceLines.push({ type: axis, value: val });
+            refInput.value = '';
+            updateChart(chart.id);
+        });
+        
+        refRemoveBtn.addEventListener('click', () => {
+            if (chart.referenceLines && chart.referenceLines.length > 0) {
+                chart.referenceLines.pop();
+                updateChart(chart.id);
+            }
+        });
+        
+        refInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                refAddBtn.click();
+            }
+        });
+        
+        const decimateInput = extrasRow.querySelector('.decimate-input');
+        const decimateBtn = extrasRow.querySelector('.decimate-btn');
+        const resetBtn = extrasRow.querySelector('.decimate-btn.reset');
+        
+        decimateBtn.addEventListener('click', () => {
+            const val = parseInt(decimateInput.value);
+            if (isNaN(val) || val < 1) {
+                alert('Please enter a positive number');
+                return;
+            }
+            chart.decimate = val;
+            updateChart(chart.id);
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            chart.decimate = 1;
+            decimateInput.value = 1;
+            updateChart(chart.id);
+        });
+        
+        const shapeSelects = seriesDiv.querySelectorAll('.series-shape');
+        shapeSelects.forEach((select, idx) => {
+            const series = chart.series[idx];
+            select.addEventListener('change', (e) => {
+                series.pointShape = e.target.value;
+                updateChart(chart.id);
+            });
+        });
+        
+        const xTitleInput = axisRow.querySelector('.x-title');
+        const yTitleInput = axisRow.querySelector('.y-title');
+        const xMinInput = axisRow.querySelector('.x-min');
+        const xMaxInput = axisRow.querySelector('.x-max');
+        const xStepInput = axisRow.querySelector('.x-step');
+        const xIntervalInput = axisRow.querySelector('.x-interval');
+        const yMinInput = axisRow.querySelector('.y-min');
+        const yMaxInput = axisRow.querySelector('.y-max');
+        const yStepInput = axisRow.querySelector('.y-step');
+        const axisTypeToggle = axisRow.querySelector('.axis-type-toggle');
+        
+        xTitleInput.addEventListener('change', (e) => { chart.xTitle = e.target.value; updateChart(chart.id); });
+        yTitleInput.addEventListener('change', (e) => { chart.yTitle = e.target.value; updateChart(chart.id); });
+        xMinInput.addEventListener('change', (e) => { chart.xMin = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        xMaxInput.addEventListener('change', (e) => { chart.xMax = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        xStepInput.addEventListener('change', (e) => { chart.xStep = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        xIntervalInput.addEventListener('change', (e) => { chart.xInterval = e.target.value === '' ? undefined : parseInt(e.target.value); updateChart(chart.id); });
+        yMinInput.addEventListener('change', (e) => { chart.yMin = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        yMaxInput.addEventListener('change', (e) => { chart.yMax = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        yStepInput.addEventListener('change', (e) => { chart.yStep = e.target.value === '' ? undefined : parseFloat(e.target.value); updateChart(chart.id); });
+        
+        axisTypeToggle.addEventListener('click', () => {
+            chart.useNumericX = !chart.useNumericX;
+            const numericRows = axisRow.querySelectorAll('.numeric-x');
+            const categoricalRows = axisRow.querySelectorAll('.categorical-x');
+            if (chart.useNumericX) {
+                numericRows.forEach(row => row.style.display = 'flex');
+                categoricalRows.forEach(row => row.style.display = 'none');
+                axisTypeToggle.textContent = 'Numeric';
+            } else {
+                numericRows.forEach(row => row.style.display = 'none');
+                categoricalRows.forEach(row => row.style.display = 'flex');
+                axisTypeToggle.textContent = 'Categorical';
+            }
+            updateChart(chart.id);
+        });
+        
+        const tags = seriesDiv.querySelectorAll('.series-tag');
+        tags.forEach((tag, idx) => {
+            const series = chart.series[idx];
+            const colorPicker = tag.querySelector('.series-color');
+            const nameInput = tag.querySelector('.series-name');
+            const removeBtn = tag.querySelector('.remove-series');
+            colorPicker.addEventListener('change', (e) => { series.color = e.target.value; updateChart(chart.id); });
+            nameInput.addEventListener('change', (e) => { series.name = e.target.value; updateChart(chart.id); });
+            removeBtn.addEventListener('click', () => moveSeriesToLibrary(series.id, chart.id));
+            tag.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', JSON.stringify({ seriesId: series.id, sourceChartId: chart.id, source: 'chart' }));
+                e.dataTransfer.effectAllowed = 'move';
+            });
+        });
+        
+        initChartInstance(chart.id, canvas);
+        return card;
+    }
+    
+    function initChartInstance(chartId, canvas) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart) return;
+        const ctx = canvas.getContext('2d');
+        if (chartInstances[chartId]) {
+            chartInstances[chartId].destroy();
+        }
+        
+        const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        const isNumeric = chart.useNumericX === true;
+        const decimate = chart.decimate || 1;
+        
+        const datasets = chart.series.map(s => {
+            const xData = s.xData || [];
+            const shape = s.pointShape || 'circle';
+            const dataPoints = [];
+            
+            for (let i = 0; i < s.data.length; i++) {
+                const y = s.data[i];
+                if (y === null || y === undefined) continue;
+                
+                const xVal = xData[i] || i;
+                if (isNumeric) {
+                    dataPoints.push({ x: parseFloat(xVal), y: y });
+                } else {
+                    dataPoints.push({ x: xVal, y: y });
+                }
+            }
+            
+            const dataset = {
+                label: s.name,
+                data: dataPoints,
+                borderColor: s.color,
+                backgroundColor: s.color,
+                borderWidth: 2.5,
+                pointRadius: pointSize,
+                pointHoverRadius: pointSize + 2,
+                pointStyle: shape,
+                pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
+                pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
+                tension: 0.2,
+                fill: false,
+                spanGaps: false
+            };
+            
+            // Store shape for legend
+            dataset._shape = shape;
+            
+            return dataset;
+        });
+        
+        const finalXTitle = chart.xTitle && chart.xTitle !== 'X Axis' ? chart.xTitle : (globalXTitle || chart.xTitle || 'X Axis');
+        const finalYTitle = chart.yTitle && chart.yTitle !== 'Y Axis' ? chart.yTitle : (globalYTitle || chart.yTitle || 'Y Axis');
+        
+        let xAxisConfig;
+        if (isNumeric) {
+            xAxisConfig = {
+                type: 'linear',
+                title: { display: true, text: finalXTitle },
+                min: chart.xMin,
+                max: chart.xMax,
+                grid: { color: '#e9ecef' }
+            };
+            if (chart.xStep !== undefined && chart.xStep > 0) {
+                xAxisConfig.ticks = { stepSize: chart.xStep };
+            }
+        } else {
+            xAxisConfig = {
+                type: 'category',
+                title: { display: true, text: finalXTitle },
+                grid: { color: '#e9ecef' }
+            };
+        }
+        
+        const yAxisConfig = {
+            title: { display: true, text: finalYTitle },
+            min: chart.yMin,
+            max: chart.yMax,
+            beginAtZero: true,
+            grid: { color: '#e9ecef' }
+        };
+        
+        if (chart.yStep !== undefined && chart.yStep > 0) {
+            yAxisConfig.ticks = { stepSize: chart.yStep };
+        }
+        
+        const instance = new Chart(ctx, {
+            type: 'line',
+            data: { datasets: datasets },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    tooltip: { 
+                        mode: 'index', 
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                let value = context.raw;
+                                return `${label}: ${value.y}`;
+                            }
+                        }
+                    },
+                    legend: {
+                        labels: { 
+                            usePointStyle: true,
+                            boxWidth: 12,
+                            generateLabels: function(chart) {
+                                const data = chart.data;
+                                if (!data || !data.datasets) return [];
+                                return data.datasets.map((dataset, i) => ({
+                                    text: dataset.label || 'Unnamed',
+                                    fillStyle: dataset.borderColor || '#000',
+                                    strokeStyle: dataset.borderColor || '#000',
+                                    pointStyle: dataset.pointStyle || 'circle',
+                                    datasetIndex: i,
+                                    hidden: chart.getDatasetMeta(i)?.hidden || false
+                                }));
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: xAxisConfig,
+                    y: yAxisConfig
+                }
+            },
+            plugins: [referenceLinePlugin]
+        });
+        chartInstances[chartId] = instance;
+        
+        // Apply decimation after creation
+        applyDecimationToChart(chartId);
+    }
+    
+    function applyDecimationToChart(chartId) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart || !chartInstances[chartId]) return;
+        const instance = chartInstances[chartId];
+        const decimate = chart.decimate || 1;
+        const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        
+        // Update each dataset's pointRadius based on decimation
+        instance.data.datasets.forEach((dataset) => {
+            // We need to override pointRadius per point
+            // Chart.js v4 supports pointRadius as a function
+            // But we need to set it at the dataset level
+            // We'll use the pointRadius property
+            dataset.pointRadius = function(context) {
+                const index = context.dataIndex;
+                if (decimate > 1 && index % decimate !== 0) {
+                    return 0;
+                }
+                return pointSize;
+            };
+        });
+        
+        instance.update();
+    }
+    
+    function updateChart(chartId) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart || !chartInstances[chartId]) return;
+        const instance = chartInstances[chartId];
+        const pointSize = chart.pointSize !== undefined ? chart.pointSize : globalPointSize;
+        const decimate = chart.decimate || 1;
+        
+        const finalXTitle = chart.xTitle && chart.xTitle !== 'X Axis' ? chart.xTitle : (globalXTitle || chart.xTitle || 'X Axis');
+        const finalYTitle = chart.yTitle && chart.yTitle !== 'Y Axis' ? chart.yTitle : (globalYTitle || chart.yTitle || 'Y Axis');
+        
+        const isNumeric = chart.useNumericX === true;
+        
+        const datasets = chart.series.map(s => {
+            const xData = s.xData || [];
+            const shape = s.pointShape || 'circle';
+            const dataPoints = [];
+            
+            for (let i = 0; i < s.data.length; i++) {
+                const y = s.data[i];
+                if (y === null || y === undefined) continue;
+                
+                const xVal = xData[i] || i;
+                if (isNumeric) {
+                    dataPoints.push({ x: parseFloat(xVal), y: y });
+                } else {
+                    dataPoints.push({ x: xVal, y: y });
+                }
+            }
+            
+            const dataset = {
+                label: s.name,
+                data: dataPoints,
+                borderColor: s.color,
+                backgroundColor: s.color,
+                borderWidth: 2.5,
+                pointRadius: function(context) {
+                    const index = context.dataIndex;
+                    if (decimate > 1 && index % decimate !== 0) {
+                        return 0;
+                    }
+                    return pointSize;
+                },
+                pointHoverRadius: pointSize + 2,
+                pointStyle: shape,
+                pointBackgroundColor: pointSize === 0 ? 'transparent' : s.color,
+                pointBorderColor: pointSize === 0 ? 'transparent' : s.color,
+                tension: 0.2,
+                fill: false,
+                spanGaps: false
+            };
+            
+            return dataset;
+        });
+        
+        instance.data.datasets = datasets;
+        
+        if (isNumeric) {
+            instance.options.scales.x.type = 'linear';
+            instance.options.scales.x.min = chart.xMin;
+            instance.options.scales.x.max = chart.xMax;
+            if (chart.xStep !== undefined && chart.xStep > 0) {
+                instance.options.scales.x.ticks = { stepSize: chart.xStep };
+            } else {
+                instance.options.scales.x.ticks = {};
+            }
+        } else {
+            instance.options.scales.x.type = 'category';
+            instance.options.scales.x.min = undefined;
+            instance.options.scales.x.max = undefined;
+            instance.options.scales.x.ticks = {};
+        }
+        
+        instance.options.scales.x.title.text = finalXTitle;
+        instance.options.scales.y.title.text = finalYTitle;
+        instance.options.scales.y.min = chart.yMin;
+        instance.options.scales.y.max = chart.yMax;
+        
+        if (chart.yStep !== undefined && chart.yStep > 0) {
+            instance.options.scales.y.ticks = { stepSize: chart.yStep };
+        } else {
+            instance.options.scales.y.ticks = {};
+        }
+        
+        // Update legend
+        if (instance.options.plugins && instance.options.plugins.legend) {
+            instance.options.plugins.legend.labels.generateLabels = function(chart) {
+                const data = chart.data;
+                if (!data || !data.datasets) return [];
+                return data.datasets.map((dataset, i) => ({
+                    text: dataset.label || 'Unnamed',
+                    fillStyle: dataset.borderColor || '#000',
+                    strokeStyle: dataset.borderColor || '#000',
+                    pointStyle: dataset.pointStyle || 'circle',
+                    datasetIndex: i,
+                    hidden: chart.getDatasetMeta(i)?.hidden || false
+                }));
+            };
+        }
+        
+        instance.update();
+    }
+    
+    function deleteChart(chartId) {
+        if (chartInstances[chartId]) chartInstances[chartId].destroy();
+        delete chartInstances[chartId];
+        chartsData = chartsData.filter(c => c.id !== chartId);
+        renderAllCharts();
+    }
+    
+    async function exportSingleChartHighQuality(chartId) {
+        const chart = chartsData.find(c => c.id === chartId);
+        if (!chart || !chartInstances[chartId]) return;
+        
+        const originalCanvas = document.getElementById(`canvas_${chart.id}`);
+        if (!originalCanvas) return;
+        
+        const scale = 6;
+        const chartWidth = originalCanvas.width;
+        const chartHeight = originalCanvas.height;
+        
+        const titleFontSize = 28 * scale;
+        const titleHeight = 80 * scale;
+        const padding = 40 * scale;
+        
+        const chartCanvas = document.createElement('canvas');
+        chartCanvas.width = chartWidth * scale;
+        chartCanvas.height = chartHeight * scale;
+        const chartCtx = chartCanvas.getContext('2d');
+        chartCtx.scale(scale, scale);
+        chartCtx.drawImage(originalCanvas, 0, 0);
+        
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = chartCanvas.width;
+        finalCanvas.height = chartCanvas.height + titleHeight + padding;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        finalCtx.fillStyle = '#ffffff';
+        finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+        
+        finalCtx.fillStyle = '#1e293b';
+        finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
+        finalCtx.textAlign = 'center';
+        finalCtx.textBaseline = 'middle';
+        finalCtx.fillText(chart.title, finalCanvas.width / 2, titleHeight / 2);
+        
+        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding/2);
+        
+        finalCanvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = `${chart.title.replace(/[^a-z0-9]/gi, '_')}.png`;
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    async function exportAllChartsStacked() {
+        if (chartsData.length === 0) {
+            alert("No charts to export");
+            return;
+        }
+        
+        const scale = 6;
+        const titleFontSize = 28 * scale;
+        const titleHeight = 80 * scale;
+        const spacing = 60 * scale;
+        const padding = 40 * scale;
+        
+        const capturedCharts = [];
+        let maxWidth = 0;
+        
+        for (const chart of chartsData) {
+            const originalCanvas = document.getElementById(`canvas_${chart.id}`);
+            if (!originalCanvas) continue;
+            
+            const chartCanvas = document.createElement('canvas');
+            chartCanvas.width = originalCanvas.width * scale;
+            chartCanvas.height = originalCanvas.height * scale;
+            const ctx = chartCanvas.getContext('2d');
+            ctx.scale(scale, scale);
+            ctx.drawImage(originalCanvas, 0, 0);
+            
+            maxWidth = Math.max(maxWidth, chartCanvas.width);
+            
+            capturedCharts.push({
+                title: chart.title,
+                canvas: chartCanvas,
+                width: chartCanvas.width,
+                height: chartCanvas.height
+            });
+        }
+        
+        let totalHeight = padding;
+        capturedCharts.forEach((chart, idx) => {
+            totalHeight += titleHeight + chart.height;
+            if (idx < capturedCharts.length - 1) totalHeight += spacing;
+        });
+        totalHeight += padding;
+        
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = maxWidth + (padding * 2);
+        finalCanvas.height = totalHeight;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        finalCtx.fillStyle = '#ffffff';
+        finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+        
+        let currentY = padding;
+        for (const chart of capturedCharts) {
+            finalCtx.fillStyle = '#1e293b';
+            finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
+            finalCtx.textAlign = 'center';
+            finalCtx.textBaseline = 'middle';
+            finalCtx.fillText(chart.title, finalCanvas.width / 2, currentY + (titleHeight / 2));
+            
+            const xOffset = (finalCanvas.width - chart.width) / 2;
+            finalCtx.drawImage(chart.canvas, xOffset, currentY + titleHeight);
+            
+            currentY += titleHeight + chart.height + spacing;
+        }
+        
+        finalCanvas.toBlob(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'all_charts_stacked.png';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+        });
+    }
+    
+    function attachDragDropListeners() {
+        const cards = document.querySelectorAll('.chart-card');
+        cards.forEach(card => {
+            card.addEventListener('dragover', (e) => { e.preventDefault(); card.classList.add('dragging-over'); });
+            card.addEventListener('dragleave', () => card.classList.remove('dragging-over'));
+            card.addEventListener('drop', (e) => {
+                e.preventDefault();
+                card.classList.remove('dragging-over');
+                const targetChartId = parseInt(card.getAttribute('data-chart-id'));
+                const dragData = JSON.parse(e.dataTransfer.getData('text/plain'));
+                if (dragData.source === 'library') moveSeriesFromLibraryToChart(dragData.seriesId, targetChartId);
+                else if (dragData.source === 'chart' && dragData.sourceChartId !== targetChartId) {
+                    const sourceChart = chartsData.find(c => c.id === dragData.sourceChartId);
+                    const targetChart = chartsData.find(c => c.id === targetChartId);
+                    const seriesIndex = sourceChart.series.findIndex(s => s.id === dragData.seriesId);
+                    if (seriesIndex !== -1) {
+                        const series = sourceChart.series[seriesIndex];
+                        sourceChart.series.splice(seriesIndex, 1);
+                        targetChart.series.push(series);
+                        renderAllCharts();
+                        renderLibrary();
+                    }
+                }
+            });
+        });
+    }
+    
+    function applyGlobalSettings() {
+        const newGlobalXTitle = document.getElementById('globalXTitle').value;
+        const newGlobalYTitle = document.getElementById('globalYTitle').value;
+        const pointSize = parseFloat(document.getElementById('globalPointSize').value);
+        
+        if (newGlobalXTitle !== undefined) globalXTitle = newGlobalXTitle;
+        if (newGlobalYTitle !== undefined) globalYTitle = newGlobalYTitle;
+        if (!isNaN(pointSize)) globalPointSize = pointSize;
+        
+        chartsData.forEach(chart => {
+            chart.pointSize = globalPointSize;
+            updateChart(chart.id);
+        });
+    }
+    
+    function loadCSVAndReset(csvText, sourceName) {
+        try {
+            const { xValues, series, isNumericX } = parseCSV(csvText);
+            
+            if (series.length === 0) {
+                throw new Error("No valid data series found in CSV. Make sure you have numeric columns.");
+            }
+            
+            Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
+            chartInstances = {};
+            availableSeries = [];
+            chartsData = [{
+                id: nextChartId++,
+                title: `Main Dashboard`,
+                series: series,
+                xTitle: isNumericX ? 'X Value' : 'X Axis',
+                yTitle: 'Y Axis',
+                useNumericX: isNumericX,
+                xMin: undefined, xMax: undefined, xStep: undefined, xInterval: undefined,
+                yMin: undefined, yMax: undefined, yStep: undefined,
+                currentTheme: "🌈 Rainbow",
+                pointSize: globalPointSize,
+                decimate: 1,
+                referenceLines: []
+            }];
+            renderAllCharts();
+            renderLibrary();
+            document.getElementById('loadStatus').innerHTML = `✅ Loaded ${xValues.length} rows, ${series.length} series from ${sourceName} (X-axis: ${isNumericX ? 'Numeric' : 'Categorical'})`;
+        } catch(err) { document.getElementById('loadStatus').innerHTML = `❌ Error: ${err.message}`; }
+    }
+    
+    function addNewChart() {
+        chartsData.push({
+            id: nextChartId++,
+            title: `Chart ${nextChartId-1}`,
+            series: [],
+            xTitle: 'X Axis',
+            yTitle: 'Y Axis',
+            useNumericX: true,
+            xMin: undefined, xMax: undefined, xStep: undefined, xInterval: undefined,
+            yMin: undefined, yMax: undefined, yStep: undefined,
+            currentTheme: "🌈 Rainbow",
+            pointSize: globalPointSize,
+            decimate: 1,
+            referenceLines: []
+        });
+        renderAllCharts();
+    }
+    
+    function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+    
+    document.getElementById('exportAllBtn').addEventListener('click', exportAllChartsStacked);
+    document.getElementById('addChartBtn').addEventListener('click', addNewChart);
+    document.getElementById('applyGlobalBtn').addEventListener('click', applyGlobalSettings);
+    
+    document.getElementById('loadSampleBtn').addEventListener('click', () => {
+        const sample = `Hour,Data A,Data B,Data C\n1,42,,\n2,58,35,\n3,55,42,22\n4,72,55,28\n5,88,68,35\n6,95,82,42\n7,110,,48\n8,125,,,\n9,140,,,`;
+        loadCSVAndReset(sample, "Sample (Different Lengths)");
+    });
+    
+    document.getElementById('csvFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => loadCSVAndReset(ev.target.result, file.name);
+        reader.readAsText(file);
+    });
+    
+    document.getElementById('loadUrlBtn').addEventListener('click', async () => {
+        const url = document.getElementById('csvUrlInput').value;
+        if (!url) return;
+        try {
+            const resp = await fetch(url);
+            const text = await resp.text();
+            loadCSVAndReset(text, url);
+        } catch(err) { alert("Failed to load URL"); }
+    });
+    
+    setTimeout(() => { document.getElementById('loadSampleBtn').click(); }, 100);
+</script>
+</body>
+</html>

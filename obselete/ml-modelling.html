@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Data-driven Model Builder | By Alim Yakub (RP)</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+<style>
+  :root { --bg:#0f1419; --panel:#1a2129; --accent:#4ade80; --accent2:#38bdf8; --text:#e6edf3; --muted:#8b949e; --border:#30363d; --err:#f87171; --warn:#fbbf24; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
+  header { padding:20px 30px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:15px; }
+  header h1 { margin:0; font-size:20px; font-weight:600; }
+  header span { color:var(--muted); font-size:13px; }
+  .container { max-width:1300px; margin:0 auto; padding:24px; }
+  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+  @media (max-width:900px){ .grid { grid-template-columns:1fr; } }
+  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px; }
+  .panel h2 { margin:0 0 15px; font-size:16px; font-weight:600; }
+  label { display:block; font-size:13px; color:var(--muted); margin:12px 0 6px; }
+  select, input[type=number], input[type=file] { width:100%; padding:9px 11px; background:#0d1117; border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; }
+  button { background:var(--accent); color:#0d1117; border:none; padding:10px 18px; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px; margin-top:12px; }
+  button:hover { filter:brightness(1.1); }
+  button.secondary { background:var(--accent2); }
+  button:disabled { opacity:0.5; cursor:not-allowed; }
+  .status { font-size:13px; color:var(--muted); margin-top:10px; min-height:18px; }
+  .status.ok { color:var(--accent); }
+  .status.err { color:var(--err); }
+  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
+  th, td { padding:6px 8px; text-align:left; border-bottom:1px solid var(--border); }
+  th { color:var(--muted); font-weight:500; }
+  .metricsWrap { margin-top:14px; }
+  .metricsTitle { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin:10px 0 6px; display:flex; align-items:center; gap:8px; }
+  .metricsTitle .tag { font-size:10px; padding:2px 6px; border-radius:8px; background:#0d1117; border:1px solid var(--border); color:var(--muted); text-transform:none; letter-spacing:0; }
+  .metrics { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
+  .metric { background:#0d1117; padding:12px; border-radius:6px; border:1px solid var(--border); }
+  .metric .v { font-size:20px; font-weight:600; color:var(--accent); }
+  .metric .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; }
+  .metric.val .v { color: var(--warn); }
+  .metric.test .v { color: var(--accent2); }
+  .metric.test { border-color: var(--accent2); }
+  .row { display:flex; gap:10px; align-items:end; }
+  .row > * { flex:1; }
+  canvas { width:100%; height:220px; background:#0d1117; border-radius:6px; margin-top:12px; }
+  .progress { height:4px; background:#0d1117; border-radius:2px; overflow:hidden; margin-top:8px; }
+  .progress > div { height:100%; background:var(--accent); width:0%; transition:width 0.2s; }
+  .wTable { max-height:400px; overflow-y:auto; }
+  .hint { font-size:12px; color:var(--muted); margin:4px 0 0; }
+  .equation { background:#0d1117; border:1px solid var(--border); border-radius:6px; padding:14px; margin-top:12px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size:13px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
+  .equation .eqTarget { color: var(--accent); font-weight:600; }
+  .equation .eqNum { color: var(--accent2); }
+  .equation .eqOp { color: var(--muted); }
+  .equation .eqTerm { color: var(--text); }
+  .autotune { font-size:11px; color:var(--muted); margin-top:6px; }
+  .splitInfo { font-size:11px; color:var(--muted); margin-top:6px; }
+  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; margin-left:8px; }
+  .badge.loading { background:#3b2f0f; color:var(--warn); border:1px solid #5a4a1a; }
+  .badge.ready   { background:#0f2f1a; color:var(--accent); border:1px solid #1e5a35; }
+  .badge.failed  { background:#3b0f0f; color:var(--err); border:1px solid #5a1a1a; }
+</style>
+</head>
+
+<body>
+<header>
+  <h1>⚡ Data-driven Model Builder</h1>
+  <span>Developed by Alim Yakub (RP) · Cold Box Project</span>
+</header>
+
+<div class="container">
+  <div class="grid">
+    <!-- LEFT -->
+    <div class="panel">
+      <h2>1. Load Data</h2>
+      <label>CSV file (streamed — any size)</label>
+      <input type="file" id="csvFile" accept=".csv">
+      <div class="progress"><div id="progBar"></div></div>
+      <div class="status" id="dataStatus">No file loaded.</div>
+
+      <div id="colConfig" style="display:none">
+        <div class="row">
+          <div>
+            <label>Feature columns (X) — multi-select</label>
+            <select id="featCols" multiple size="5"></select>
+          </div>
+          <div>
+            <label>Target column (y)</label>
+            <select id="targetCol"></select>
+          </div>
+        </div>
+
+        <h2 style="margin-top:24px">2. Train Model</h2>
+        <label>
+          Algorithm
+          <span class="badge loading" id="xgbBadge">XGBoost: loading…</span>
+        </label>
+        <select id="algo">
+          <option value="linear">Linear Regression</option>
+          <option value="poly2">Polynomial (deg 2)</option>
+          <option value="poly3">Polynomial (deg 3)</option>
+          <option value="xgboost">XGBoost</option>
+        </select>
+        <p class="hint">Hyperparameters are chosen automatically on a validation set. Data is split 70 / 15 / 15 (train / validation / test). Test is scored once at the end.</p>
+
+        <button id="trainBtn">Train Model</button>
+        <div class="status" id="trainStatus"></div>
+        <div class="autotune" id="autotuneInfo"></div>
+        <div class="splitInfo" id="splitInfo"></div>
+
+        <!-- Metrics -->
+        <div id="metricsBox" style="display:none">
+          <div class="metricsWrap">
+            <div class="metricsTitle">Train (70%)</div>
+            <div class="metrics">
+              <div class="metric"><div class="k">RMSE</div><div class="v" id="trRMSE">–</div></div>
+              <div class="metric"><div class="k">MAE</div><div class="v" id="trMAE">–</div></div>
+              <div class="metric"><div class="k">R²</div><div class="v" id="trR2">–</div></div>
+            </div>
+
+            <div class="metricsTitle">Validation (15%) <span class="tag">used for tuning</span></div>
+            <div class="metrics">
+              <div class="metric val"><div class="k">RMSE</div><div class="v" id="vaRMSE">–</div></div>
+              <div class="metric val"><div class="k">MAE</div><div class="v" id="vaMAE">–</div></div>
+              <div class="metric val"><div class="k">R²</div><div class="v" id="vaR2">–</div></div>
+            </div>
+
+            <div class="metricsTitle">Test (15%) <span class="tag">final · untouched</span></div>
+            <div class="metrics">
+              <div class="metric test"><div class="k">RMSE</div><div class="v" id="teRMSE">–</div></div>
+              <div class="metric test"><div class="k">MAE</div><div class="v" id="teMAE">–</div></div>
+              <div class="metric test"><div class="k">R²</div><div class="v" id="teR2">–</div></div>
+            </div>
+          </div>
+          <canvas id="plot"></canvas>
+
+          <div class="metricsTitle" style="margin-top:16px">Model equation (in original units)</div>
+          <div class="equation" id="equationBox">—</div>
+          <p class="hint" id="eqNote"></p>
+
+          <div class="metricsTitle" id="weightsHeader" style="margin-top:16px">Coefficients</div>
+          <div class="wTable" id="weightsTable"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel">
+      <h2>3. Save / Load Model</h2>
+      <button id="saveBtn" disabled>Download Model (.json)</button>
+      <label>Load saved model</label>
+      <input type="file" id="modelFile" accept=".json">
+      <p class="hint">Model file contains: type, feature names, target, scaler, equation coefficients, XGBoost booster buffer, metrics snapshot.</p>
+
+      <h2 style="margin-top:24px">4. Predict</h2>
+      <div id="predictInputs"></div>
+      <button id="predictBtn" disabled class="secondary">Predict</button>
+      <div class="status" id="predictStatus"></div>
+
+      <h2 style="margin-top:24px">5. Continue Training</h2>
+      <p class="hint">
+        Load a saved model, then upload a new CSV with the <em>same feature columns</em>.
+        Linear/Poly warm-start from loaded weights; XGBoost retrains on the new batch.
+        The new batch is split 70 / 15 / 15 too.
+      </p>
+      <input type="file" id="contFile" accept=".csv">
+      <button id="contBtn" disabled>Continue Training</button>
+      <div class="status" id="contStatus"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+
+<script>
+/* ============================================================
+   XGBoost loader
+   ============================================================ */
+const xgbLoader = {
+  ready: false,
+  XGBModel: null,
+  error: null,
+  source: null,
+};
+
+const XGB_CANDIDATES = [
+  'https://cdn.jsdelivr.net/npm/@wlearn/xgboost@latest/+esm',
+  'https://esm.sh/@wlearn/xgboost@latest',
+  'https://cdn.skypack.dev/@wlearn/xgboost',
+];
+
+async function loadXGBoost() {
+  const badge = document.getElementById('xgbBadge');
+  for (const url of XGB_CANDIDATES) {
+    try {
+      const mod = await import(/* @vite-ignore */ url);
+      const XGBModel = mod.XGBModel || (mod.default && mod.default.XGBModel);
+      if (!XGBModel) {
+        throw new Error('Module loaded but no XGBModel export found at ' + url);
+      }
+      xgbLoader.XGBModel = XGBModel;
+      xgbLoader.ready = true;
+      xgbLoader.source = url;
+      if (badge) { badge.textContent = 'XGBoost: ready'; badge.className = 'badge ready'; }
+      console.log('XGBoost loaded from', url);
+      return;
+    } catch (err) {
+      console.warn('XGBoost load failed from', url, err.message);
+      xgbLoader.error = err.message;
+    }
+  }
+  if (badge) { badge.textContent = 'XGBoost: failed'; badge.className = 'badge failed'; }
+  console.error('All XGBoost CDN sources failed. Last error:', xgbLoader.error);
+}
+
+loadXGBoost();
+
+/* ============================================================
+   State
+   ============================================================ */
+const state = {
+  headers: [],
+  rows: [],
+  featureCols: [],
+  targetCol: '',
+  modelType: null,
+  degree: 1,
+  scaler: null,
+  weights: null,
+  eqCoeffs: null,
+  xgbModel: null,
+  metrics: null,
+  autoParams: null,
+  splitSeed: 42,
+};
+
+const $ = id => document.getElementById(id);
+const setStatus = (el, msg, kind='') => { el.textContent = msg; el.className = 'status ' + kind; };
+
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* ============================================================
+   1. Streaming CSV
+   ============================================================ */
+$('csvFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  parseCSVStreaming(file, $('dataStatus'), $('progBar'), (headers, rows) => {
+    state.headers = headers;
+    state.rows = rows;
+    populateColumnSelectors(headers);
+  });
+});
+
+function parseCSVStreaming(file, statusEl, progEl, onDone) {
+  setStatus(statusEl, `Streaming ${file.name} (${(file.size/1e6).toFixed(1)} MB)…`);
+  progEl.style.width = '0%';
+  const headers = [];
+  const rows = [];
+  let rowCount = 0;
+
+  Papa.parse(file, {
+    worker: true,
+    skipEmptyLines: true,
+    step: (result) => {
+      const row = result.data;
+      if (headers.length === 0) {
+        row.forEach(h => headers.push(String(h).trim()));
+      } else {
+        const obj = {};
+        headers.forEach((h, i) => {
+          const raw = row[i];
+          const v = parseFloat(raw);
+          obj[h] = Number.isFinite(v) && raw !== '' ? v : raw;
+        });
+        rows.push(obj);
+        rowCount++;
+        if (rowCount % 200 === 0) {
+          const pct = Math.min(100, (result.meta.cursor / file.size) * 100);
+          progEl.style.width = pct.toFixed(1) + '%';
+        }
+      }
+    },
+    complete: () => {
+      progEl.style.width = '100%';
+      setStatus(statusEl, `✓ Parsed ${rows.length.toLocaleString()} rows, ${headers.length} columns.`, 'ok');
+      onDone(headers, rows);
+    },
+    error: (err) => setStatus(statusEl, `Parse error: ${err.message}`, 'err')
+  });
+}
+
+/* ============================================================
+   2. Columns
+   ============================================================ */
+function populateColumnSelectors(headers) {
+  const feat = $('featCols'), targ = $('targetCol');
+  feat.innerHTML = ''; targ.innerHTML = '';
+  headers.forEach(h => {
+    feat.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`);
+    targ.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`);
+  });
+  targ.value = headers[headers.length - 1];
+  $('colConfig').style.display = 'block';
+}
+
+/* ============================================================
+   Split helper
+   ============================================================ */
+function splitTrainValTest(X, y, seed) {
+  const n = X.length;
+  const idx = Array.from({length: n}, (_, i) => i);
+  const rng = mulberry32(seed);
+  for (let i = n - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  const nTrain = Math.floor(n * 0.70);
+  const nVal   = Math.floor(n * 0.15);
+  const trI = idx.slice(0, nTrain);
+  const vaI = idx.slice(nTrain, nTrain + nVal);
+  const teI = idx.slice(nTrain + nVal);
+
+  const pick = (arr, ii) => ii.map(i => arr[i]);
+  return {
+    Xtr: pick(X, trI), ytr: pick(y, trI),
+    Xva: pick(X, vaI), yva: pick(y, vaI),
+    Xte: pick(X, teI), yte: pick(y, teI),
+    sizes: { train: trI.length, val: vaI.length, test: teI.length },
+  };
+}
+
+/* ============================================================
+   3. Train
+   ============================================================ */
+$('trainBtn').addEventListener('click', async () => {
+  const feats = Array.from($('featCols').selectedOptions).map(o => o.value);
+  const targ = $('targetCol').value;
+  if (feats.length === 0) return setStatus($('trainStatus'), 'Select at least one feature column.', 'err');
+  if (feats.includes(targ)) return setStatus($('trainStatus'), 'Target must not be a feature.', 'err');
+
+  state.featureCols = feats;
+  state.targetCol = targ;
+
+  setStatus($('trainStatus'), 'Preparing data…');
+  $('autotuneInfo').textContent = '';
+  $('splitInfo').textContent = '';
+
+  const { X, y } = buildMatrix(state.rows, feats, targ);
+  if (X.length < 30) return setStatus($('trainStatus'), 'Need at least 30 valid rows for a 70/15/15 split.', 'err');
+
+  const provisional = splitTrainValTest(X, y, state.splitSeed);
+  state.scaler = fitScaler(provisional.Xtr);
+
+  const Xn = applyScaler(X, state.scaler);
+  const split = splitTrainValTest(Xn, y, state.splitSeed);
+  const { Xtr, ytr, Xva, yva, Xte, yte, sizes } = split;
+
+  $('splitInfo').textContent =
+    `Split: train=${sizes.train}, validation=${sizes.val}, test=${sizes.test} (seed=${state.splitSeed}).`;
+
+  const algo = $('algo').value;
+  state.modelType = algo;
+  state.degree = algo === 'linear' ? 1 : algo === 'poly2' ? 2 : algo === 'poly3' ? 3 : 1;
+
+  try {
+    let predTr, predVa, predTe;
+
+    if (algo === 'xgboost') {
+      if (!xgbLoader.ready) {
+        if (xgbLoader.error) throw new Error('XGBoost failed to load: ' + xgbLoader.error);
+        throw new Error('XGBoost is still loading. Wait a moment and try again.');
+      }
+      const opts = autoXGBoostParams(Xtr.length, feats.length);
+      state.autoParams = opts;
+      setStatus($('trainStatus'), `Training XGBoost (auto: depth=${opts.depth}, eta=${opts.lr}, rounds=${opts.rounds}).`);
+
+      const model = await xgbLoader.XGBModel.create({
+        objective: 'reg:squarederror',
+        max_depth: opts.depth,
+        eta: opts.lr,
+        numRound: opts.rounds,
+      });
+      model.fit(Xtr, ytr);
+
+      state.xgbModel = model;
+      predTr = Array.from(model.predict(Xtr));
+      predVa = Array.from(model.predict(Xva));
+      predTe = Array.from(model.predict(Xte));
+
+      $('autotuneInfo').textContent =
+        `Auto-selected: rounds=${opts.rounds}, depth=${opts.depth}, eta=${opts.lr}.`;
+
+    } else {
+      const grid = autoLinearGrid(Xtr.length, state.degree);
+      setStatus($('trainStatus'), `Training ${algo} (searching ${grid.length} combos on validation set)…`);
+      const best = await bestLinearParams(Xtr, ytr, Xva, yva, state.degree, grid);
+      state.autoParams = best.params;
+      state.weights = best.weights;
+      predTr = predictLinearModel(state.weights, Xtr, state.degree);
+      predVa = predictLinearModel(state.weights, Xva, state.degree);
+      predTe = predictLinearModel(state.weights, Xte, state.degree);
+
+      $('autotuneInfo').textContent =
+        `Auto-selected: epochs=${best.params.epochs}, learning rate=${best.params.lr} ` +
+        `(best validation R²=${best.metrics.r2.toFixed(4)}).`;
+    }
+
+    const mTr = evaluate(ytr, predTr);
+    const mVa = evaluate(yva, predVa);
+    const mTe = evaluate(yte, predTe);
+    state.metrics = { train: mTr, val: mVa, test: mTe };
+
+    fillMetrics(mTr, mVa, mTe);
+    $('metricsBox').style.display = 'block';
+    drawPlot(yte, predTe);
+
+    if (algo !== 'xgboost') {
+      state.eqCoeffs = expandToOriginalUnits(state.weights, state.scaler, state.degree, state.featureCols.length);
+      renderEquation(state.eqCoeffs, state.featureCols, state.targetCol);
+      $('eqNote').textContent = 'Note: the intercept is the prediction when every feature = 0, often outside the training range. Interpret individual terms, not the intercept, for physical insight.';
+      renderWeights();
+    } else {
+      state.eqCoeffs = null;
+      $('equationBox').textContent = 'XGBoost is a tree ensemble — it does not reduce to a single equation. Model info below.';
+      $('eqNote').textContent = '';
+      renderXGBoostInfo();
+    }
+
+    setStatus($('trainStatus'),
+      `✓ ${algo} trained. Test R² = ${mTe.r2.toFixed(4)} (scored once, no tuning on test).`,
+      'ok');
+    $('saveBtn').disabled = false;
+    $('predictBtn').disabled = false;
+    $('contBtn').disabled = false;
+    buildPredictInputs();
+  } catch (err) {
+    console.error(err);
+    setStatus($('trainStatus'), 'Training error: ' + err.message, 'err');
+  }
+});
+
+function fillMetrics(mTr, mVa, mTe) {
+  $('trRMSE').textContent = mTr.rmse.toFixed(4);
+  $('trMAE').textContent  = mTr.mae.toFixed(4);
+  $('trR2').textContent   = mTr.r2.toFixed(4);
+  $('vaRMSE').textContent = mVa.rmse.toFixed(4);
+  $('vaMAE').textContent  = mVa.mae.toFixed(4);
+  $('vaR2').textContent   = mVa.r2.toFixed(4);
+  $('teRMSE').textContent = mTe.rmse.toFixed(4);
+  $('teMAE').textContent  = mTe.mae.toFixed(4);
+  $('teR2').textContent   = mTe.r2.toFixed(4);
+}
+
+/* ---------- Auto hyperparameter selection ---------- */
+function autoLinearGrid(n, degree) {
+  let lrs, epochsList;
+  if (degree === 1) {
+    lrs = [0.01, 0.03, 0.05];
+    epochsList = n < 500 ? [300, 800] : [200, 500];
+  } else if (degree === 2) {
+    lrs = [0.005, 0.01, 0.03];
+    epochsList = n < 500 ? [400, 1000] : [300, 700];
+  } else {
+    lrs = [0.003, 0.01];
+    epochsList = n < 1000 ? [600, 1200] : [400, 800];
+  }
+  const combos = [];
+  for (const lr of lrs) for (const epochs of epochsList) combos.push({ lr, epochs });
+  return combos;
+}
+
+async function bestLinearParams(Xtr, ytr, Xva, yva, degree, grid) {
+  let best = null;
+  for (const p of grid) {
+    const w = await trainLinearModel(Xtr, ytr, degree, p.epochs, p.lr, null);
+    const pred = predictLinearModel(w, Xva, degree);
+    const m = evaluate(yva, pred);
+    if (!best || m.r2 > best.metrics.r2 ||
+        (Math.abs(m.r2 - best.metrics.r2) < 1e-6 && m.rmse < best.metrics.rmse)) {
+      best = { params: p, weights: w, metrics: m };
+    }
+  }
+  return best;
+}
+
+function autoXGBoostParams(nTrain, nFeatures) {
+  let depth;
+  if (nFeatures <= 2) depth = 3;
+  else if (nFeatures <= 5) depth = 4;
+  else if (nFeatures <= 10) depth = 5;
+  else depth = 6;
+  if (nTrain < 200 && depth > 3) depth = 3;
+
+  let lr;
+  if (nTrain < 300) lr = 0.3;
+  else if (nTrain < 2000) lr = 0.2;
+  else lr = 0.1;
+
+  const rounds = nTrain < 500 ? 200 : nTrain < 5000 ? 400 : 800;
+  return { rounds, depth, lr };
+}
+
+/* ---------- Data helpers ---------- */
+function buildMatrix(rows, feats, targ) {
+  const X = [], y = [];
+  for (const r of rows) {
+    const xv = feats.map(f => Number(r[f]));
+    const yv = Number(r[targ]);
+    if (xv.every(Number.isFinite) && Number.isFinite(yv)) { X.push(xv); y.push(yv); }
+  }
+  return { X, y };
+}
+
+function fitScaler(X) {
+  const d = X[0].length;
+  const mean = new Array(d).fill(0), std = new Array(d).fill(0);
+  for (const row of X) row.forEach((v,i) => mean[i] += v);
+  mean.forEach((_,i) => mean[i] /= X.length);
+  for (const row of X) row.forEach((v,i) => std[i] += (v - mean[i])**2);
+  std.forEach((_,i) => std[i] = Math.sqrt(std[i] / X.length) || 1);
+  return { mean, std };
+}
+function applyScaler(X, s) {
+  return X.map(row => row.map((v,i) => (v - s.mean[i]) / s.std[i]));
+}
+function applyScalerOne(x, s) {
+  return x.map((v,i) => (v - s.mean[i]) / s.std[i]);
+}
+
+/* ---------- Polynomial features ---------- */
+function polyFeatures(row, degree) {
+  const f = [1];
+  for (let d = 1; d <= degree; d++) {
+    for (let i = 0; i < row.length; i++) f.push(Math.pow(row[i], d));
+  }
+  if (degree >= 2) {
+    for (let i = 0; i < row.length; i++)
+      for (let j = i+1; j < row.length; j++)
+        f.push(row[i] * row[j]);
+  }
+  return f;
+}
+
+async function trainLinearModel(X, y, degree, epochs, lr, warmWeights) {
+  const Xd = X.map(r => polyFeatures(r, degree));
+  const d = Xd[0].length;
+  const xT = tf.tensor2d(Xd);
+  const yT = tf.tensor2d(y, [y.length, 1]);
+
+  let w;
+  if (warmWeights && warmWeights.length === d) {
+    w = tf.variable(tf.tensor2d(warmWeights, [d, 1]));
+  } else {
+    w = tf.variable(tf.zeros([d, 1]));
+  }
+
+  const optimizer = tf.train.adam(lr);
+  for (let i = 0; i < epochs; i++) {
+    optimizer.minimize(() => {
+      const pred = tf.matMul(xT, w);
+      return tf.losses.meanSquaredError(yT, pred);
+    });
+  }
+  const weights = Array.from(await w.data());
+  xT.dispose(); yT.dispose(); w.dispose();
+  return weights;
+}
+
+function predictLinearModel(weights, X, degree) {
+  return X.map(row => {
+    const f = polyFeatures(row, degree);
+    let s = 0;
+    for (let i = 0; i < f.length; i++) s += f[i] * weights[i];
+    return s;
+  });
+}
+
+/* ---------- Expand scaled-space weights → original units ---------- */
+function expandToOriginalUnits(weights, scaler, degree, nFeat) {
+  const { mean, std } = scaler;
+  const acc = new Map();
+  const addTerm = (key, val) => acc.set(key, (acc.get(key) || 0) + val);
+
+  const a = new Array(nFeat), b = new Array(nFeat);
+  for (let i = 0; i < nFeat; i++) { a[i] = 1 / std[i]; b[i] = -mean[i] / std[i]; }
+
+  let idx = 0;
+  addTerm('1', weights[idx++]);
+
+  for (let d = 1; d <= degree; d++) {
+    for (let i = 0; i < nFeat; i++) {
+      const w = weights[idx++];
+      for (let k = 0; k <= d; k++) {
+        const coeff = binomial(d, k) * Math.pow(a[i], k) * Math.pow(b[i], d - k);
+        if (k === 0) addTerm('1', w * coeff);
+        else if (k === 1) addTerm(`p:${i}`, w * coeff);
+        else addTerm(`p:${k}:${i}`, w * coeff);
+      }
+    }
+  }
+  if (degree >= 2) {
+    for (let i = 0; i < nFeat; i++) {
+      for (let j = i + 1; j < nFeat; j++) {
+        const w = weights[idx++];
+        addTerm(`pair:${i},${j}`, w * a[i] * a[j]);
+        addTerm(`p:${i}`,         w * a[i] * b[j]);
+        addTerm(`p:${j}`,         w * a[j] * b[i]);
+        addTerm('1',              w * b[i] * b[j]);
+      }
+    }
+  }
+
+  const terms = [];
+  for (const [key, coeff] of acc.entries()) {
+    if (Math.abs(coeff) < 1e-10) continue;
+    terms.push({ key, coeff });
+  }
+  const rank = k => k === '1' ? 0 : k.startsWith('p:') && k.split(':').length === 2 ? 1
+                   : k.startsWith('p:') ? 2 : 3;
+  terms.sort((x, y) => rank(x.key) - rank(y.key));
+  return terms;
+}
+
+function binomial(n, k) {
+  if (k < 0 || k > n) return 0;
+  let r = 1;
+  for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+  return r;
+}
+
+function termToLabel(key, featureCols) {
+  if (key === '1') return '';
+  const parts = key.split(':');
+  if (parts[0] === 'p' && parts.length === 2) return featureCols[+parts[1]];
+  if (parts[0] === 'p' && parts.length === 3) return `${featureCols[+parts[2]]}^${parts[1]}`;
+  if (parts[0] === 'pair') {
+    const [i, j] = parts[1].split(',').map(Number);
+    return `${featureCols[i]}·${featureCols[j]}`;
+  }
+  return key;
+}
+
+function renderEquation(terms, featureCols, target) {
+  const box = $('equationBox');
+  const fmt = v => {
+    const s = v.toPrecision(5).replace(/\.?0+$/, '');
+    return s === '-0' ? '0' : s;
+  };
+
+  let out = `<span class="eqTarget">${target}</span> <span class="eqOp">=</span> `;
+  let first = true;
+  let anyTerm = false;
+  for (const { key, coeff } of terms) {
+    if (key === '1') continue;
+    const label = termToLabel(key, featureCols);
+    const sign = coeff < 0 ? '−' : (first ? '' : '+');
+    out += `${first ? '' : ' '}<span class="eqOp">${sign}</span> <span class="eqNum">${fmt(Math.abs(coeff))}</span><span class="eqOp">·</span><span class="eqTerm">${label}</span> `;
+    first = false;
+    anyTerm = true;
+  }
+  const inter = terms.find(t => t.key === '1');
+  if (inter) {
+    const c = inter.coeff;
+    if (!anyTerm) {
+      out += `<span class="eqNum">${fmt(c)}</span>`;
+    } else {
+      const sign = c < 0 ? '−' : '+';
+      out += `<span class="eqOp">${sign}</span> <span class="eqNum">${fmt(Math.abs(c))}</span>`;
+    }
+  }
+  if (!anyTerm && !inter) out += `<span class="eqNum">0</span>`;
+  box.innerHTML = out;
+}
+
+/* ---------- Predict XGBoost ---------- */
+function predictXGBoost(model, X) {
+  const p = model.predict(X);
+  if (p instanceof Float64Array) return Array.from(p);
+  if (Array.isArray(p)) return p;
+  return Array.from(p);
+}
+
+/* ---------- Metrics ---------- */
+function evaluate(yTrue, yPred) {
+  const n = yTrue.length;
+  let se = 0, ae = 0;
+  const mean = yTrue.reduce((a,b)=>a+b,0) / n;
+  let ssTot = 0;
+  for (let i = 0; i < n; i++) {
+    const e = yTrue[i] - yPred[i];
+    se += e*e; ae += Math.abs(e);
+    ssTot += (yTrue[i] - mean)**2;
+  }
+  return {
+    rmse: Math.sqrt(se / n),
+    mae: ae / n,
+    r2: ssTot === 0 ? 0 : 1 - se / ssTot,
+  };
+}
+
+/* ---------- Plot ---------- */
+function drawPlot(yTrue, yPred) {
+  const c = $('plot'); const ctx = c.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  const W = c.clientWidth, H = c.clientHeight;
+  ctx.clearRect(0,0,W,H);
+  const ymin = Math.min(...yTrue, ...yPred), ymax = Math.max(...yTrue, ...yPred);
+  const pad = 26;
+  ctx.strokeStyle = '#30363d'; ctx.beginPath();
+  ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad);
+  ctx.moveTo(pad, pad);  ctx.lineTo(pad, H-pad); ctx.stroke();
+
+  ctx.strokeStyle = '#8b949e'; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, pad); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const sx = v => pad + (v - ymin) / (ymax - ymin || 1) * (W - 2*pad);
+  const sy = v => H - pad - (v - ymin) / (ymax - ymin || 1) * (H - 2*pad);
+
+  ctx.fillStyle = '#38bdf8';
+  for (let i = 0; i < yTrue.length; i++) {
+    ctx.beginPath(); ctx.arc(sx(yTrue[i]), sy(yPred[i]), 2.6, 0, 2*Math.PI); ctx.fill();
+  }
+  ctx.fillStyle = '#8b949e'; ctx.font = '11px sans-serif';
+  ctx.fillText('Test set: predicted vs actual (dashed = perfect)', pad+5, pad+12);
+}
+
+/* ---------- Linear weights table ---------- */
+function renderWeights() {
+  const container = $('weightsTable');
+  $('weightsHeader').textContent = 'Coefficients (scaled feature space)';
+
+  const names = ['bias'];
+  for (let d = 1; d <= state.degree; d++)
+    state.featureCols.forEach(f => names.push(`${f}^${d}`));
+  if (state.degree >= 2)
+    for (let i = 0; i < state.featureCols.length; i++)
+      for (let j = i+1; j < state.featureCols.length; j++)
+        names.push(`${state.featureCols[i]}·${state.featureCols[j]}`);
+
+  let html = '<table><tbody>';
+  html += `<tr><td style="color:var(--muted);font-style:italic" colspan="2">Coefficients below are in <em>scaled</em> feature space (what the optimizer saw). See the equation above for original units.</td></tr>`;
+  state.weights.forEach((w, i) => {
+    html += `<tr><td>${names[i] ?? 'w'+i}</td><td style="text-align:right">${w.toFixed(5)}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  container.innerHTML = html;
+}
+
+/* ---------- XGBoost info panel ---------- */
+function renderXGBoostInfo() {
+  const container = $('weightsTable');
+  $('weightsHeader').textContent = 'XGBoost model info';
+
+  if (!state.xgbModel) {
+    container.innerHTML = '<p class="hint" style="color:var(--err)">Model not available.</p>';
+    return;
+  }
+
+  const opts = state.autoParams || {};
+  let html = '<table><tbody>';
+  html += `<tr><td>Objective</td><td style="text-align:right">reg:squarederror</td></tr>`;
+  if (opts.rounds != null) html += `<tr><td>Boosting rounds</td><td style="text-align:right">${opts.rounds}</td></tr>`;
+  if (opts.depth != null)  html += `<tr><td>Max tree depth</td><td style="text-align:right">${opts.depth}</td></tr>`;
+  if (opts.lr != null)     html += `<tr><td>Learning rate (eta)</td><td style="text-align:right">${opts.lr}</td></tr>`;
+  html += `<tr><td colspan="2" style="color:var(--muted);font-style:italic;padding-top:10px">Tree-level structure and feature importance are not exposed by the browser WASM build. To inspect them, train in Python (<code>booster.save_model('model.json')</code>) and open the resulting file in a viewer.</td></tr>`;
+  html += `</tbody></table>`;
+
+  container.innerHTML = html;
+}
+
+/* ============================================================
+   4. Save / Load
+   ============================================================ */
+$('saveBtn').addEventListener('click', () => {
+  if (!state.weights && !state.xgbModel) return;
+  let payload;
+  if (state.modelType === 'xgboost' && state.xgbModel) {
+    const buf = state.xgbModel.save();
+    payload = {
+      version: 5,
+      type: 'xgboost',
+      featureCols: state.featureCols,
+      targetCol: state.targetCol,
+      scaler: state.scaler,
+      metrics: state.metrics,
+      autoParams: state.autoParams,
+      splitSeed: state.splitSeed,
+      xgbBuffer: Array.from(buf),
+      createdAt: new Date().toISOString(),
+    };
+  } else {
+    payload = {
+      version: 5,
+      type: state.modelType,
+      degree: state.degree,
+      featureCols: state.featureCols,
+      targetCol: state.targetCol,
+      scaler: state.scaler,
+      metrics: state.metrics,
+      autoParams: state.autoParams,
+      splitSeed: state.splitSeed,
+      weights: state.weights,
+      eqCoeffs: state.eqCoeffs,
+      createdAt: new Date().toISOString(),
+    };
+  }
+  const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `model_${state.modelType}_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$('modelFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async () => {
+    try {
+      const p = JSON.parse(reader.result);
+      state.modelType = p.type;
+      state.degree = p.degree ?? 1;
+      state.featureCols = p.featureCols;
+      state.targetCol = p.targetCol;
+      state.scaler = p.scaler;
+      state.metrics = p.metrics || null;
+      state.weights = p.weights || null;
+      state.eqCoeffs = p.eqCoeffs || null;
+      state.autoParams = p.autoParams || null;
+      state.splitSeed = p.splitSeed ?? 42;
+      state.xgbModel = null;
+
+      if (p.type === 'xgboost') {
+        if (!xgbLoader.ready) throw new Error('XGBoost is still loading. Wait a moment and try again.');
+        const buf = new Uint8Array(p.xgbBuffer);
+        state.xgbModel = await xgbLoader.XGBModel.load(buf);
+      }
+
+      if (state.metrics) {
+        fillMetrics(state.metrics.train, state.metrics.val, state.metrics.test);
+        $('metricsBox').style.display = 'block';
+      }
+
+      if (p.type === 'xgboost') {
+        $('equationBox').textContent = 'XGBoost is a tree ensemble — it does not reduce to a single equation. Model info below.';
+        $('eqNote').textContent = '';
+        renderXGBoostInfo();
+      } else if (state.eqCoeffs) {
+        renderEquation(state.eqCoeffs, state.featureCols, state.targetCol);
+        $('eqNote').textContent = 'Note: the intercept is the prediction when every feature = 0, often outside the training range. Interpret individual terms, not the intercept, for physical insight.';
+        renderWeights();
+      }
+
+      setStatus($('predictStatus'), '✓ Model loaded. Ready to predict.', 'ok');
+      $('predictBtn').disabled = false;
+      $('contBtn').disabled = false;
+      buildPredictInputs();
+    } catch (err) {
+      console.error(err);
+      setStatus($('predictStatus'), 'Load error: ' + err.message, 'err');
+    }
+  };
+  reader.readAsText(file);
+});
+
+/* ============================================================
+   5. Predict
+   ============================================================ */
+function buildPredictInputs() {
+  const box = $('predictInputs'); box.innerHTML = '';
+  state.featureCols.forEach(f => {
+    const lbl = document.createElement('label'); lbl.textContent = f;
+    const inp = document.createElement('input');
+    inp.type = 'number'; inp.id = 'pred_' + f; inp.step = 'any'; inp.placeholder = 'value…';
+    box.appendChild(lbl); box.appendChild(inp);
+  });
+}
+
+$('predictBtn').addEventListener('click', () => {
+  if (!state.weights && !state.xgbModel) return;
+  try {
+    const x = state.featureCols.map(f => {
+      const v = parseFloat($('pred_' + f).value);
+      if (!Number.isFinite(v)) throw new Error('Invalid value for ' + f);
+      return v;
+    });
+    const xn = applyScalerOne(x, state.scaler);
+    let yhat;
+    if (state.modelType === 'xgboost') {
+      if (!state.xgbModel) throw new Error('XGBoost model not loaded.');
+      yhat = predictXGBoost(state.xgbModel, [xn])[0];
+    } else {
+      yhat = predictLinearModel(state.weights, [xn], state.degree)[0];
+    }
+    setStatus($('predictStatus'), `Predicted ${state.targetCol} = ${yhat.toFixed(5)}`, 'ok');
+  } catch (err) {
+    setStatus($('predictStatus'), 'Predict error: ' + err.message, 'err');
+  }
+});
+
+/* ============================================================
+   6. Continue Training
+   ============================================================ */
+$('contFile').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  parseCSVStreaming(file, $('contStatus'), $('progBar'), async (headers, rows) => {
+    try {
+      const { X, y } = buildMatrix(rows, state.featureCols, state.targetCol);
+      if (X.length < 30) throw new Error('Need at least 30 valid rows for a 70/15/15 split.');
+
+      const Xn = applyScaler(X, state.scaler);
+      const contSeed = state.splitSeed + 1;
+      const s = splitTrainValTest(Xn, y, contSeed);
+      const { Xtr, ytr, Xva, yva } = s;
+
+      if (state.modelType === 'xgboost') {
+        if (!xgbLoader.ready) {
+          if (xgbLoader.error) throw new Error('XGBoost failed to load: ' + xgbLoader.error);
+          throw new Error('XGBoost is still loading. Wait a moment and try again.');
+        }
+        const opts = autoXGBoostParams(Xtr.length, state.featureCols.length);
+        if (state.xgbModel) { try { state.xgbModel.dispose(); } catch(_) {} }
+        const model = await xgbLoader.XGBModel.create({
+          objective: 'reg:squarederror',
+          max_depth: opts.depth,
+          eta: opts.lr,
+          numRound: opts.rounds,
+        });
+        model.fit(Xtr, ytr);
+        state.xgbModel = model;
+        state.autoParams = opts;
+        renderXGBoostInfo();
+
+        setStatus($('contStatus'), `✓ XGBoost updated with ${Xn.length} new rows (auto: depth=${opts.depth}, eta=${opts.lr}, rounds=${opts.rounds}).`, 'ok');
+      } else {
+        const grid = autoLinearGrid(Xtr.length, state.degree);
+        const best = await bestLinearParams(Xtr, ytr, Xva, yva, state.degree, grid);
+        state.weights = await trainLinearModel(Xn, y, state.degree, best.params.epochs, best.params.lr, state.weights);
+        state.eqCoeffs = expandToOriginalUnits(state.weights, state.scaler, state.degree, state.featureCols.length);
+        renderEquation(state.eqCoeffs, state.featureCols, state.targetCol);
+        renderWeights();
+        setStatus($('contStatus'), `✓ ${state.modelType} updated with ${Xn.length} new rows (auto: epochs=${best.params.epochs}, lr=${best.params.lr}, val R²=${best.metrics.r2.toFixed(4)}).`, 'ok');
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus($('contStatus'), 'Continue error: ' + err.message, 'err');
+    }
+  });
+});
+</script>
+</body>
+</html>

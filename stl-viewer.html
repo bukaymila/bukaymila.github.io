@@ -4,176 +4,184 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>STL 3D Explorer | By Alim Yakub (RP)</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
-    <text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <link rel="stylesheet" href="assets\styles\theme.css">
     <style>
-        body {
-            margin: 0;
+        body.no-nav-pad {
             overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
         }
-        
+
+        /* Make the navbar translucent over the 3D canvas */
+        .topnav {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        @media (prefers-color-scheme: dark) {
+            .topnav { background: rgba(22, 22, 21, 0.85); }
+        }
+
         #info {
             position: absolute;
-            top: 20px;
+            top: calc(var(--nav-height) + 16px);
             left: 20px;
-            background: rgba(20, 20, 30, 0.9);
-            color: #e0e0e0;
-            padding: 12px 18px;
-            border-radius: 8px;
-            backdrop-filter: blur(8px);
+            background: var(--surface);
+            color: var(--ink);
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
             pointer-events: none;
             z-index: 10;
-            font-size: 14px;
-            border-left: 4px solid #ff9800;
-            font-family: monospace;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            font-size: 0.85rem;
+            border-left: 4px solid var(--green);
+            font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+            box-shadow: var(--shadow-md);
+            border-top: 1px solid var(--border);
+            border-right: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
         }
-        
+
+        #info strong { color: var(--green-deep); }
+
         #controls {
             position: absolute;
             bottom: 20px;
             left: 20px;
             right: 20px;
-            background: rgba(20, 20, 30, 0.92);
-            backdrop-filter: blur(10px);
+            background: var(--surface);
             padding: 12px 20px;
-            border-radius: 12px;
+            border-radius: var(--radius-lg);
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             align-items: center;
             justify-content: space-between;
             z-index: 20;
-            font-family: 'Segoe UI', sans-serif;
-            border: 1px solid rgba(255,255,255,0.15);
-            box-shadow: 0 2px 15px rgba(0,0,0,0.4);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
         }
-        
-        button {
-            background: #2c3e66;
+
+        #controls button {
+            background: var(--green);
+            color: #ffffff;
             border: none;
-            color: #e0e0e0;
             padding: 8px 18px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
-            transition: all 0.2s;
-            font-family: monospace;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+            font-family: inherit;
         }
-        
-        button:hover {
-            background: #ff9800;
-            color: #1a1a1a;
-            transform: scale(1.02);
+        #controls button:hover {
+            background: var(--green-hover);
+            transform: translateY(-1px);
         }
-        
+
         .file-label {
-            background: #4c9aff;
+            background: var(--accent);
             padding: 8px 18px;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-weight: 600;
-            font-size: 14px;
-            transition: 0.2s;
-            display: inline-block;
-            color: white;
+            font-size: 0.85rem;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #ffffff;
         }
-        
-        .file-label:hover {
-            background: #ff9800;
-            color: #1a1a1a;
-        }
-        
-        input[type="file"] {
-            display: none;
-        }
-        
+        .file-label:hover { background: var(--accent-hover); }
+
+        input[type="file"] { display: none; }
+
         .measure-box {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 6px 15px;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 13px;
-            color: #ffaa66;
-            font-weight: bold;
-            border: 1px solid rgba(255,170,102,0.3);
+            background: var(--bg-alt);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+            font-size: 0.8rem;
+            color: var(--ink);
+            font-weight: 600;
+            border: 1px solid var(--border-strong);
         }
-        
+
         .status {
-            background: rgba(0, 0, 0, 0.6);
-            padding: 6px 15px;
-            border-radius: 6px;
-            font-size: 12px;
-            color: #bbbbbb;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--bg-alt);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 0.78rem;
+            color: var(--ink-muted);
+            border: 1px solid var(--border);
         }
-        
-        @media (max-width: 700px) {
-            #controls { flex-direction: column; align-items: stretch; }
-            button, .file-label { text-align: center; }
-            .measure-box, .status { text-align: center; }
-        }
-        
+
         .instruction {
             position: absolute;
-            bottom: 90px;
-            right: 15px;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 12px;
+            bottom: 100px;
+            right: 20px;
+            background: var(--surface);
+            padding: 5px 14px;
             border-radius: 20px;
-            font-size: 11px;
-            color: #aaa;
-            font-family: monospace;
+            font-size: 0.72rem;
+            color: var(--ink-muted);
+            font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
             pointer-events: none;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
         }
-        
+
         .error-message {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.95);
-            color: #ff8888;
+            background: var(--danger-soft);
+            color: var(--danger);
             padding: 15px 25px;
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             z-index: 100;
             text-align: center;
-            font-family: monospace;
-            border: 1px solid #ff8888;
+            font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+            border: 1px solid var(--danger);
             pointer-events: none;
             animation: fadeOut 3s forwards;
         }
-        
+
         @keyframes fadeOut {
             0% { opacity: 1; }
             70% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
         }
+
+        @media (max-width: 700px) {
+            #controls { flex-direction: column; align-items: stretch; }
+            #controls button, .file-label { text-align: center; justify-content: center; }
+            .measure-box, .status { text-align: center; }
+            #info { font-size: 0.75rem; padding: 8px 12px; }
+        }
     </style>
 </head>
-<body>
+<body class="no-nav-pad">
     <div id="info">
-        🧊 <strong>STL Explorer</strong> by Alim Yakub (RP)
+        <strong>STL Explorer</strong> by Alim Yakub (RP)
     </div>
-    
+
     <div id="controls">
         <label class="file-label">
-            📁 Open STL File
+            Open STL File
             <input type="file" id="stlFileInput" accept=".stl,.STL">
         </label>
-        <button id="resetViewBtn">🎯 Center & Reset View</button>
-        <button id="toggleGridBtn">🔲 Toggle Grid</button>
+        <button id="resetViewBtn">Center &amp; Reset View</button>
+        <button id="toggleGridBtn">Toggle Grid</button>
         <div class="measure-box" id="sizeDisplay">
-            📏 Size: <span id="dimensions">--</span>
+            Size: <span id="dimensions">--</span>
         </div>
         <div class="status" id="statusMsg">
-            ⚡ Ready - Load an STL file
+            Ready — Load an STL file
         </div>
     </div>
     <div class="instruction">
-         🖱️ Drag to rotate | Right-click + drag to pan | Scroll to zoom
+        Drag to rotate | Right-drag to pan | Scroll to zoom
     </div>
 
     <script type="importmap">
@@ -190,19 +198,22 @@
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
-        // --- Setup Scene with Eye-Friendly Dark Background ---
-        const scene = new THREE.Scene();
-        // Comfortable dark gray-blue - reduces eye strain while maintaining visibility
-        scene.background = new THREE.Color(0x1a1a2e);
-        // Very subtle fog for depth
-        scene.fog = new THREE.FogExp2(0x1a1a2e, 0.002);
+        // Detect dark mode for 3D scene background
+        function isDark() {
+            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        }
+        function sceneBackground() {
+            return isDark() ? 0x161615 : 0xf0f2ec;
+        }
 
-        // --- Camera ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(sceneBackground());
+        scene.fog = new THREE.FogExp2(sceneBackground(), 0.002);
+
         const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 5000);
         camera.position.set(5, 4, 7);
         camera.lookAt(0, 0, 0);
 
-        // --- Renderer ---
         const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(window.devicePixelRatio);
@@ -210,59 +221,55 @@
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         document.body.appendChild(renderer.domElement);
 
-        // --- Controls ---
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.dampingFactor = 0.06;
         controls.rotateSpeed = 1.2;
-        controls.zoomSpeed = 1.5;
+        controls.zoomSpeed = 1.2;
         controls.panSpeed = 0.8;
         controls.enableZoom = true;
         controls.enablePan = true;
         controls.screenSpacePanning = false;
         controls.maxPolarAngle = Math.PI / 1.6;
-        controls.zoomSpeed = 1.2;
 
-        // --- Dynamic Grid System with Dark Theme Colors ---
         let currentGridHelper = null;
         let currentAxesHelper = null;
         let currentShadowPlane = null;
-        
+
+        function gridColors() {
+            return isDark()
+                ? { minor: 0x4a5a3a, major: 0x6a8a5a, axesOpacity: 0.3 }
+                : { minor: 0x8fa87a, major: 0x6FB01E, axesOpacity: 0.5 };
+        }
+
         function createDynamicGrid(modelSize) {
-            // Remove old grid elements
             if (currentGridHelper) scene.remove(currentGridHelper);
             if (currentAxesHelper) scene.remove(currentAxesHelper);
             if (currentShadowPlane) scene.remove(currentShadowPlane);
-            
-            // Calculate grid size based on model dimensions (add 30% padding)
+
             const maxDim = Math.max(modelSize.x, modelSize.y, modelSize.z);
             const gridSize = Math.max(5, Math.ceil(maxDim * 1.5));
             const divisions = Math.min(40, Math.max(10, Math.floor(gridSize / 0.8)));
-            
-            // Create new grid helper with subtle dark theme colors
-            currentGridHelper = new THREE.GridHelper(gridSize, divisions, 0x4a6c8f, 0x2a3a4a);
+            const colors = gridColors();
+
+            currentGridHelper = new THREE.GridHelper(gridSize, divisions, colors.major, colors.minor);
             currentGridHelper.position.y = -maxDim * 0.15;
             currentGridHelper.material.transparent = true;
-            currentGridHelper.material.opacity = 0.5;
+            currentGridHelper.material.opacity = isDark() ? 0.6 : 0.4;
             scene.add(currentGridHelper);
-            
-            // Add subtle major grid lines
-            const majorGridSize = gridSize;
-            const majorDivisions = Math.floor(gridSize / 1);
-            const majorGrid = new THREE.GridHelper(majorGridSize, majorDivisions, 0x5a7c9f, 0x3a4a5a);
+
+            const majorGrid = new THREE.GridHelper(gridSize, Math.floor(gridSize / 1), colors.major, colors.minor);
             majorGrid.position.y = -maxDim * 0.15 - 0.02;
             majorGrid.material.transparent = true;
             majorGrid.material.opacity = 0.25;
             scene.add(majorGrid);
             currentGridHelper.userData = { majorGrid };
-            
-            // Create axes helper with appropriate size (slightly muted)
+
             currentAxesHelper = new THREE.AxesHelper(maxDim * 0.8);
             currentAxesHelper.material.transparent = true;
-            currentAxesHelper.material.opacity = 0.2;
+            currentAxesHelper.material.opacity = colors.axesOpacity;
             scene.add(currentAxesHelper);
-            
-            // Create shadow receiving plane
+
             currentShadowPlane = new THREE.Mesh(
                 new THREE.PlaneGeometry(gridSize * 1.2, gridSize * 1.2),
                 new THREE.ShadowMaterial({ opacity: 0.25, color: 0x000000, transparent: true, side: THREE.DoubleSide })
@@ -271,20 +278,16 @@
             currentShadowPlane.position.y = -maxDim * 0.15 - 0.05;
             currentShadowPlane.receiveShadow = true;
             scene.add(currentShadowPlane);
-            
+
             return { gridSize, divisions };
         }
-        
-        // --- Enhanced Lighting for Dark Background ---
-        // Ambient light (warmer and brighter for better visibility on dark bg)
-        const ambientLight = new THREE.AmbientLight(0x4a5a6a, 0.7);
+
+        const ambientLight = new THREE.AmbientLight(0x4a5a6a, isDark() ? 0.7 : 0.9);
         scene.add(ambientLight);
-        
-        // Main directional light (strong, warm)
+
         const mainLight = new THREE.DirectionalLight(0xfff0e0, 1.3);
         mainLight.position.set(5, 8, 3);
         mainLight.castShadow = true;
-        mainLight.receiveShadow = false;
         mainLight.shadow.mapSize.width = 2048;
         mainLight.shadow.mapSize.height = 2048;
         mainLight.shadow.camera.near = 0.1;
@@ -294,84 +297,74 @@
         mainLight.shadow.camera.top = 20;
         mainLight.shadow.camera.bottom = -20;
         scene.add(mainLight);
-        
-        // Fill light from below (warm, lifts shadows)
+
         const fillLight = new THREE.PointLight(0xaa8866, 0.55);
         fillLight.position.set(0, -3, 0);
         scene.add(fillLight);
-        
-        // Back rim light for edge definition (cool to create contrast)
+
         const rimLight = new THREE.PointLight(0x88aaff, 0.65);
         rimLight.position.set(-2, 3, -4);
         scene.add(rimLight);
-        
-        // Front fill light (soft)
+
         const frontFill = new THREE.PointLight(0xccddff, 0.5);
         frontFill.position.set(2, 1, 3);
         scene.add(frontFill);
-        
-        // Additional side light for detail
+
         const sideLight = new THREE.DirectionalLight(0xffddbb, 0.6);
         sideLight.position.set(-3, 2, 2);
         scene.add(sideLight);
-        
-        // Soft global fill (top-down)
+
         const globalFill = new THREE.HemisphereLight(0x88aacc, 0xaa8866, 0.55);
         scene.add(globalFill);
-        
-        // Back fill for large objects
+
         const backFill = new THREE.PointLight(0x6699cc, 0.4);
         backFill.position.set(0, 2, -5);
         scene.add(backFill);
-        
-        // --- State ---
+
         let currentModel = null;
         let gridVisible = true;
-        
-        // --- Update UI and adapt scene to model size ---
+
         function updateModelAndAdaptScene(modelMesh) {
             if (!modelMesh) {
                 document.getElementById('dimensions').innerHTML = '--';
-                document.getElementById('statusMsg').innerHTML = '⚠️ No model loaded';
+                document.getElementById('statusMsg').innerHTML = 'No model loaded';
                 return;
             }
-            
-            // Compute bounding box
+
             const bbox = new THREE.Box3().setFromObject(modelMesh);
             const size = bbox.getSize(new THREE.Vector3());
             const center = bbox.getCenter(new THREE.Vector3());
-            
-            // Format dimensions
+
             const x = size.x.toFixed(2);
             const y = size.y.toFixed(2);
             const z = size.z.toFixed(2);
             const maxDim = Math.max(size.x, size.y, size.z).toFixed(2);
-            
-            document.getElementById('dimensions').innerHTML = `${x} × ${y} × ${z} mm <span style="color:#88ff88;">(max: ${maxDim} mm)</span>`;
-            document.getElementById('statusMsg').innerHTML = `✅ Model loaded | ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)} mm`;
-            
-            // Create dynamic grid based on model size
+
+            document.getElementById('dimensions').innerHTML =
+                x + ' × ' + y + ' × ' + z + ' mm <span style="color: var(--green-deep);">(max: ' + maxDim + ' mm)</span>';
+            document.getElementById('statusMsg').innerHTML =
+                'Model loaded | ' + size.x.toFixed(1) + ' × ' + size.y.toFixed(1) + ' × ' + size.z.toFixed(1) + ' mm';
+
             createDynamicGrid(size);
-            
-            // Adjust camera distance based on model size
+
             const distance = Math.max(maxDim * 1.2, 3);
             const cameraDistance = Math.min(distance, 50);
-            
-            camera.position.set(center.x + cameraDistance * 0.8, 
-                              center.y + cameraDistance * 0.5, 
-                              center.z + cameraDistance);
+
+            camera.position.set(
+                center.x + cameraDistance * 0.8,
+                center.y + cameraDistance * 0.5,
+                center.z + cameraDistance
+            );
             controls.target.copy(center);
             controls.update();
-            
-            // Adjust light intensities based on model size
+
             const intensityScale = Math.min(1.6, Math.max(0.9, maxDim / 18));
             mainLight.intensity = 1.2 * intensityScale;
             fillLight.intensity = 0.55 * intensityScale;
             rimLight.intensity = 0.65 * intensityScale;
             frontFill.intensity = 0.5 * intensityScale;
             backFill.intensity = 0.45 * intensityScale;
-            
-            // Update shadow map for larger models
+
             if (maxDim > 30) {
                 mainLight.shadow.camera.left = -maxDim;
                 mainLight.shadow.camera.right = maxDim;
@@ -380,98 +373,83 @@
                 mainLight.shadow.camera.updateProjectionMatrix();
             }
         }
-        
-        // --- Robust STL loading function ---
+
         const loader = new STLLoader();
-        
+
         function loadSTLFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
-                
                 reader.onload = (event) => {
                     const buffer = event.target.result;
                     try {
                         const geometry = loader.parse(buffer);
                         geometry.computeVertexNormals();
-                        
-                        // Slightly brighter material for dark background
+
                         const material = new THREE.MeshStandardMaterial({
-                            color: 0x6aaeff,
+                            color: 0x6FB01E,
                             roughness: 0.35,
-                            metalness: 0.7,
-                            emissive: 0x112244,
+                            metalness: 0.4,
+                            emissive: isDark() ? 0x1a2a08 : 0x0a1a02,
                             flatShading: false,
                             side: THREE.DoubleSide
                         });
-                        
+
                         const mesh = new THREE.Mesh(geometry, material);
                         mesh.castShadow = true;
                         mesh.receiveShadow = true;
-                        
-                        // Center the model and position it above grid
+
                         const bbox = new THREE.Box3().setFromObject(mesh);
                         const center = bbox.getCenter(new THREE.Vector3());
                         const minY = bbox.min.y;
-                        
-                        // Position model so it sits on the grid plane
                         const offsetY = -minY + 0.1;
                         mesh.position.set(-center.x, -center.y + offsetY, -center.z);
-                        
+
                         resolve(mesh);
                     } catch (err) {
-                        reject(new Error(`STL parsing failed: ${err.message}`));
+                        reject(new Error('STL parsing failed: ' + err.message));
                     }
                 };
-                
                 reader.onerror = () => reject(new Error('File read error'));
                 reader.readAsArrayBuffer(file);
             });
         }
-        
-        // --- Handle file selection ---
+
         const fileInput = document.getElementById('stlFileInput');
         fileInput.addEventListener('change', async (event) => {
             const file = event.target.files[0];
             if (!file) return;
-            
+
             if (!file.name.toLowerCase().endsWith('.stl')) {
-                document.getElementById('statusMsg').innerHTML = '❌ Please select a .stl file';
+                document.getElementById('statusMsg').innerHTML = 'Please select a .stl file';
                 return;
             }
-            
-            document.getElementById('statusMsg').innerHTML = '⏳ Loading STL file...';
+
+            document.getElementById('statusMsg').innerHTML = 'Loading STL file...';
             document.getElementById('dimensions').innerHTML = 'processing...';
-            
+
             try {
                 const mesh = await loadSTLFile(file);
-                
-                // Remove old model
                 if (currentModel) {
                     scene.remove(currentModel);
                     if (currentModel.geometry) currentModel.geometry.dispose();
                     if (currentModel.material) currentModel.material.dispose();
                 }
-                
                 scene.add(mesh);
                 currentModel = mesh;
-                
-                // Update scene with new model dimensions
                 updateModelAndAdaptScene(mesh);
-                
             } catch (error) {
                 console.error('Load error:', error);
-                document.getElementById('statusMsg').innerHTML = `❌ Error: ${error.message}`;
+                document.getElementById('statusMsg').innerHTML = 'Error: ' + error.message;
                 document.getElementById('dimensions').innerHTML = 'failed';
-                
+
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'error-message';
-                errorDiv.innerHTML = `⚠️ Failed to load STL<br><span style="font-size:11px;">${error.message}</span>`;
+                errorDiv.innerHTML = 'Failed to load STL<br><span style="font-size:0.72rem;">' + error.message + '</span>';
                 document.body.appendChild(errorDiv);
                 setTimeout(() => errorDiv.remove(), 3000);
             }
         });
-        
-        // --- Reset View Button ---
+
         document.getElementById('resetViewBtn').addEventListener('click', () => {
             if (currentModel) {
                 const bbox = new THREE.Box3().setFromObject(currentModel);
@@ -479,10 +457,11 @@
                 const size = bbox.getSize(new THREE.Vector3());
                 const maxDim = Math.max(size.x, size.y, size.z);
                 const distance = Math.min(Math.max(maxDim * 1.2, 3), 50);
-                
-                camera.position.set(center.x + distance * 0.8, 
-                                  center.y + distance * 0.5, 
-                                  center.z + distance);
+                camera.position.set(
+                    center.x + distance * 0.8,
+                    center.y + distance * 0.5,
+                    center.z + distance
+                );
                 controls.target.copy(center);
                 controls.update();
             } else {
@@ -491,43 +470,37 @@
                 controls.update();
             }
         });
-        
-        // --- Toggle Grid & Axes ---
+
         document.getElementById('toggleGridBtn').addEventListener('click', () => {
             gridVisible = !gridVisible;
             if (currentGridHelper) currentGridHelper.visible = gridVisible;
             if (currentAxesHelper) currentAxesHelper.visible = gridVisible;
             if (currentShadowPlane) currentShadowPlane.visible = gridVisible;
-            if (currentGridHelper?.userData?.majorGrid) 
-                currentGridHelper.userData.majorGrid.visible = gridVisible;
+            if (currentGridHelper?.userData?.majorGrid) currentGridHelper.userData.majorGrid.visible = gridVisible;
         });
-        
-        // --- Window resize handler ---
+
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
-        
-        // --- Drag and Drop ---
+
         const dropZone = document.body;
-        
+
         dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.style.opacity = '0.95';
         });
-        
         dropZone.addEventListener('dragleave', () => {
             dropZone.style.opacity = '1';
         });
-        
         dropZone.addEventListener('drop', async (e) => {
             e.preventDefault();
             dropZone.style.opacity = '1';
             const files = e.dataTransfer.files;
             if (files.length > 0 && files[0].name.toLowerCase().endsWith('.stl')) {
                 const file = files[0];
-                document.getElementById('statusMsg').innerHTML = '⏳ Loading dropped STL...';
+                document.getElementById('statusMsg').innerHTML = 'Loading dropped STL...';
                 try {
                     const mesh = await loadSTLFile(file);
                     if (currentModel) {
@@ -539,32 +512,49 @@
                     currentModel = mesh;
                     updateModelAndAdaptScene(mesh);
                 } catch (err) {
-                    document.getElementById('statusMsg').innerHTML = `❌ Drop error: ${err.message}`;
+                    document.getElementById('statusMsg').innerHTML = 'Drop error: ' + err.message;
                 }
             } else {
-                document.getElementById('statusMsg').innerHTML = '⚠️ Please drop a valid .stl file';
+                document.getElementById('statusMsg').innerHTML = 'Please drop a valid .stl file';
             }
         });
-        
-        // --- Helper sphere at origin (barely visible) ---
+
+        // Re-theme scene when OS dark mode changes
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const bg = sceneBackground();
+                scene.background = new THREE.Color(bg);
+                scene.fog = new THREE.FogExp2(bg, 0.002);
+                if (currentModel) {
+                    const bbox = new THREE.Box3().setFromObject(currentModel);
+                    createDynamicGrid(bbox.getSize(new THREE.Vector3()));
+                } else {
+                    createDynamicGrid({ x: 5, y: 5, z: 5 });
+                }
+            });
+        }
+
         const originMarker = new THREE.Mesh(
             new THREE.SphereGeometry(0.05, 6, 6),
-            new THREE.MeshStandardMaterial({ color: 0xffaa66, emissive: 0x442200, transparent: true, opacity: 0.4 })
+            new THREE.MeshStandardMaterial({
+                color: 0x6FB01E,
+                emissive: 0x2a4a08,
+                transparent: true,
+                opacity: 0.6
+            })
         );
         scene.add(originMarker);
-        
-        // --- Animation Loop ---
+
         function animate() {
             requestAnimationFrame(animate);
             controls.update();
             renderer.render(scene, camera);
         }
         animate();
-        
-        // Initial grid setup (default size)
+
         createDynamicGrid({ x: 5, y: 5, z: 5 });
-        
-        console.log('STL Explorer Ready - Eye-friendly dark theme with adaptive features');
     </script>
+
+    <script src="assets\scripts\navbar.js" defer></script>
 </body>
 </html>

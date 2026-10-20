@@ -4,149 +4,140 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Shaded Region Chart Studio | By Alim Yakub (RP)</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
-    <text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <link rel="stylesheet" href="assets\styles\theme.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-        }
         body {
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-            background: #f0f2f5;
-            margin: 0;
-            padding: 20px;
+            padding: calc(var(--nav-height) + 20px) 20px 32px;
         }
+
         .dashboard {
             max-width: 100%;
             margin: 0 auto;
             position: relative;
-            min-height: 100vh;
+            min-height: calc(100vh - var(--nav-height) - 40px);
             padding-bottom: 60px;
         }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
-            gap: 15px;
-        }
+
         .header h1 {
-            margin-bottom: 0;
+            margin: 0 0 4px;
             font-size: 1.8rem;
+            color: var(--ink);
+            font-variant-emoji: text;
         }
-        .header-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .csv-edit-link {
-            font-size: 0.7rem;
-            color: #667eea;
-            text-decoration: none;
-            background: #f0f0f0;
-            padding: 4px 10px;
-            border-radius: 20px;
-            transition: all 0.2s;
-        }
-        .csv-edit-link:hover {
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .bottom-link {
-            position: fixed;
-            bottom: 15px;
-            right: 20px;
-            font-size: 0.65rem;
-            color: #94a3b8;
-            text-decoration: none;
-            background: rgba(255,255,255,0.8);
-            padding: 4px 10px;
-            border-radius: 20px;
-            transition: all 0.2s;
-            backdrop-filter: blur(4px);
-            z-index: 100;
-        }
-        .bottom-link:hover {
-            background: #667eea;
-            color: white;
-            text-decoration: none;
-        }
-        
-        .sub { color: #475569; margin-bottom: 20px; }
-        
-        .csv-panel {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 16px;
-            padding: 16px 20px;
+
+        .sub {
+            color: var(--ink-muted);
             margin-bottom: 20px;
+            font-size: 0.9rem;
         }
+
+        .help-text {
+            font-size: 0.82rem;
+            color: var(--ink);
+            background: var(--accent-soft);
+            padding: 10px 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 18px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .help-text strong { color: var(--accent); }
+        .help-text code {
+            background: var(--bg-alt);
+            padding: 1px 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.85em;
+        }
+
+        .csv-panel {
+            background: var(--green-soft);
+            border: 1px solid var(--green);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 18px;
+        }
+
         .csv-controls {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             align-items: flex-end;
         }
+
         .file-input-group {
             flex: 1;
             min-width: 180px;
         }
+
         .file-input-group label {
             display: block;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 600;
             margin-bottom: 4px;
-            opacity: 0.9;
+            color: var(--green-deep);
         }
+
         .file-input-group input {
             width: 100%;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: none;
+            padding: 7px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-strong);
             font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--ink);
         }
+
         .csv-btn {
-            background: white;
-            color: #667eea;
+            background: var(--green);
+            color: #ffffff;
             border: none;
-            padding: 6px 16px;
-            border-radius: 8px;
+            padding: 7px 16px;
+            border-radius: var(--radius-sm);
             font-weight: 600;
+            font-size: 0.85rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.15s ease;
         }
-        .csv-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        .csv-btn:hover { background: var(--green-hover); }
+        .csv-btn.secondary {
+            background: transparent;
+            color: var(--green-deep);
+            border: 1px solid var(--green);
         }
-        
+        .csv-btn.secondary:hover { background: var(--green); color: #ffffff; }
+
+        #loadStatus {
+            font-size: 0.75rem;
+            margin-top: 8px;
+            color: var(--green-deep);
+        }
+
         .global-panel {
-            background: white;
-            border-radius: 16px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
             padding: 16px 20px;
-            margin-bottom: 20px;
-            border: 1px solid #e2e8f0;
+            margin-bottom: 18px;
+            border: 1px solid var(--border);
         }
+
+        .global-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--ink);
+            font-size: 0.95rem;
+        }
+
         .global-axis-row {
             display: flex;
-            gap: 20px;
+            gap: 18px;
             align-items: flex-end;
             flex-wrap: wrap;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #e2e8f0;
         }
-        .global-axis-row:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
+
         .global-input-group {
             display: flex;
             flex-direction: column;
@@ -154,66 +145,82 @@
             flex: 1;
             min-width: 150px;
         }
+
         .global-input-group label {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 600;
-            color: #334155;
+            color: var(--ink-muted);
         }
+
         .global-input-group input {
-            padding: 6px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            padding: 7px 10px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
             font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--ink);
         }
-        
+
         .action-bar {
-            background: white;
-            border-radius: 16px;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
             padding: 12px 20px;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             display: flex;
             gap: 12px;
             align-items: center;
             flex-wrap: wrap;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
         }
+
         .action-btn {
-            background: #3b82f6;
-            color: white;
+            background: var(--green);
+            color: #ffffff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 500;
-            transition: all 0.2s;
+            transition: all 0.15s ease;
         }
-        .action-btn:hover { background: #2563eb; transform: translateY(-1px); }
-        .action-btn.export-all { background: #10b981; }
-        .action-btn.export-all:hover { background: #059669; }
-        
+        .action-btn:hover { background: var(--green-hover); transform: translateY(-1px); }
+        .action-btn.export-all { background: var(--accent); }
+        .action-btn.export-all:hover { background: var(--accent-hover); }
+
         .shaded-toggle {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             font-size: 0.85rem;
             margin-left: 10px;
+            color: var(--ink);
         }
         .shaded-toggle input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             cursor: pointer;
         }
-        
+        .shade-indicator {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border-radius: 4px;
+            margin-left: 4px;
+            vertical-align: middle;
+            border: 1px solid var(--border-strong);
+        }
+
         .view-toggle {
             display: inline-flex;
             align-items: center;
             gap: 10px;
             font-size: 0.85rem;
             padding: 4px 12px;
-            background: #f1f5f9;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            background: var(--bg-alt);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            color: var(--ink);
         }
         .view-toggle label {
             display: inline-flex;
@@ -221,15 +228,13 @@
             gap: 5px;
             cursor: pointer;
         }
-        .view-toggle input[type="radio"] {
-            cursor: pointer;
-        }
-        
+
         .scroll-container {
             overflow-x: auto;
             overflow-y: visible;
             padding-bottom: 10px;
         }
+
         .charts-grid {
             display: flex;
             flex-direction: row;
@@ -237,12 +242,13 @@
             min-width: min-content;
             padding: 4px;
         }
+
         .chart-card {
-            background: white;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
             overflow: hidden;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: var(--shadow-sm);
             width: 720px;
             flex-shrink: 0;
         }
@@ -250,6 +256,7 @@
             width: 100%;
             max-width: 1400px;
         }
+
         .chart-header {
             padding: 12px 16px;
             display: flex;
@@ -257,272 +264,238 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
-            background: #fafbfc;
-            border-bottom: 1px solid #e9ecef;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
         }
+
         .chart-title-input {
             font-size: 0.95rem;
             font-weight: 600;
             padding: 5px 10px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            width: 200px;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            width: 220px;
+            background: var(--surface);
+            color: var(--ink);
         }
-        .chart-actions { 
-            display: flex; 
+
+        .chart-actions {
+            display: flex;
             gap: 4px;
             align-items: center;
         }
+
         .icon-btn {
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.85rem;
             padding: 5px 8px;
-            border-radius: 6px;
-            transition: background 0.2s;
+            border-radius: var(--radius-sm);
+            transition: background 0.2s ease;
+            color: var(--ink-muted);
         }
-        .icon-btn:hover { background: #e5e7eb; }
+        .icon-btn:hover { background: var(--bg-alt); color: var(--ink); }
+
         .export-group {
             display: flex;
             gap: 2px;
             align-items: center;
-            border-left: 1px solid #e2e8f0;
+            border-left: 1px solid var(--border);
             padding-left: 8px;
         }
         .export-label {
-            font-size: 0.6rem;
-            color: #94a3b8;
+            font-size: 0.62rem;
+            color: var(--ink-faint);
             margin-right: 2px;
         }
         .export-btn {
             font-size: 0.7rem;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 4px;
-            border: 1px solid #e2e8f0;
-            background: white;
+            border: 1px solid var(--border-strong);
+            background: var(--surface);
             cursor: pointer;
-            transition: all 0.2s;
+            color: var(--ink);
             font-weight: 500;
+            transition: all 0.15s ease;
         }
         .export-btn:hover {
-            background: #f1f5f9;
-            border-color: #94a3b8;
-        }
-        .export-btn.white-bg {
-            color: #1e293b;
+            background: var(--bg-alt);
+            border-color: var(--ink-muted);
         }
         .export-btn.transparent-bg {
-            color: #667eea;
-            border-color: #667eea;
+            color: var(--accent);
+            border-color: var(--accent);
         }
         .export-btn.transparent-bg:hover {
-            background: #667eea;
-            color: white;
+            background: var(--accent);
+            color: #ffffff;
         }
-        
+
         .chart-controls-row {
             padding: 8px 16px;
-            background: #f8fafc;
-            border-bottom: 1px solid #e2e8f0;
+            background: var(--bg-alt);
+            border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
         }
+
         .chart-theme {
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
+            color: var(--ink);
         }
         .chart-theme select {
-            padding: 3px 6px;
-            border-radius: 6px;
-            border: 1px solid #cbd5e1;
-            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-strong);
+            font-size: 0.72rem;
+            background: var(--surface);
+            color: var(--ink);
         }
         .apply-theme-btn {
-            padding: 3px 10px;
-            background: #8b5cf6;
-            color: white;
+            padding: 4px 10px;
+            background: var(--accent);
+            color: #ffffff;
             border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.68rem;
+            font-weight: 500;
+        }
+        .apply-theme-btn:hover { background: var(--accent-hover); }
+
+        .legend-hint {
+            font-size: 0.72rem;
+            color: var(--ink-muted);
+        }
+
+        .color-picker-section {
+            background: var(--surface);
+            padding: 10px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .color-picker-section-title {
+            font-weight: 600;
+            font-size: 0.78rem;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .color-picker-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .color-picker-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+        }
+        .color-picker-row:hover { background: var(--surface-alt); }
+        .color-picker-row label {
+            font-size: 0.72rem;
+            font-weight: 500;
+            color: var(--ink);
+            min-width: 100px;
+        }
+        .color-picker-row input[type="color"] {
+            width: 30px;
+            height: 30px;
+            padding: 2px;
+            border: 2px solid var(--border-strong);
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.65rem;
+            background: var(--surface);
         }
-        
+        .color-picker-row .color-hex {
+            font-size: 0.68rem;
+            font-family: 'SF Mono', Menlo, Consolas, monospace;
+            color: var(--ink-muted);
+            min-width: 60px;
+        }
+
         .axis-controls {
             padding: 10px 16px;
-            background: #f1f5f9;
-            border-bottom: 1px solid #e2e8f0;
+            background: var(--surface-alt);
+            border-bottom: 1px solid var(--border);
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 12px;
         }
+
         .axis-group {
-            background: white;
+            background: var(--surface);
             padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
         }
+
         .axis-group-title {
             font-weight: 700;
-            font-size: 0.7rem;
-            color: #475569;
+            font-size: 0.72rem;
+            color: var(--ink);
             margin-bottom: 8px;
             padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            border-bottom: 1px solid var(--border);
         }
+
         .axis-row {
             display: flex;
             align-items: center;
             gap: 8px;
             margin-bottom: 6px;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
         }
         .axis-row label {
             width: 55px;
             font-weight: 600;
-            color: #334155;
+            color: var(--ink-muted);
         }
         .axis-row input {
             flex: 1;
             padding: 4px 6px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-size: 0.7rem;
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            font-size: 0.72rem;
+            background: var(--surface);
+            color: var(--ink);
         }
+
         .axis-hint {
-            font-size: 0.6rem;
-            color: #6c757d;
+            font-size: 0.62rem;
+            color: var(--ink-faint);
             margin-top: 4px;
             padding-left: 63px;
         }
-        
+
         .canvas-wrapper {
-            padding: 16px 16px 8px 16px;
-            background: white;
+            padding: 16px 16px 8px;
+            background: #ffffff;
         }
+
         canvas {
             max-height: 320px;
             width: 100%;
-            background: white;
+            background: #ffffff;
         }
-        .chart-card.stacked canvas {
-            max-height: 500px;
-        }
-        
-        ::-webkit-scrollbar {
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #e2e8f0;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #94a3b8;
-            border-radius: 10px;
-        }
+        .chart-card.stacked canvas { max-height: 500px; }
 
-        .help-text {
-            font-size: 0.8rem;
-            color: #64748b;
-            background: #f8fafc;
-            padding: 8px 16px;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            border-left: 3px solid #667eea;
-        }
-        .help-text strong { color: #334155; }
-        
-        .shade-indicator {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            margin-left: 4px;
-            vertical-align: middle;
-            border: 1px solid #ccc;
-        }
-        
-        .series-color-indicator {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            margin-right: 4px;
-            vertical-align: middle;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .legend-hint {
-            font-size: 0.7rem;
-            color: #64748b;
-            margin-left: 8px;
-        }
-        
-        /* Color picker styles for stacked chart */
-        .color-picker-group {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            padding: 4px 0;
-        }
-        .color-picker-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 3px 6px;
-            border-radius: 4px;
-            background: #f8fafc;
-            border: 1px solid #e2e8f0;
-        }
-        .color-picker-row:hover {
-            background: #f1f5f9;
-        }
-        .color-picker-row label {
-            font-size: 0.7rem;
-            font-weight: 500;
-            color: #334155;
-            min-width: 60px;
-        }
-        .color-picker-row input[type="color"] {
-            width: 32px;
-            height: 32px;
-            padding: 2px;
-            border: 2px solid #e2e8f0;
-            border-radius: 6px;
-            cursor: pointer;
-            background: white;
-        }
-        .color-picker-row input[type="color"]:hover {
-            border-color: #667eea;
-        }
-        .color-picker-row .color-hex {
-            font-size: 0.65rem;
-            font-family: monospace;
-            color: #64748b;
-            min-width: 60px;
-        }
-        .color-picker-section {
-            background: white;
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid #e2e8f0;
-            margin-top: 4px;
-        }
-        .color-picker-section-title {
-            font-weight: 700;
-            font-size: 0.7rem;
-            color: #475569;
-            margin-bottom: 6px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #e2e8f0;
+        @media (max-width: 900px) {
+            .axis-controls { grid-template-columns: 1fr; }
+            .chart-card { width: 100%; min-width: 320px; }
         }
     </style>
 </head>
@@ -530,13 +503,11 @@
 <div class="dashboard">
     <div class="header">
         <h1>📐 Shaded Region Chart Studio</h1>
-        <div class="header-links">
-        </div>
     </div>
     <div class="sub">🥶 Imagined by Alim Yakub (RP) for the cold box project</div>
 
     <div class="help-text">
-        <strong>📋 CSV Format:</strong> Expects columns like <code>Time, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code> 
+        <strong>📋 CSV Format:</strong> Expects columns like <code>Time, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code>
         (from the Aggregator tool). The first column is used as X-axis values. Each group creates a separate chart.
     </div>
 
@@ -545,13 +516,13 @@
             <div class="file-input-group"><label>📂 Upload CSV (from Aggregator)</label><input type="file" id="csvFileInput" accept=".csv"></div>
             <div class="file-input-group"><label>🔗 CSV URL</label><input type="text" id="csvUrlInput" placeholder="https://example.com/data.csv"></div>
             <button id="loadUrlBtn" class="csv-btn">Load URL</button>
-            <button id="loadSampleBtn" class="csv-btn" style="background:rgba(255,255,255,0.3);  color:white">📊 Sample Data</button>
+            <button id="loadSampleBtn" class="csv-btn secondary">📊 Sample Data</button>
         </div>
-        <div id="loadStatus" style="font-size:0.7rem; margin-top:8px;">✅ Ready</div>
+        <div id="loadStatus">✅ Ready</div>
     </div>
 
     <div class="global-panel">
-        <div style="font-weight:600; margin-bottom:12px;">🌍 Global Settings</div>
+        <div class="global-title">🌍 Global Settings</div>
         <div class="global-axis-row">
             <div class="global-input-group">
                 <label>📐 Global X-Axis Title</label>
@@ -561,29 +532,20 @@
                 <label>📏 Global Y-Axis Title</label>
                 <input type="text" id="globalYTitle" placeholder="Y Axis">
             </div>
-            <button id="applyGlobalBtn" class="action-btn" style="background:#3b82f6; margin-top:0;">Apply to All</button>
-        </div>
-        <div style="font-size:0.65rem; color:#6c757d; margin-top:5px;">
-            💡 Note: Global titles only apply to charts that don't have custom titles set.
+            <button id="applyGlobalBtn" class="action-btn" style="margin-top:0;">Apply to All</button>
         </div>
     </div>
 
     <div class="action-bar">
         <div class="view-toggle">
             <span style="font-weight:500;">📊 View Mode:</span>
-            <label>
-                <input type="radio" name="viewMode" value="separate" checked>
-                Separate Charts
-            </label>
-            <label>
-                <input type="radio" name="viewMode" value="stacked">
-                Stacked Chart
-            </label>
+            <label><input type="radio" name="viewMode" value="separate" checked> Separate Charts</label>
+            <label><input type="radio" name="viewMode" value="stacked"> Stacked Chart</label>
         </div>
         <button id="exportAllBtn" class="action-btn export-all">📸 Export All (Stacked PNG)</button>
         <div class="shaded-toggle">
             <input type="checkbox" id="showShadedRegion" checked>
-            <label for="showShadedRegion">Show MIN/MAX Shaded Region (25% opacity) 
+            <label for="showShadedRegion">Show MIN/MAX Shaded Region (25% opacity)
                 <span class="shade-indicator" style="background: rgba(102, 126, 234, 0.25);"></span>
             </label>
         </div>
@@ -595,7 +557,6 @@
 </div>
 
 <script>
-    
     const colorThemes = {
         "🌈 Rainbow": ["#FF0000", "#FF7F00", "#FFFF00", "#00FF00", "#0000FF", "#4B0082", "#9400D3"],
         "💙 Ocean Blues": ["#ADE8F4", "#90E0EF", "#48CAE4", "#00B4D8", "#0096C7", "#0077B6", "#023E8A"],
@@ -617,8 +578,8 @@
     let globalXTitle = "";
     let globalYTitle = "";
     let showShadedRegion = true;
-    let viewMode = 'separate'; // 'separate' or 'stacked'
-    let rawCSVData = null; // Store raw CSV data for switching views
+    let viewMode = 'separate';
+    let rawCSVData = null;
 
     function applyThemeToChart(chartId, themeName) {
         const chart = chartsData.find(c => c.id === chartId);
@@ -633,85 +594,59 @@
         const lines = csvText.trim().split(/\r?\n/);
         if (lines.length < 2) throw new Error("CSV must have header + data");
         const headers = lines[0].split(',').map(h => h.trim());
-        
-        // Extract X-values from the first column
         const xValues = [];
         const rowData = [];
-        
-        // Check if first column contains numeric values
         let isNumericX = false;
         let numericCheckDone = false;
-        
+
         for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
             if (values.length < headers.length) continue;
-            
-            // First column is the X-value
             const xVal = values[0];
             xValues.push(xVal);
-            
-            // Check if this x-value is numeric (for the first few rows)
             if (!numericCheckDone && i <= 3) {
                 const num = parseFloat(xVal);
-                if (!isNaN(num)) {
-                    isNumericX = true;
-                } else {
-                    isNumericX = false;
-                    numericCheckDone = true;
-                }
+                if (!isNaN(num)) isNumericX = true;
+                else { isNumericX = false; numericCheckDone = true; }
             }
-            
-            // Parse numeric data from remaining columns
             const row = {};
             for (let j = 1; j < headers.length; j++) {
                 const val = parseFloat(values[j]);
-                if (!isNaN(val)) {
-                    row[headers[j]] = val;
-                }
+                if (!isNaN(val)) row[headers[j]] = val;
             }
-            if (Object.keys(row).length > 0) {
-                rowData.push(row);
-            }
+            if (Object.keys(row).length > 0) rowData.push(row);
         }
-        
+
         if (rowData.length === 0) throw new Error("No numeric data found in CSV");
         if (xValues.length === 0) throw new Error("No X-axis values found in first column");
-        
+
         const columnGroups = {};
         for (let h of headers) {
-            // Skip the first column (it's the X-axis)
             if (h === headers[0]) continue;
-            
-            let base = h;
-            let type = 'avg';
+            let base = h, type = 'avg';
             if (h.endsWith('_avg')) { base = h.slice(0, -4); type = 'avg'; }
             else if (h.endsWith('_min')) { base = h.slice(0, -4); type = 'min'; }
             else if (h.endsWith('_max')) { base = h.slice(0, -4); type = 'max'; }
-            else { continue; }
-            
+            else continue;
             if (!columnGroups[base]) columnGroups[base] = {};
             columnGroups[base][type] = h;
         }
-        
+
         const charts = [];
         const defaultColors = colorThemes["🌈 Rainbow"];
         let idx = 0;
-        
+
         for (let base in columnGroups) {
             const group = columnGroups[base];
             if (group.avg && group.min && group.max) {
                 const avgData = rowData.map(r => r[group.avg] !== undefined ? r[group.avg] : null);
                 const minData = rowData.map(r => r[group.min] !== undefined ? r[group.min] : null);
                 const maxData = rowData.map(r => r[group.max] !== undefined ? r[group.max] : null);
-                
-                const hasData = avgData.some(d => d !== null);
-                if (hasData) {
+                if (avgData.some(d => d !== null)) {
                     charts.push({
-                        id: `chart_${idx}`,
+                        id: 'chart_' + idx,
                         name: base,
-                        avgData: avgData,
-                        minData: minData,
-                        maxData: maxData,
+                        avgData: avgData, minData: minData, maxData: maxData,
                         xData: xValues,
                         color: defaultColors[idx % defaultColors.length],
                         isNumericX: isNumericX
@@ -720,44 +655,35 @@
                 }
             }
         }
-        
+
         if (charts.length === 0) {
             throw new Error("No complete avg/min/max groups found. Expected columns like: Sales_avg, Sales_min, Sales_max");
         }
-        
         return { charts, xValues, isNumericX };
     }
 
     function loadCSVIntoCharts(csvText, sourceName) {
         try {
             const { charts, xValues, isNumericX } = parseAggregatorCSV(csvText);
-            
-            // Store raw data for view switching
             rawCSVData = { charts, xValues, isNumericX, sourceName };
-            
-            // Clear existing charts
             Object.values(chartInstances).forEach(ch => { if(ch) ch.destroy(); });
             chartInstances = {};
-            
-            // Create a chart for each group
-            chartsData = charts.map((chart, index) => ({
+            chartsData = charts.map((chart) => ({
                 id: nextChartId++,
                 title: chart.name,
                 series: chart,
                 color: chart.color,
-                xTitle: '',
-                yTitle: '',
+                xTitle: '', yTitle: '',
                 xMin: undefined, xMax: undefined, xStep: undefined,
                 yMin: undefined, yMax: undefined, yStep: undefined,
                 currentTheme: "🌈 Rainbow",
                 showShadedRegion: showShadedRegion,
                 isNumericX: isNumericX
             }));
-            
             renderAllCharts();
-            document.getElementById('loadStatus').innerHTML = `✅ Loaded ${charts.length} charts from ${sourceName}`;
+            document.getElementById('loadStatus').innerHTML = '✅ Loaded ' + charts.length + ' charts from ' + sourceName;
         } catch(err) {
-            document.getElementById('loadStatus').innerHTML = `❌ Error: ${err.message}`;
+            document.getElementById('loadStatus').innerHTML = '❌ Error: ' + err.message;
         }
     }
 
@@ -765,22 +691,14 @@
         const grid = document.getElementById('chartsGrid');
         if (!grid) return;
         grid.innerHTML = '';
-        
         if (chartsData.length === 0) {
-            grid.innerHTML = '<div style="width:100%; text-align:center; padding:40px;">No charts. Load data to get started.</div>';
+            grid.innerHTML = '<div style="width:100%; text-align:center; padding:40px; color: var(--ink-muted);">No charts. Load data to get started.</div>';
             return;
         }
-        
         if (viewMode === 'stacked') {
-            // Create a single stacked chart
-            const card = createStackedChartCard();
-            grid.appendChild(card);
+            grid.appendChild(createStackedChartCard());
         } else {
-            // Create separate charts
-            chartsData.forEach(chart => {
-                const card = createChartCard(chart);
-                grid.appendChild(card);
-            });
+            chartsData.forEach(chart => grid.appendChild(createChartCard(chart)));
         }
     }
 
@@ -788,130 +706,92 @@
         const card = document.createElement('div');
         card.className = 'chart-card stacked';
         card.setAttribute('data-chart-id', 'stacked');
-        
+
         const header = document.createElement('div');
         header.className = 'chart-header';
-        header.innerHTML = `
-            <input type="text" class="chart-title-input" value="Stacked View - All Series" style="width:250px;">
-            <div class="chart-actions">
-                <div class="export-group">
-                    <span class="export-label">Export:</span>
-                    <button class="export-btn white-bg" data-chart-id="stacked" data-bg="white">⬜ White</button>
-                    <button class="export-btn transparent-bg" data-chart-id="stacked" data-bg="transparent">▢ Transparent</button>
-                </div>
-            </div>
-        `;
-        
+        header.innerHTML = '<input type="text" class="chart-title-input" value="Stacked View - All Series" style="width:250px;">' +
+            '<div class="chart-actions">' +
+            '<div class="export-group">' +
+            '<span class="export-label">Export:</span>' +
+            '<button class="export-btn white-bg" data-chart-id="stacked" data-bg="white">⬜ White</button>' +
+            '<button class="export-btn transparent-bg" data-chart-id="stacked" data-bg="transparent">▢ Transparent</button>' +
+            '</div></div>';
+
         const controlsRow = document.createElement('div');
         controlsRow.className = 'chart-controls-row';
-        controlsRow.innerHTML = `
-            <div class="chart-theme">
-                <span>🎨 Theme:</span>
-                <select class="chart-theme-select">
-                    ${Object.keys(colorThemes).map(t => `<option value="${t}">${t}</option>`).join('')}
-                </select>
-                <button class="apply-theme-btn">Apply Theme</button>
-                <span style="font-size:0.6rem; color:#94a3b8; margin-left:4px;">(or use color pickers below)</span>
-            </div>
-            <div class="legend-hint">
-                📊 Showing ${chartsData.length} series with shaded regions
-                ${chartsData[0]?.isNumericX ? '• Numeric X-axis' : '• Categorical X-axis'}
-            </div>
-        `;
-        
-        // Color picker section
+        controlsRow.innerHTML = '<div class="chart-theme">' +
+            '<span>🎨 Theme:</span>' +
+            '<select class="chart-theme-select">' +
+            Object.keys(colorThemes).map(t => '<option value="' + t + '">' + t + '</option>').join('') +
+            '</select>' +
+            '<button class="apply-theme-btn">Apply Theme</button>' +
+            '<span style="font-size:0.6rem; color:var(--ink-faint); margin-left:4px;">(or use color pickers below)</span>' +
+            '</div>' +
+            '<div class="legend-hint">📊 Showing ' + chartsData.length + ' series with shaded regions ' +
+            (chartsData[0]?.isNumericX ? '• Numeric X-axis' : '• Categorical X-axis') + '</div>';
+
         const colorPickerSection = document.createElement('div');
         colorPickerSection.className = 'color-picker-section';
-        colorPickerSection.innerHTML = `<div class="color-picker-section-title">🎨 Series Colors (click to change)</div>`;
-        
+        colorPickerSection.innerHTML = '<div class="color-picker-section-title">🎨 Series Colors (click to change)</div>';
         const colorPickerGroup = document.createElement('div');
         colorPickerGroup.className = 'color-picker-group';
-        
         chartsData.forEach((chart, idx) => {
             const row = document.createElement('div');
             row.className = 'color-picker-row';
-            row.innerHTML = `
-                <label>${escapeHtml(chart.title)}</label>
-                <input type="color" class="series-color-picker" data-index="${idx}" value="${chart.color}">
-                <span class="color-hex">${chart.color}</span>
-            `;
+            row.innerHTML = '<label>' + escapeHtml(chart.title) + '</label>' +
+                '<input type="color" class="series-color-picker" data-index="' + idx + '" value="' + chart.color + '">' +
+                '<span class="color-hex">' + chart.color + '</span>';
             colorPickerGroup.appendChild(row);
         });
-        
         colorPickerSection.appendChild(colorPickerGroup);
-        
+
         const axisRow = document.createElement('div');
         axisRow.className = 'axis-controls';
-        axisRow.innerHTML = `
-            <div class="axis-group">
-                <div class="axis-group-title">📐 X-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value=""></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-            <div class="axis-group">
-                <div class="axis-group-title">📏 Y-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value=""></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-        `;
-        
+        axisRow.innerHTML = '<div class="axis-group"><div class="axis-group-title">📐 X-Axis Settings</div>' +
+            '<div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value=""></div>' +
+            '<div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any"></div>' +
+            '<div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any"></div>' +
+            '<div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any"></div>' +
+            '<div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div></div>' +
+            '<div class="axis-group"><div class="axis-group-title">📏 Y-Axis Settings</div>' +
+            '<div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value=""></div>' +
+            '<div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any"></div>' +
+            '<div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any"></div>' +
+            '<div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any"></div>' +
+            '<div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div></div>';
+
         const canvasWrapper = document.createElement('div');
         canvasWrapper.className = 'canvas-wrapper';
         const canvas = document.createElement('canvas');
-        canvas.id = `canvas_stacked`;
+        canvas.id = 'canvas_stacked';
         canvas.style.maxHeight = '500px';
         canvasWrapper.appendChild(canvas);
-        
-        // Build the card with all sections
+
         card.appendChild(header);
         card.appendChild(controlsRow);
         card.appendChild(colorPickerSection);
         card.appendChild(axisRow);
         card.appendChild(canvasWrapper);
-        
-        // Event listeners for color pickers
+
         colorPickerGroup.querySelectorAll('.series-color-picker').forEach(picker => {
             picker.addEventListener('input', (e) => {
                 const idx = parseInt(e.target.dataset.index);
                 const color = e.target.value;
                 chartsData[idx].color = color;
-                // Update hex display
                 const hexSpan = e.target.parentElement.querySelector('.color-hex');
                 if (hexSpan) hexSpan.textContent = color;
                 rebuildStackedChart();
             });
         });
-        
-        // Event listeners
-        const titleInput = header.querySelector('.chart-title-input');
-        titleInput.addEventListener('change', () => {
-            card.dataset.stackedTitle = titleInput.value;
-            rebuildStackedChart();
+
+        header.querySelector('.chart-title-input').addEventListener('change', () => rebuildStackedChart());
+        header.querySelectorAll('.export-btn').forEach(btn => {
+            btn.addEventListener('click', () => exportStackedChart(btn.dataset.bg));
         });
-        
-        // Export buttons
-        const exportBtns = header.querySelectorAll('.export-btn');
-        exportBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const bgType = btn.dataset.bg;
-                exportStackedChart(bgType);
-            });
-        });
-        
-        const themeSelect = controlsRow.querySelector('.chart-theme-select');
-        const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
-        applyThemeBtn.addEventListener('click', () => {
-            const colors = colorThemes[themeSelect.value];
-            chartsData.forEach((chart, idx) => {
-                chart.color = colors[idx % colors.length];
-            });
-            // Update color pickers
+
+        controlsRow.querySelector('.apply-theme-btn').addEventListener('click', () => {
+            const colors = colorThemes[controlsRow.querySelector('.chart-theme-select').value];
+            chartsData.forEach((chart, idx) => { chart.color = colors[idx % colors.length]; });
             colorPickerGroup.querySelectorAll('.series-color-picker').forEach((picker, idx) => {
                 if (idx < chartsData.length) {
                     picker.value = chartsData[idx].color;
@@ -921,31 +801,24 @@
             });
             rebuildStackedChart();
         });
-        
-        const xTitleInput = axisRow.querySelector('.x-title');
-        const yTitleInput = axisRow.querySelector('.y-title');
-        const xMinInput = axisRow.querySelector('.x-min');
-        const xMaxInput = axisRow.querySelector('.x-max');
-        const xStepInput = axisRow.querySelector('.x-step');
-        const yMinInput = axisRow.querySelector('.y-min');
-        const yMaxInput = axisRow.querySelector('.y-max');
-        const yStepInput = axisRow.querySelector('.y-step');
-        
-        // Store axis settings for stacked chart
+
         const axisSettings = { xTitle: '', yTitle: '', xMin: undefined, xMax: undefined, xStep: undefined, yMin: undefined, yMax: undefined, yStep: undefined };
-        
-        xTitleInput.addEventListener('change', (e) => { axisSettings.xTitle = e.target.value; rebuildStackedChart(); });
-        yTitleInput.addEventListener('change', (e) => { axisSettings.yTitle = e.target.value; rebuildStackedChart(); });
-        xMinInput.addEventListener('change', (e) => { axisSettings.xMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        xMaxInput.addEventListener('change', (e) => { axisSettings.xMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        xStepInput.addEventListener('change', (e) => { axisSettings.xStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yMinInput.addEventListener('change', (e) => { axisSettings.yMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yMaxInput.addEventListener('change', (e) => { axisSettings.yMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        yStepInput.addEventListener('change', (e) => { axisSettings.yStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildStackedChart(); });
-        
-        // Store axis settings on card for use in rebuild
+        const bindAxis = (sel, key, parse) => {
+            axisRow.querySelector(sel).addEventListener('change', (e) => {
+                axisSettings[key] = e.target.value === '' ? undefined : parse(e.target.value);
+                rebuildStackedChart();
+            });
+        };
+        bindAxis('.x-title', 'xTitle', v => v);
+        bindAxis('.y-title', 'yTitle', v => v);
+        bindAxis('.x-min', 'xMin', parseFloat);
+        bindAxis('.x-max', 'xMax', parseFloat);
+        bindAxis('.x-step', 'xStep', parseFloat);
+        bindAxis('.y-min', 'yMin', parseFloat);
+        bindAxis('.y-max', 'yMax', parseFloat);
+        bindAxis('.y-step', 'yStep', parseFloat);
+
         card._axisSettings = axisSettings;
-        
         buildStackedChart(canvas, axisSettings);
         return card;
     }
@@ -954,96 +827,75 @@
         const card = document.createElement('div');
         card.className = 'chart-card';
         card.setAttribute('data-chart-id', chart.id);
-        
+
         const header = document.createElement('div');
         header.className = 'chart-header';
-        header.innerHTML = `
-            <input type="text" class="chart-title-input" value="${escapeHtml(chart.title)}">
-            <div class="chart-actions">
-                <button class="icon-btn delete-btn" title="Delete Chart">🗑️</button>
-                <div class="export-group">
-                    <span class="export-label">Export:</span>
-                    <button class="export-btn white-bg" data-chart-id="${chart.id}" data-bg="white">⬜ White</button>
-                    <button class="export-btn transparent-bg" data-chart-id="${chart.id}" data-bg="transparent">▢ Transparent</button>
-                </div>
-            </div>
-        `;
-        
+        header.innerHTML = '<input type="text" class="chart-title-input" value="' + escapeHtml(chart.title) + '">' +
+            '<div class="chart-actions">' +
+            '<button class="icon-btn delete-btn" title="Delete Chart">🗑️</button>' +
+            '<div class="export-group">' +
+            '<span class="export-label">Export:</span>' +
+            '<button class="export-btn white-bg" data-chart-id="' + chart.id + '" data-bg="white">⬜ White</button>' +
+            '<button class="export-btn transparent-bg" data-chart-id="' + chart.id + '" data-bg="transparent">▢ Transparent</button>' +
+            '</div></div>';
+
         const controlsRow = document.createElement('div');
         controlsRow.className = 'chart-controls-row';
-        controlsRow.innerHTML = `
-            <div class="chart-theme">
-                <span>🎨 Theme:</span>
-                <select class="chart-theme-select">
-                    ${Object.keys(colorThemes).map(t => `<option value="${t}" ${chart.currentTheme === t ? 'selected' : ''}>${t}</option>`).join('')}
-                </select>
-                <button class="apply-theme-btn">Apply</button>
-            </div>
-            <div style="display:flex; align-items:center; gap:8px;">
-                <label style="font-size:0.7rem; color:#475569;">Color:</label>
-                <input type="color" class="chart-color-picker" value="${chart.color}" style="width:30px; height:30px; padding:2px; border:2px solid #e2e8f0; border-radius:6px; cursor:pointer;">
-                <span style="font-size:0.65rem; color:#94a3b8;">${chart.color}</span>
-            </div>
-            <div style="font-size:0.65rem; color:#94a3b8;">
-                ${chart.isNumericX ? '📊 Numeric X-axis' : '📝 Categorical X-axis'}
-            </div>
-        `;
-        
+        controlsRow.innerHTML = '<div class="chart-theme">' +
+            '<span>🎨 Theme:</span>' +
+            '<select class="chart-theme-select">' +
+            Object.keys(colorThemes).map(t => '<option value="' + t + '"' + (chart.currentTheme === t ? ' selected' : '') + '>' + t + '</option>').join('') +
+            '</select>' +
+            '<button class="apply-theme-btn">Apply</button>' +
+            '</div>' +
+            '<div style="display:flex; align-items:center; gap:8px;">' +
+            '<label style="font-size:0.7rem; color:var(--ink-muted);">Color:</label>' +
+            '<input type="color" class="chart-color-picker" value="' + chart.color + '" style="width:30px; height:30px; padding:2px; border:2px solid var(--border-strong); border-radius:6px; cursor:pointer; background: var(--surface);">' +
+            '<span style="font-size:0.65rem; color:var(--ink-faint);">' + chart.color + '</span>' +
+            '</div>' +
+            '<div style="font-size:0.65rem; color:var(--ink-faint);">' +
+            (chart.isNumericX ? '📊 Numeric X-axis' : '📝 Categorical X-axis') +
+            '</div>';
+
         const axisRow = document.createElement('div');
         axisRow.className = 'axis-controls';
-        axisRow.innerHTML = `
-            <div class="axis-group">
-                <div class="axis-group-title">📐 X-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value="${escapeHtml(chart.xTitle || '')}"></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any" value="${chart.xMin !== undefined ? chart.xMin : ''}"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any" value="${chart.xMax !== undefined ? chart.xMax : ''}"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any" value="${chart.xStep !== undefined ? chart.xStep : ''}"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-            <div class="axis-group">
-                <div class="axis-group-title">📏 Y-Axis Settings</div>
-                <div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value="${escapeHtml(chart.yTitle || '')}"></div>
-                <div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any" value="${chart.yMin !== undefined ? chart.yMin : ''}"></div>
-                <div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any" value="${chart.yMax !== undefined ? chart.yMax : ''}"></div>
-                <div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any" value="${chart.yStep !== undefined ? chart.yStep : ''}"></div>
-                <div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div>
-            </div>
-        `;
-        
+        axisRow.innerHTML = '<div class="axis-group"><div class="axis-group-title">📐 X-Axis Settings</div>' +
+            '<div class="axis-row"><label>Title:</label><input type="text" class="x-title" placeholder="X Axis" value="' + escapeHtml(chart.xTitle || '') + '"></div>' +
+            '<div class="axis-row"><label>Min:</label><input type="number" class="x-min" placeholder="auto" step="any" value="' + (chart.xMin !== undefined ? chart.xMin : '') + '"></div>' +
+            '<div class="axis-row"><label>Max:</label><input type="number" class="x-max" placeholder="auto" step="any" value="' + (chart.xMax !== undefined ? chart.xMax : '') + '"></div>' +
+            '<div class="axis-row"><label>Step:</label><input type="number" class="x-step" placeholder="auto" step="any" value="' + (chart.xStep !== undefined ? chart.xStep : '') + '"></div>' +
+            '<div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div></div>' +
+            '<div class="axis-group"><div class="axis-group-title">📏 Y-Axis Settings</div>' +
+            '<div class="axis-row"><label>Title:</label><input type="text" class="y-title" placeholder="Y Axis" value="' + escapeHtml(chart.yTitle || '') + '"></div>' +
+            '<div class="axis-row"><label>Min:</label><input type="number" class="y-min" placeholder="auto" step="any" value="' + (chart.yMin !== undefined ? chart.yMin : '') + '"></div>' +
+            '<div class="axis-row"><label>Max:</label><input type="number" class="y-max" placeholder="auto" step="any" value="' + (chart.yMax !== undefined ? chart.yMax : '') + '"></div>' +
+            '<div class="axis-row"><label>Step:</label><input type="number" class="y-step" placeholder="auto" step="any" value="' + (chart.yStep !== undefined ? chart.yStep : '') + '"></div>' +
+            '<div class="axis-hint">Tick interval (e.g., 10, 20, 50)</div></div>';
+
         const canvasWrapper = document.createElement('div');
         canvasWrapper.className = 'canvas-wrapper';
         const canvas = document.createElement('canvas');
-        canvas.id = `canvas_${chart.id}`;
+        canvas.id = 'canvas_' + chart.id;
         canvas.style.maxHeight = '320px';
         canvasWrapper.appendChild(canvas);
-        
+
         card.appendChild(header);
         card.appendChild(controlsRow);
         card.appendChild(axisRow);
         card.appendChild(canvasWrapper);
-        
-        // Event listeners
-        const titleInput = header.querySelector('.chart-title-input');
-        titleInput.addEventListener('change', (e) => { chart.title = e.target.value; rebuildChart(chart.id); });
-        
-        const deleteBtn = header.querySelector('.delete-btn');
-        deleteBtn.addEventListener('click', () => {
-            if (confirm(`Delete chart "${chart.title}"?`)) {
-                deleteChart(chart.id);
-            }
+
+        header.querySelector('.chart-title-input').addEventListener('change', (e) => { chart.title = e.target.value; rebuildChart(chart.id); });
+        header.querySelector('.delete-btn').addEventListener('click', () => {
+            if (confirm('Delete chart "' + chart.title + '"?')) deleteChart(chart.id);
         });
-        
-        // Export buttons
-        const exportBtns = header.querySelectorAll('.export-btn');
-        exportBtns.forEach(btn => {
+        header.querySelectorAll('.export-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const chartId = parseInt(btn.dataset.chartId);
                 const bgType = btn.dataset.bg;
                 exportSingleChart(chartId, bgType);
             });
         });
-        
-        // Color picker for individual chart
+
         const colorPicker = controlsRow.querySelector('.chart-color-picker');
         colorPicker.addEventListener('input', (e) => {
             chart.color = e.target.value;
@@ -1051,36 +903,30 @@
             if (hexSpan) hexSpan.textContent = chart.color;
             rebuildChart(chart.id);
         });
-        
-        const themeSelect = controlsRow.querySelector('.chart-theme-select');
-        const applyThemeBtn = controlsRow.querySelector('.apply-theme-btn');
-        applyThemeBtn.addEventListener('click', () => {
-            chart.currentTheme = themeSelect.value;
-            applyThemeToChart(chart.id, themeSelect.value);
-            // Update color picker
+
+        controlsRow.querySelector('.apply-theme-btn').addEventListener('click', () => {
+            chart.currentTheme = controlsRow.querySelector('.chart-theme-select').value;
+            applyThemeToChart(chart.id, chart.currentTheme);
             colorPicker.value = chart.color;
             const hexSpan = colorPicker.parentElement.querySelector('span:last-child');
             if (hexSpan) hexSpan.textContent = chart.color;
         });
-        
-        const xTitleInput = axisRow.querySelector('.x-title');
-        const yTitleInput = axisRow.querySelector('.y-title');
-        const xMinInput = axisRow.querySelector('.x-min');
-        const xMaxInput = axisRow.querySelector('.x-max');
-        const xStepInput = axisRow.querySelector('.x-step');
-        const yMinInput = axisRow.querySelector('.y-min');
-        const yMaxInput = axisRow.querySelector('.y-max');
-        const yStepInput = axisRow.querySelector('.y-step');
-        
-        xTitleInput.addEventListener('change', (e) => { chart.xTitle = e.target.value; rebuildChart(chart.id); });
-        yTitleInput.addEventListener('change', (e) => { chart.yTitle = e.target.value; rebuildChart(chart.id); });
-        xMinInput.addEventListener('change', (e) => { chart.xMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        xMaxInput.addEventListener('change', (e) => { chart.xMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        xStepInput.addEventListener('change', (e) => { chart.xStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        yMinInput.addEventListener('change', (e) => { chart.yMin = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        yMaxInput.addEventListener('change', (e) => { chart.yMax = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        yStepInput.addEventListener('change', (e) => { chart.yStep = e.target.value === '' ? undefined : parseFloat(e.target.value); rebuildChart(chart.id); });
-        
+
+        const bindAxis = (sel, key, parse) => {
+            axisRow.querySelector(sel).addEventListener('change', (e) => {
+                chart[key] = e.target.value === '' ? undefined : parse(e.target.value);
+                rebuildChart(chart.id);
+            });
+        };
+        bindAxis('.x-title', 'xTitle', v => v);
+        bindAxis('.y-title', 'yTitle', v => v);
+        bindAxis('.x-min', 'xMin', parseFloat);
+        bindAxis('.x-max', 'xMax', parseFloat);
+        bindAxis('.x-step', 'xStep', parseFloat);
+        bindAxis('.y-min', 'yMin', parseFloat);
+        bindAxis('.y-max', 'yMax', parseFloat);
+        bindAxis('.y-step', 'yStep', parseFloat);
+
         buildChart(chart.id, canvas);
         return card;
     }
@@ -1089,7 +935,7 @@
         const r = parseInt(hex.slice(1,3), 16);
         const g = parseInt(hex.slice(3,5), 16);
         const b = parseInt(hex.slice(5,7), 16);
-        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        return 'rgba(' + r + ', ' + g + ', ' + b + ', ' + alpha + ')';
     }
 
     function buildStackedChart(canvas, axisSettings) {
@@ -1097,228 +943,79 @@
             chartInstances['stacked'].destroy();
             delete chartInstances['stacked'];
         }
-        
         const ctx = canvas.getContext('2d');
         const isNumericX = chartsData[0]?.isNumericX || false;
-        const xData = isNumericX ? chartsData[0]?.series.xData.map(x => parseFloat(x)) : chartsData[0]?.series.xData.map(x => x.toString());
-        
         const datasets = [];
-        
+
         chartsData.forEach((chart, idx) => {
             const color = chart.color || '#667eea';
-            // Changed from 0.5 to 0.25 for less transparency (more opaque)
             const shadeColor = hexToRgba(color, 0.25);
             const series = chart.series;
-            
+
             if (isNumericX) {
-                const minPoints = [];
-                const maxPoints = [];
-                const avgPoints = [];
-                
+                const minPoints = [], maxPoints = [], avgPoints = [];
                 for (let i = 0; i < series.avgData.length; i++) {
                     const xVal = parseFloat(series.xData[i]);
                     const avgVal = series.avgData[i];
                     const minVal = series.minData[i];
                     const maxVal = series.maxData[i];
-                    
-                    if (avgVal !== null && avgVal !== undefined) {
-                        avgPoints.push({ x: xVal, y: avgVal });
-                    }
-                    if (minVal !== null && minVal !== undefined) {
-                        minPoints.push({ x: xVal, y: minVal });
-                    }
-                    if (maxVal !== null && maxVal !== undefined) {
-                        maxPoints.push({ x: xVal, y: maxVal });
-                    }
+                    if (avgVal !== null && avgVal !== undefined) avgPoints.push({ x: xVal, y: avgVal });
+                    if (minVal !== null && minVal !== undefined) minPoints.push({ x: xVal, y: minVal });
+                    if (maxVal !== null && maxVal !== undefined) maxPoints.push({ x: xVal, y: maxVal });
                 }
-                
-                // MIN dataset (invisible)
-                datasets.push({
-                    label: `${chart.title} (MIN)`,
-                    data: minPoints,
-                    borderColor: 'transparent',
-                    backgroundColor: 'transparent',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    fill: false,
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false,
-                    _seriesIndex: idx
-                });
-                
-                // MAX dataset with fill
+                datasets.push({ label: chart.title + ' (MIN)', data: minPoints, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false, order: 2, spanGaps: false, tension: 0.2, showInLegend: false, _seriesIndex: idx });
                 if (showShadedRegion) {
-                    datasets.push({
-                        label: `${chart.title} (MAX)`,
-                        data: maxPoints,
-                        borderColor: 'transparent',
-                        backgroundColor: shadeColor,
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        fill: {
-                            target: `-1`,
-                            above: shadeColor
-                        },
-                        order: 2,
-                        spanGaps: false,
-                        tension: 0.2,
-                        showInLegend: false,
-                        _seriesIndex: idx
-                    });
+                    datasets.push({ label: chart.title + ' (MAX)', data: maxPoints, borderColor: 'transparent', backgroundColor: shadeColor, borderWidth: 0, pointRadius: 0, fill: { target: '-1', above: shadeColor }, order: 2, spanGaps: false, tension: 0.2, showInLegend: false, _seriesIndex: idx });
                 }
-                
-                // AVG line dataset
-                datasets.push({
-                    label: chart.title,
-                    data: avgPoints,
-                    borderColor: color,
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    pointBackgroundColor: color,
-                    pointBorderColor: color,
-                    pointStyle: 'circle',
-                    tension: 0.2,
-                    fill: false,
-                    order: 0,
-                    spanGaps: false,
-                    _seriesIndex: idx
-                });
+                datasets.push({ label: chart.title, data: avgPoints, borderColor: color, backgroundColor: 'transparent', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, pointBackgroundColor: color, pointBorderColor: color, pointStyle: 'circle', tension: 0.2, fill: false, order: 0, spanGaps: false, _seriesIndex: idx });
             } else {
                 const labels = series.xData.map(x => x.toString());
-                const minDataArray = series.minData.map(d => d !== null && d !== undefined ? d : null);
-                const maxDataArray = series.maxData.map(d => d !== null && d !== undefined ? d : null);
-                const avgDataArray = series.avgData.map(d => d !== null && d !== undefined ? d : null);
-                
-                // MIN dataset (invisible)
-                datasets.push({
-                    label: `${chart.title} (MIN)`,
-                    data: minDataArray,
-                    borderColor: 'transparent',
-                    backgroundColor: 'transparent',
-                    borderWidth: 0,
-                    pointRadius: 0,
-                    fill: false,
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false,
-                    _seriesIndex: idx
-                });
-                
-                // MAX dataset with fill
+                const minDataArray = series.minData.map(d => (d !== null && d !== undefined) ? d : null);
+                const maxDataArray = series.maxData.map(d => (d !== null && d !== undefined) ? d : null);
+                const avgDataArray = series.avgData.map(d => (d !== null && d !== undefined) ? d : null);
+                datasets.push({ label: chart.title + ' (MIN)', data: minDataArray, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 0, pointRadius: 0, fill: false, order: 2, spanGaps: false, tension: 0.2, showInLegend: false, _seriesIndex: idx });
                 if (showShadedRegion) {
-                    datasets.push({
-                        label: `${chart.title} (MAX)`,
-                        data: maxDataArray,
-                        borderColor: 'transparent',
-                        backgroundColor: shadeColor,
-                        borderWidth: 0,
-                        pointRadius: 0,
-                        fill: {
-                            target: `-1`,
-                            above: shadeColor
-                        },
-                        order: 2,
-                        spanGaps: false,
-                        tension: 0.2,
-                        showInLegend: false,
-                        _seriesIndex: idx
-                    });
+                    datasets.push({ label: chart.title + ' (MAX)', data: maxDataArray, borderColor: 'transparent', backgroundColor: shadeColor, borderWidth: 0, pointRadius: 0, fill: { target: '-1', above: shadeColor }, order: 2, spanGaps: false, tension: 0.2, showInLegend: false, _seriesIndex: idx });
                 }
-                
-                // AVG line dataset
-                datasets.push({
-                    label: chart.title,
-                    data: avgDataArray,
-                    borderColor: color,
-                    backgroundColor: 'transparent',
-                    borderWidth: 3,
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    pointBackgroundColor: color,
-                    pointBorderColor: color,
-                    pointStyle: 'circle',
-                    tension: 0.2,
-                    fill: false,
-                    order: 0,
-                    spanGaps: false,
-                    _seriesIndex: idx
-                });
-                
-                // Store labels for later
-                if (idx === 0) {
-                    canvas._labels = labels;
-                }
+                datasets.push({ label: chart.title, data: avgDataArray, borderColor: color, backgroundColor: 'transparent', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, pointBackgroundColor: color, pointBorderColor: color, pointStyle: 'circle', tension: 0.2, fill: false, order: 0, spanGaps: false, _seriesIndex: idx });
+                if (idx === 0) canvas._labels = labels;
             }
         });
-        
-        // Get axis titles
+
         let xTitle = axisSettings?.xTitle || '';
         let yTitle = axisSettings?.yTitle || '';
         if (!xTitle && globalXTitle) xTitle = globalXTitle;
         if (!yTitle && globalYTitle) yTitle = globalYTitle;
-        
-        let xAxisConfig;
-        let dataConfig = {};
-        
+
+        let xAxisConfig, dataConfig = {};
         if (isNumericX) {
             xAxisConfig = {
                 type: 'linear',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
-                min: axisSettings?.xMin,
-                max: axisSettings?.xMax,
+                title: { display: !!xTitle, text: xTitle },
+                min: axisSettings?.xMin, max: axisSettings?.xMax,
                 grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: axisSettings?.xStep,
-                    callback: function(value) {
-                        if (Number.isInteger(value)) {
-                            return value.toString();
-                        }
-                        return value;
-                    }
-                }
+                ticks: { stepSize: axisSettings?.xStep, callback: function(value) { return Number.isInteger(value) ? value.toString() : value; } }
             };
             dataConfig = { datasets: datasets };
         } else {
             xAxisConfig = {
                 type: 'category',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
+                title: { display: !!xTitle, text: xTitle },
                 grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: axisSettings?.xStep
-                }
+                ticks: { stepSize: axisSettings?.xStep }
             };
-            dataConfig = {
-                labels: canvas._labels || chartsData[0]?.series.xData.map(x => x.toString()),
-                datasets: datasets
-            };
+            dataConfig = { labels: canvas._labels || chartsData[0]?.series.xData.map(x => x.toString()), datasets: datasets };
         }
-        
+
         const yAxisConfig = {
-            title: {
-                display: !!yTitle,
-                text: yTitle
-            },
-            min: axisSettings?.yMin,
-            max: axisSettings?.yMax,
+            title: { display: !!yTitle, text: yTitle },
+            min: axisSettings?.yMin, max: axisSettings?.yMax,
             beginAtZero: true,
             grid: { color: '#e9ecef' },
-            ticks: {
-                stepSize: axisSettings?.yStep
-            }
+            ticks: { stepSize: axisSettings?.yStep }
         };
-        
-        const instance = new Chart(ctx, {
+
+        chartInstances['stacked'] = new Chart(ctx, {
             type: 'line',
             data: dataConfig,
             options: {
@@ -1330,304 +1027,103 @@
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                if (context.dataset.label?.includes('MIN') || context.dataset.label?.includes('MAX')) {
-                                    return null;
-                                }
+                                if (context.dataset.label && (context.dataset.label.includes('MIN') || context.dataset.label.includes('MAX'))) return null;
                                 let value = context.raw;
-                                if (typeof value === 'object' && value !== null) {
-                                    value = value.y;
-                                }
-                                return `${context.dataset.label}: ${value}`;
-                            },
-                            afterBody: function(tooltipItems) {
-                                if (!showShadedRegion) return null;
-                                const index = tooltipItems[0].dataIndex;
-                                const chart = tooltipItems[0].chart;
-                                const items = [];
-                                // Get all series data
-                                for (let i = 0; i < chartsData.length; i++) {
-                                    const minDataset = chart.data.datasets.find(d => d._seriesIndex === i && d.label?.includes('MIN'));
-                                    const maxDataset = chart.data.datasets.find(d => d._seriesIndex === i && d.label?.includes('MAX'));
-                                    if (minDataset && maxDataset) {
-                                        let min = minDataset.data[index];
-                                        let max = maxDataset.data[index];
-                                        if (typeof min === 'object' && min !== null) min = min.y;
-                                        if (typeof max === 'object' && max !== null) max = max.y;
-                                        if (min !== null && min !== undefined && max !== null && max !== undefined) {
-                                            items.push(`${chartsData[i].title}: ${min} - ${max}`);
-                                        }
-                                    }
-                                }
-                                return items.length > 0 ? items : null;
+                                if (typeof value === 'object' && value !== null) value = value.y;
+                                return context.dataset.label + ': ' + value;
                             }
                         }
                     },
                     legend: {
                         labels: {
-                            usePointStyle: true,
-                            boxWidth: 12,
-                            pointStyle: 'circle',
-                            filter: function(legendItem) {
-                                return !legendItem.text.includes('MIN') && !legendItem.text.includes('MAX');
-                            }
+                            usePointStyle: true, boxWidth: 12, pointStyle: 'circle',
+                            filter: function (legendItem) { return !legendItem.text.includes('MIN') && !legendItem.text.includes('MAX'); }
                         }
                     }
                 },
-                scales: {
-                    x: xAxisConfig,
-                    y: yAxisConfig
-                }
+                scales: { x: xAxisConfig, y: yAxisConfig }
             }
         });
-        
-        chartInstances['stacked'] = instance;
     }
 
     function buildChart(chartId, canvas) {
         const chart = chartsData.find(c => c.id === chartId);
         if (!chart) return;
-        
         if (chartInstances[chartId]) {
             chartInstances[chartId].destroy();
             delete chartInstances[chartId];
         }
-        
+
         const ctx = canvas.getContext('2d');
         const showShade = chart.showShadedRegion !== undefined ? chart.showShadedRegion : showShadedRegion;
         const color = chart.color || '#667eea';
-        // Changed from 0.5 to 0.25 for less transparency (more opaque)
         const shadeColor = hexToRgba(color, 0.25);
         const isNumericX = chart.isNumericX || false;
-        
         const series = chart.series;
-        
-        // For numeric X, use the actual numeric values as data points
-        // For categorical, use the string values as labels
-        const xData = isNumericX ? series.xData.map(x => parseFloat(x)) : series.xData.map(x => x.toString());
-        
-        // Build datasets
         const datasets = [];
-        
-        // MIN dataset (invisible line, needed for fill)
-        const minData = [];
-        for (let i = 0; i < series.avgData.length; i++) {
-            minData.push(series.minData[i] !== null && series.minData[i] !== undefined ? series.minData[i] : null);
-        }
-        
-        // For numeric X, we need to create data points with x and y
-        const minPoints = [];
-        const maxPoints = [];
-        const avgPoints = [];
-        
+
+        const minPoints = [], maxPoints = [], avgPoints = [];
         for (let i = 0; i < series.avgData.length; i++) {
             const xVal = isNumericX ? parseFloat(series.xData[i]) : i;
-            const avgVal = series.avgData[i];
-            const minVal = series.minData[i];
-            const maxVal = series.maxData[i];
-            
-            if (avgVal !== null && avgVal !== undefined) {
-                avgPoints.push({ x: xVal, y: avgVal });
-            }
-            if (minVal !== null && minVal !== undefined) {
-                minPoints.push({ x: xVal, y: minVal });
-            }
-            if (maxVal !== null && maxVal !== undefined) {
-                maxPoints.push({ x: xVal, y: maxVal });
-            }
+            if (series.avgData[i] !== null && series.avgData[i] !== undefined) avgPoints.push({ x: xVal, y: series.avgData[i] });
+            if (series.minData[i] !== null && series.minData[i] !== undefined) minPoints.push({ x: xVal, y: series.minData[i] });
+            if (series.maxData[i] !== null && series.maxData[i] !== undefined) maxPoints.push({ x: xVal, y: series.maxData[i] });
         }
-        
+
         if (isNumericX) {
-            // For numeric X, use object data format {x, y}
-            
-            // MIN dataset (invisible)
-            datasets.push({
-                label: 'MIN',
-                data: minPoints,
-                borderColor: 'transparent',
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                pointRadius: 0,
-                fill: false,
-                order: 2,
-                spanGaps: false,
-                tension: 0.2,
-                showInLegend: false
-            });
-            
-            // MAX dataset with fill
+            datasets.push({ label: 'MIN', data: minPoints, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 2, spanGaps: false, tension: 0.2, showInLegend: false });
             if (showShade) {
-                datasets.push({
-                    label: 'MAX',
-                    data: maxPoints,
-                    borderColor: 'transparent',
-                    backgroundColor: shadeColor,
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 0,
-                    fill: {
-                        target: '-1',
-                        above: shadeColor
-                    },
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false
-                });
+                datasets.push({ label: 'MAX', data: maxPoints, borderColor: 'transparent', backgroundColor: shadeColor, borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: { target: '-1', above: shadeColor }, order: 2, spanGaps: false, tension: 0.2, showInLegend: false });
             }
-            
-            // AVG line dataset
-            datasets.push({
-                label: chart.title,
-                data: avgPoints,
-                borderColor: color,
-                backgroundColor: 'transparent',
-                borderWidth: 3,
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                pointBackgroundColor: color,
-                pointBorderColor: color,
-                pointStyle: 'circle',
-                tension: 0.2,
-                fill: false,
-                order: 0,
-                spanGaps: false
-            });
+            datasets.push({ label: chart.title, data: avgPoints, borderColor: color, backgroundColor: 'transparent', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, pointBackgroundColor: color, pointBorderColor: color, pointStyle: 'circle', tension: 0.2, fill: false, order: 0, spanGaps: false });
         } else {
-            // For categorical X, use labels and simple data arrays
             const labels = series.xData.map(x => x.toString());
-            const minDataArray = series.minData.map(d => d !== null && d !== undefined ? d : null);
-            const maxDataArray = series.maxData.map(d => d !== null && d !== undefined ? d : null);
-            const avgDataArray = series.avgData.map(d => d !== null && d !== undefined ? d : null);
-            
-            // MIN dataset (invisible)
-            datasets.push({
-                label: 'MIN',
-                data: minDataArray,
-                borderColor: 'transparent',
-                backgroundColor: 'transparent',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                pointRadius: 0,
-                fill: false,
-                order: 2,
-                spanGaps: false,
-                tension: 0.2,
-                showInLegend: false
-            });
-            
-            // MAX dataset with fill
+            const minDataArray = series.minData.map(d => (d !== null && d !== undefined) ? d : null);
+            const maxDataArray = series.maxData.map(d => (d !== null && d !== undefined) ? d : null);
+            const avgDataArray = series.avgData.map(d => (d !== null && d !== undefined) ? d : null);
+
+            datasets.push({ label: 'MIN', data: minDataArray, borderColor: 'transparent', backgroundColor: 'transparent', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 2, spanGaps: false, tension: 0.2, showInLegend: false });
             if (showShade) {
-                datasets.push({
-                    label: 'MAX',
-                    data: maxDataArray,
-                    borderColor: 'transparent',
-                    backgroundColor: shadeColor,
-                    borderWidth: 2,
-                    borderDash: [5, 5],
-                    pointRadius: 0,
-                    fill: {
-                        target: '-1',
-                        above: shadeColor
-                    },
-                    order: 2,
-                    spanGaps: false,
-                    tension: 0.2,
-                    showInLegend: false
-                });
+                datasets.push({ label: 'MAX', data: maxDataArray, borderColor: 'transparent', backgroundColor: shadeColor, borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: { target: '-1', above: shadeColor }, order: 2, spanGaps: false, tension: 0.2, showInLegend: false });
             }
-            
-            // AVG line dataset
-            datasets.push({
-                label: chart.title,
-                data: avgDataArray,
-                borderColor: color,
-                backgroundColor: 'transparent',
-                borderWidth: 3,
-                pointRadius: 0,
-                pointHoverRadius: 0,
-                pointBackgroundColor: color,
-                pointBorderColor: color,
-                pointStyle: 'circle',
-                tension: 0.2,
-                fill: false,
-                order: 0,
-                spanGaps: false
-            });
-            
-            // Set the labels for categorical
+            datasets.push({ label: chart.title, data: avgDataArray, borderColor: color, backgroundColor: 'transparent', borderWidth: 3, pointRadius: 0, pointHoverRadius: 0, pointBackgroundColor: color, pointBorderColor: color, pointStyle: 'circle', tension: 0.2, fill: false, order: 0, spanGaps: false });
             chart._labels = labels;
         }
-        
-        // Get axis titles - use empty string if not set
+
         let xTitle = chart.xTitle || '';
         let yTitle = chart.yTitle || '';
-        
-        // If no individual title set, use global title
         if (!xTitle && globalXTitle) xTitle = globalXTitle;
         if (!yTitle && globalYTitle) yTitle = globalYTitle;
-        
-        // Configure x-axis based on whether it's numeric or categorical
-        let xAxisConfig;
-        let dataConfig = {};
-        
+
+        let xAxisConfig, dataConfig = {};
         if (isNumericX) {
-            // For numeric X, use linear scale
             xAxisConfig = {
                 type: 'linear',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
-                min: chart.xMin,
-                max: chart.xMax,
+                title: { display: !!xTitle, text: xTitle },
+                min: chart.xMin, max: chart.xMax,
                 grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: chart.xStep,
-                    callback: function(value) {
-                        // Format as integer if it's a whole number
-                        if (Number.isInteger(value)) {
-                            return value.toString();
-                        }
-                        return value;
-                    }
-                }
+                ticks: { stepSize: chart.xStep, callback: function(value) { return Number.isInteger(value) ? value.toString() : value; } }
             };
             dataConfig = { datasets: datasets };
         } else {
-            // For categorical X, use category scale with labels
             xAxisConfig = {
                 type: 'category',
-                title: {
-                    display: !!xTitle,
-                    text: xTitle
-                },
+                title: { display: !!xTitle, text: xTitle },
                 grid: { color: '#e9ecef' },
-                ticks: {
-                    stepSize: chart.xStep
-                }
+                ticks: { stepSize: chart.xStep }
             };
-            dataConfig = {
-                labels: chart._labels || series.xData.map(x => x.toString()),
-                datasets: datasets
-            };
+            dataConfig = { labels: chart._labels || series.xData.map(x => x.toString()), datasets: datasets };
         }
-        
+
         const yAxisConfig = {
-            title: {
-                display: !!yTitle,
-                text: yTitle
-            },
-            min: chart.yMin,
-            max: chart.yMax,
+            title: { display: !!yTitle, text: yTitle },
+            min: chart.yMin, max: chart.yMax,
             beginAtZero: true,
             grid: { color: '#e9ecef' },
-            ticks: {
-                stepSize: chart.yStep
-            }
+            ticks: { stepSize: chart.yStep }
         };
-        
-        const instance = new Chart(ctx, {
+
+        chartInstances[chartId] = new Chart(ctx, {
             type: 'line',
             data: dataConfig,
             options: {
@@ -1639,214 +1135,129 @@
                         intersect: false,
                         callbacks: {
                             label: function(context) {
-                                if (context.dataset.label === 'MIN' || context.dataset.label === 'MAX') {
-                                    return null;
-                                }
+                                if (context.dataset.label === 'MIN' || context.dataset.label === 'MAX') return null;
                                 let value = context.raw;
-                                if (typeof value === 'object' && value !== null) {
-                                    value = value.y;
-                                }
-                                return `${context.dataset.label}: ${value}`;
-                            },
-                            afterBody: function(tooltipItems) {
-                                if (!showShade) return null;
-                                const index = tooltipItems[0].dataIndex;
-                                const chart = tooltipItems[0].chart;
-                                const minDataset = chart.data.datasets.find(d => d.label === 'MIN');
-                                const maxDataset = chart.data.datasets.find(d => d.label === 'MAX');
-                                if (minDataset && maxDataset) {
-                                    let min = minDataset.data[index];
-                                    let max = maxDataset.data[index];
-                                    if (typeof min === 'object' && min !== null) min = min.y;
-                                    if (typeof max === 'object' && max !== null) max = max.y;
-                                    if (min !== null && min !== undefined && max !== null && max !== undefined) {
-                                        return [`MIN: ${min}`, `MAX: ${max}`];
-                                    }
-                                }
-                                return null;
+                                if (typeof value === 'object' && value !== null) value = value.y;
+                                return context.dataset.label + ': ' + value;
                             }
                         }
                     },
                     legend: {
                         labels: {
-                            usePointStyle: true,
-                            boxWidth: 12,
-                            pointStyle: 'circle',
-                            filter: function(legendItem) {
-                                return legendItem.text !== 'MIN' && legendItem.text !== 'MAX';
-                            }
+                            usePointStyle: true, boxWidth: 12, pointStyle: 'circle',
+                            filter: function (legendItem) { return legendItem.text !== 'MIN' && legendItem.text !== 'MAX'; }
                         }
                     }
                 },
-                scales: {
-                    x: xAxisConfig,
-                    y: yAxisConfig
-                }
+                scales: { x: xAxisConfig, y: yAxisConfig }
             }
         });
-        
-        chartInstances[chartId] = instance;
     }
 
     function rebuildChart(chartId) {
         const chart = chartsData.find(c => c.id === chartId);
         if (!chart) return;
-        
-        const canvas = document.getElementById(`canvas_${chart.id}`);
-        if (!canvas) return;
-        
-        buildChart(chartId, canvas);
+        const canvas = document.getElementById('canvas_' + chart.id);
+        if (canvas) buildChart(chartId, canvas);
     }
-    
+
     function rebuildStackedChart() {
         const canvas = document.getElementById('canvas_stacked');
         if (!canvas) return;
         const card = canvas.closest('.chart-card');
-        const axisSettings = card?._axisSettings || {};
-        buildStackedChart(canvas, axisSettings);
+        buildStackedChart(canvas, card?._axisSettings || {});
     }
-    
+
     function deleteChart(chartId) {
-        if (chartInstances[chartId]) {
-            chartInstances[chartId].destroy();
-        }
+        if (chartInstances[chartId]) chartInstances[chartId].destroy();
         delete chartInstances[chartId];
         chartsData = chartsData.filter(c => c.id !== chartId);
         renderAllCharts();
     }
-    
+
     async function exportSingleChart(chartId, bgType) {
         const chart = chartsData.find(c => c.id === chartId);
         if (!chart || !chartInstances[chartId]) return;
-        
-        const canvas = document.getElementById(`canvas_${chart.id}`);
+        const canvas = document.getElementById('canvas_' + chart.id);
         if (!canvas) return;
-        
         const scale = 4;
-        const chartWidth = canvas.width;
-        const chartHeight = canvas.height;
-        
-        const titleFontSize = 28 * scale;
-        const titleHeight = 80 * scale;
-        const padding = 40 * scale;
-        
+        const chartWidth = canvas.width, chartHeight = canvas.height;
+        const titleFontSize = 28 * scale, titleHeight = 80 * scale, padding = 40 * scale;
         const chartCanvas = document.createElement('canvas');
         chartCanvas.width = chartWidth * scale;
         chartCanvas.height = chartHeight * scale;
         const chartCtx = chartCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            chartCtx.fillStyle = '#ffffff';
-            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
-        }
-        
+        if (bgType === 'white') { chartCtx.fillStyle = '#ffffff'; chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height); }
         chartCtx.scale(scale, scale);
         chartCtx.drawImage(canvas, 0, 0);
-        
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = chartCanvas.width;
         finalCanvas.height = chartCanvas.height + titleHeight + padding;
         const finalCtx = finalCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            finalCtx.fillStyle = '#ffffff';
-            finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-        }
-        
+        if (bgType === 'white') { finalCtx.fillStyle = '#ffffff'; finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height); }
         finalCtx.fillStyle = '#1e293b';
-        finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
+        finalCtx.font = 'bold ' + titleFontSize + 'px system-ui, -apple-system, sans-serif';
         finalCtx.textAlign = 'center';
         finalCtx.textBaseline = 'middle';
         finalCtx.fillText(chart.title, finalCanvas.width / 2, titleHeight / 2);
-        
-        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding/2);
-        
+        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding / 2);
         const bgSuffix = bgType === 'white' ? '_white' : '_transparent';
         finalCanvas.toBlob(blob => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = `${chart.title.replace(/[^a-z0-9]/gi, '_')}${bgSuffix}.png`;
+            link.download = chart.title.replace(/[^a-z0-9]/gi, '_') + bgSuffix + '.png';
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
         });
     }
-    
+
     async function exportStackedChart(bgType) {
         const canvas = document.getElementById('canvas_stacked');
         if (!canvas) return;
-        
         const card = canvas.closest('.chart-card');
         const title = card?.querySelector('.chart-title-input')?.value || 'Stacked_Chart';
-        
         const scale = 4;
-        const chartWidth = canvas.width;
-        const chartHeight = canvas.height;
-        
-        const titleFontSize = 32 * scale;
-        const titleHeight = 100 * scale;
-        const padding = 40 * scale;
-        
+        const chartWidth = canvas.width, chartHeight = canvas.height;
+        const titleFontSize = 32 * scale, titleHeight = 100 * scale, padding = 40 * scale;
         const chartCanvas = document.createElement('canvas');
         chartCanvas.width = chartWidth * scale;
         chartCanvas.height = chartHeight * scale;
         const chartCtx = chartCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            chartCtx.fillStyle = '#ffffff';
-            chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
-        }
-        
+        if (bgType === 'white') { chartCtx.fillStyle = '#ffffff'; chartCtx.fillRect(0, 0, chartCanvas.width, chartCanvas.height); }
         chartCtx.scale(scale, scale);
         chartCtx.drawImage(canvas, 0, 0);
-        
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = chartCanvas.width;
         finalCanvas.height = chartCanvas.height + titleHeight + padding;
         const finalCtx = finalCanvas.getContext('2d');
-        
-        if (bgType === 'white') {
-            finalCtx.fillStyle = '#ffffff';
-            finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-        }
-        
+        if (bgType === 'white') { finalCtx.fillStyle = '#ffffff'; finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height); }
         finalCtx.fillStyle = '#1e293b';
-        finalCtx.font = `bold ${titleFontSize}px system-ui, -apple-system, sans-serif`;
+        finalCtx.font = 'bold ' + titleFontSize + 'px system-ui, -apple-system, sans-serif';
         finalCtx.textAlign = 'center';
         finalCtx.textBaseline = 'middle';
         finalCtx.fillText(title, finalCanvas.width / 2, titleHeight / 2);
-        
-        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding/2);
-        
+        finalCtx.drawImage(chartCanvas, 0, titleHeight + padding / 2);
         const bgSuffix = bgType === 'white' ? '_white' : '_transparent';
         finalCanvas.toBlob(blob => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.download = `${title.replace(/[^a-z0-9]/gi, '_')}_stacked${bgSuffix}.png`;
+            link.download = title.replace(/[^a-z0-9]/gi, '_') + '_stacked' + bgSuffix + '.png';
             link.href = url;
             link.click();
             URL.revokeObjectURL(url);
         });
     }
-    
+
     async function exportAllChartsStacked() {
-        if (chartsData.length === 0) {
-            alert("No charts to export");
-            return;
-        }
-        
+        if (chartsData.length === 0) { alert("No charts to export"); return; }
         const scale = 2;
-        const titleHeight = 60;
-        const spacing = 40;
-        const padding = 20;
-        
+        const titleHeight = 60, spacing = 40, padding = 20;
         const capturedCharts = [];
         let maxWidth = 0;
-        
         for (const chart of chartsData) {
-            const canvas = document.getElementById(`canvas_${chart.id}`);
+            const canvas = document.getElementById('canvas_' + chart.id);
             if (!canvas) continue;
-            
             const chartCanvas = document.createElement('canvas');
             chartCanvas.width = canvas.width * scale;
             chartCanvas.height = canvas.height * scale;
@@ -1855,46 +1266,29 @@
             ctx.fillRect(0, 0, chartCanvas.width, chartCanvas.height);
             ctx.scale(scale, scale);
             ctx.drawImage(canvas, 0, 0);
-            
             maxWidth = Math.max(maxWidth, chartCanvas.width);
-            
-            capturedCharts.push({
-                title: chart.title,
-                canvas: chartCanvas,
-                width: chartCanvas.width,
-                height: chartCanvas.height
-            });
+            capturedCharts.push({ title: chart.title, canvas: chartCanvas, width: chartCanvas.width, height: chartCanvas.height });
         }
-        
         let totalHeight = padding;
-        capturedCharts.forEach((chart, idx) => {
-            totalHeight += titleHeight + chart.height;
-            if (idx < capturedCharts.length - 1) totalHeight += spacing;
-        });
+        capturedCharts.forEach((c, i) => { totalHeight += titleHeight + c.height; if (i < capturedCharts.length - 1) totalHeight += spacing; });
         totalHeight += padding;
-        
         const finalCanvas = document.createElement('canvas');
-        finalCanvas.width = maxWidth + (padding * 2);
+        finalCanvas.width = maxWidth + padding * 2;
         finalCanvas.height = totalHeight;
         const finalCtx = finalCanvas.getContext('2d');
-        
         finalCtx.fillStyle = '#ffffff';
         finalCtx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
-        
         let currentY = padding;
-        for (const chart of capturedCharts) {
+        for (const c of capturedCharts) {
             finalCtx.fillStyle = '#1e293b';
-            finalCtx.font = `bold 24px system-ui, -apple-system, sans-serif`;
+            finalCtx.font = 'bold 24px system-ui, -apple-system, sans-serif';
             finalCtx.textAlign = 'center';
             finalCtx.textBaseline = 'middle';
-            finalCtx.fillText(chart.title, finalCanvas.width / 2, currentY + (titleHeight / 2));
-            
-            const xOffset = (finalCanvas.width - chart.width) / 2;
-            finalCtx.drawImage(chart.canvas, xOffset, currentY + titleHeight);
-            
-            currentY += titleHeight + chart.height + spacing;
+            finalCtx.fillText(c.title, finalCanvas.width / 2, currentY + titleHeight / 2);
+            const xOffset = (finalCanvas.width - c.width) / 2;
+            finalCtx.drawImage(c.canvas, xOffset, currentY + titleHeight);
+            currentY += titleHeight + c.height + spacing;
         }
-        
         finalCanvas.toBlob(blob => {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -1904,97 +1298,59 @@
             URL.revokeObjectURL(url);
         });
     }
-    
+
     function applyGlobalSettings() {
-        const newGlobalXTitle = document.getElementById('globalXTitle').value;
-        const newGlobalYTitle = document.getElementById('globalYTitle').value;
-        
-        if (newGlobalXTitle !== undefined) globalXTitle = newGlobalXTitle;
-        if (newGlobalYTitle !== undefined) globalYTitle = newGlobalYTitle;
-        
-        if (viewMode === 'stacked') {
-            rebuildStackedChart();
-        } else {
-            chartsData.forEach(chart => {
-                rebuildChart(chart.id);
-            });
-        }
+        globalXTitle = document.getElementById('globalXTitle').value;
+        globalYTitle = document.getElementById('globalYTitle').value;
+        if (viewMode === 'stacked') rebuildStackedChart();
+        else chartsData.forEach(chart => rebuildChart(chart.id));
     }
-    
+
     function escapeHtml(str) { return String(str).replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
-    
+
     function switchViewMode(mode) {
         viewMode = mode;
         renderAllCharts();
     }
-    
-    // Event listeners
+
     document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                switchViewMode(e.target.value);
-            }
-        });
+        radio.addEventListener('change', (e) => { if (e.target.checked) switchViewMode(e.target.value); });
     });
-    
+
     document.getElementById('exportAllBtn').addEventListener('click', exportAllChartsStacked);
     document.getElementById('applyGlobalBtn').addEventListener('click', applyGlobalSettings);
-    
+
     document.getElementById('showShadedRegion').addEventListener('change', (e) => {
         showShadedRegion = e.target.checked;
-        chartsData.forEach(chart => {
-            chart.showShadedRegion = showShadedRegion;
-        });
-        if (viewMode === 'stacked') {
-            rebuildStackedChart();
-        } else {
-            chartsData.forEach(chart => {
-                rebuildChart(chart.id);
-            });
-        }
+        chartsData.forEach(chart => { chart.showShadedRegion = showShadedRegion; });
         const indicator = document.querySelector('.shade-indicator');
         if (indicator) {
-            if (showShadedRegion) {
-                indicator.style.background = 'rgba(102, 126, 234, 0.25)';
-            } else {
-                indicator.style.background = 'rgba(200, 200, 200, 0.3)';
-            }
+            if (showShadedRegion) indicator.style.background = 'rgba(102, 126, 234, 0.25)';
+            else indicator.style.background = 'rgba(200, 200, 200, 0.3)';
         }
+        if (viewMode === 'stacked') rebuildStackedChart();
+        else chartsData.forEach(chart => rebuildChart(chart.id));
     });
-    
+
     document.getElementById('loadSampleBtn').addEventListener('click', () => {
-        const sample = `Time,Sales_avg,Sales_min,Sales_max,Profit_avg,Profit_min,Profit_max
-0.17,42,35,48,12,8,16
-0.33,58,48,65,18,12,24
-0.50,55,42,68,15,9,21
-0.67,72,60,85,25,18,32
-0.83,88,72,100,32,24,40
-1.00,95,82,110,38,30,46
-1.17,110,90,125,45,35,55
-1.33,125,105,140,52,42,62
-1.50,140,120,155,60,50,70
-1.67,145,125,160,65,55,75
-1.83,150,130,170,70,60,80
-2.00,155,135,175,75,65,85`;
+        const sample = 'Time,Sales_avg,Sales_min,Sales_max,Profit_avg,Profit_min,Profit_max\n0.17,42,35,48,12,8,16\n0.33,58,48,65,18,12,24\n0.50,55,42,68,15,9,21\n0.67,72,60,85,25,18,32\n0.83,88,72,100,32,24,40\n1.00,95,82,110,38,30,46\n1.17,110,90,125,45,35,55\n1.33,125,105,140,52,42,62\n1.50,140,120,155,60,50,70\n1.67,145,125,160,65,55,75\n1.83,150,130,170,70,60,80\n2.00,155,135,175,75,65,85';
         loadCSVIntoCharts(sample, "Sample Data");
-        // Switch to stacked view by default to show the feature
         document.querySelector('input[name="viewMode"][value="stacked"]').checked = true;
         switchViewMode('stacked');
     });
-    
+
     document.getElementById('csvFileInput').addEventListener('change', (e) => {
         const file = e.target.files[0];
         if (!file) return;
         const reader = new FileReader();
         reader.onload = (ev) => {
             loadCSVIntoCharts(ev.target.result, file.name);
-            // Switch to stacked view
             document.querySelector('input[name="viewMode"][value="stacked"]').checked = true;
             switchViewMode('stacked');
         };
         reader.readAsText(file);
     });
-    
+
     document.getElementById('loadUrlBtn').addEventListener('click', async () => {
         const url = document.getElementById('csvUrlInput').value;
         if (!url) return;
@@ -2006,11 +1362,12 @@
             switchViewMode('stacked');
         } catch(err) { alert("Failed to load URL"); }
     });
-    
-    // Load sample on startup and show stacked view
-    setTimeout(() => { 
-        document.getElementById('loadSampleBtn').click(); 
+
+    setTimeout(() => {
+        document.getElementById('loadSampleBtn').click();
     }, 200);
 </script>
+
+<script src="assets\scripts\navbar.js" defer></script>
 </body>
 </html>

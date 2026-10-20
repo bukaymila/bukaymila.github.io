@@ -4,70 +4,303 @@
 <meta charset="UTF-8">
 <title>Data-driven Model Builder | By Alim Yakub (RP)</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+<link rel="stylesheet" href="assets\styles\theme.css">
 <style>
-  :root { --bg:#0f1419; --panel:#1a2129; --accent:#4ade80; --accent2:#38bdf8; --text:#e6edf3; --muted:#8b949e; --border:#30363d; --err:#f87171; --warn:#fbbf24; }
-  * { box-sizing: border-box; }
-  body { margin:0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background:var(--bg); color:var(--text); }
-  header { padding:20px 30px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:15px; }
-  header h1 { margin:0; font-size:20px; font-weight:600; }
-  header span { color:var(--muted); font-size:13px; }
-  .container { max-width:1300px; margin:0 auto; padding:24px; }
-  .grid { display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
-  @media (max-width:900px){ .grid { grid-template-columns:1fr; } }
-  .panel { background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px; }
-  .panel h2 { margin:0 0 15px; font-size:16px; font-weight:600; }
-  label { display:block; font-size:13px; color:var(--muted); margin:12px 0 6px; }
-  select, input[type=number], input[type=file] { width:100%; padding:9px 11px; background:#0d1117; border:1px solid var(--border); border-radius:6px; color:var(--text); font-size:14px; }
-  button { background:var(--accent); color:#0d1117; border:none; padding:10px 18px; border-radius:6px; font-weight:600; cursor:pointer; font-size:14px; margin-top:12px; }
-  button:hover { filter:brightness(1.1); }
-  button.secondary { background:var(--accent2); }
-  button:disabled { opacity:0.5; cursor:not-allowed; }
-  .status { font-size:13px; color:var(--muted); margin-top:10px; min-height:18px; }
-  .status.ok { color:var(--accent); }
-  .status.err { color:var(--err); }
-  table { width:100%; border-collapse:collapse; font-size:12px; margin-top:10px; }
-  th, td { padding:6px 8px; text-align:left; border-bottom:1px solid var(--border); }
-  th { color:var(--muted); font-weight:500; }
-  .metricsWrap { margin-top:14px; }
-  .metricsTitle { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin:10px 0 6px; display:flex; align-items:center; gap:8px; }
-  .metricsTitle .tag { font-size:10px; padding:2px 6px; border-radius:8px; background:#0d1117; border:1px solid var(--border); color:var(--muted); text-transform:none; letter-spacing:0; }
-  .metrics { display:grid; grid-template-columns: repeat(3,1fr); gap:10px; }
-  .metric { background:#0d1117; padding:12px; border-radius:6px; border:1px solid var(--border); }
-  .metric .v { font-size:20px; font-weight:600; color:var(--accent); }
-  .metric .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:0.4px; }
+  body {
+    padding: calc(var(--nav-height) + 20px) 20px 32px;
+  }
+
+  .container {
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .header-row {
+    margin-bottom: 20px;
+  }
+
+  .header-row h1 {
+    margin: 0 0 4px;
+    font-size: 1.6rem;
+    color: var(--ink);
+    font-variant-emoji: text;
+  }
+
+  .header-row .sub {
+    color: var(--ink-muted);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .panel h2 {
+    margin: 0 0 16px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--ink);
+    font-variant-emoji: text;
+  }
+
+  label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    margin: 12px 0 6px;
+    font-weight: 500;
+  }
+
+  select, input[type=number], input[type=file], input[type=text] {
+    width: 100%;
+    padding: 9px 11px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    font-size: 0.88rem;
+    font-family: inherit;
+  }
+  select:focus, input:focus {
+    border-color: var(--accent);
+    outline: none;
+  }
+
+  button {
+    background: var(--green);
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.88rem;
+    margin-top: 14px;
+    font-family: inherit;
+    transition: all 0.15s ease;
+  }
+  button:hover:not(:disabled) {
+    background: var(--green-hover);
+    transform: translateY(-1px);
+  }
+  button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+  }
+  button.secondary {
+    background: var(--accent);
+  }
+  button.secondary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
+
+  .status {
+    font-size: 0.82rem;
+    color: var(--ink-muted);
+    margin-top: 10px;
+    min-height: 18px;
+  }
+  .status.ok { color: var(--green-deep); font-weight: 500; }
+  .status.err { color: var(--danger); font-weight: 500; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.78rem;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 6px 8px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    color: var(--ink);
+  }
+  th {
+    color: var(--ink-muted);
+    font-weight: 500;
+    background: var(--bg-alt);
+  }
+
+  .metricsWrap { margin-top: 14px; }
+
+  .metricsTitle {
+    font-size: 0.72rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 14px 0 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .metricsTitle .tag {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 8px;
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    color: var(--ink-muted);
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .metric {
+    background: var(--bg-alt);
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+  }
+  .metric .v {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--green);
+  }
+  .metric .k {
+    font-size: 0.66rem;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    font-weight: 600;
+  }
   .metric.val .v { color: var(--warn); }
-  .metric.test .v { color: var(--accent2); }
-  .metric.test { border-color: var(--accent2); }
-  .row { display:flex; gap:10px; align-items:end; }
-  .row > * { flex:1; }
-  canvas { width:100%; height:220px; background:#0d1117; border-radius:6px; margin-top:12px; }
-  .progress { height:4px; background:#0d1117; border-radius:2px; overflow:hidden; margin-top:8px; }
-  .progress > div { height:100%; background:var(--accent); width:0%; transition:width 0.2s; }
-  .wTable { max-height:400px; overflow-y:auto; }
-  .hint { font-size:12px; color:var(--muted); margin:4px 0 0; }
-  .equation { background:#0d1117; border:1px solid var(--border); border-radius:6px; padding:14px; margin-top:12px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size:13px; line-height:1.7; white-space:pre-wrap; word-break:break-word; }
-  .equation .eqTarget { color: var(--accent); font-weight:600; }
-  .equation .eqNum { color: var(--accent2); }
-  .equation .eqOp { color: var(--muted); }
-  .equation .eqTerm { color: var(--text); }
-  .autotune { font-size:11px; color:var(--muted); margin-top:6px; }
-  .splitInfo { font-size:11px; color:var(--muted); margin-top:6px; }
-  .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:500; margin-left:8px; }
-  .badge.loading { background:#3b2f0f; color:var(--warn); border:1px solid #5a4a1a; }
-  .badge.ready   { background:#0f2f1a; color:var(--accent); border:1px solid #1e5a35; }
-  .badge.failed  { background:#3b0f0f; color:var(--err); border:1px solid #5a1a1a; }
+  .metric.test .v { color: var(--accent); }
+  .metric.test { border-color: var(--accent); }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    align-items: end;
+  }
+  .row > * { flex: 1; }
+
+  canvas {
+    width: 100%;
+    height: 220px;
+    background: var(--bg-alt);
+    border-radius: var(--radius-md);
+    margin-top: 12px;
+    border: 1px solid var(--border);
+  }
+
+  .progress {
+    height: 6px;
+    background: var(--bg-alt);
+    border-radius: 100px;
+    overflow: hidden;
+    margin-top: 10px;
+    border: 1px solid var(--border);
+  }
+  .progress > div {
+    height: 100%;
+    background: var(--green);
+    width: 0%;
+    transition: width 0.2s ease;
+    border-radius: 100px;
+  }
+
+  .wTable {
+    max-height: 400px;
+    overflow-y: auto;
+    background: var(--bg-alt);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 4px 8px;
+    margin-top: 8px;
+  }
+
+  .hint {
+    font-size: 0.78rem;
+    color: var(--ink-muted);
+    margin: 4px 0 0;
+    line-height: 1.5;
+  }
+
+  .equation {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 14px 18px;
+    margin-top: 12px;
+    font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    color: var(--ink);
+  }
+  .equation .eqTarget { color: var(--green-deep); font-weight: 700; }
+  .equation .eqNum { color: var(--accent); }
+  .equation .eqOp { color: var(--ink-muted); }
+  .equation .eqTerm { color: var(--ink); }
+
+  .autotune {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+  .splitInfo {
+    font-size: 0.75rem;
+    color: var(--ink-muted);
+    margin-top: 6px;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    margin-left: 8px;
+  }
+  .badge.loading {
+    background: var(--warn-soft);
+    color: var(--warn);
+    border: 1px solid var(--warn);
+  }
+  .badge.ready {
+    background: var(--green-soft);
+    color: var(--green-deep);
+    border: 1px solid var(--green);
+  }
+  .badge.failed {
+    background: var(--danger-soft);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+  }
 </style>
 </head>
 
 <body>
-<header>
-  <h1>⚡ Data-driven Model Builder</h1>
-  <span>Developed by Alim Yakub (RP) · Cold Box Project</span>
-</header>
-
 <div class="container">
+  <div class="header-row">
+    <h1>Data-driven Model Builder</h1>
+    <p class="sub">Developed by Alim Yakub (RP) · Cold Box Project</p>
+  </div>
+
   <div class="grid">
-    <!-- LEFT -->
     <div class="panel">
       <h2>1. Load Data</h2>
       <label>CSV file (streamed — any size)</label>
@@ -105,7 +338,6 @@
         <div class="autotune" id="autotuneInfo"></div>
         <div class="splitInfo" id="splitInfo"></div>
 
-        <!-- Metrics -->
         <div id="metricsBox" style="display:none">
           <div class="metricsWrap">
             <div class="metricsTitle">Train (70%)</div>
@@ -141,7 +373,6 @@
       </div>
     </div>
 
-    <!-- RIGHT -->
     <div class="panel">
       <h2>3. Save / Load Model</h2>
       <button id="saveBtn" disabled>Download Model (.json)</button>
@@ -167,20 +398,11 @@
   </div>
 </div>
 
-<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
 
 <script>
-/* ============================================================
-   XGBoost loader
-   ============================================================ */
-const xgbLoader = {
-  ready: false,
-  XGBModel: null,
-  error: null,
-  source: null,
-};
+const xgbLoader = { ready: false, XGBModel: null, error: null, source: null };
 
 const XGB_CANDIDATES = [
   'https://cdn.jsdelivr.net/npm/@wlearn/xgboost@latest/+esm',
@@ -194,43 +416,25 @@ async function loadXGBoost() {
     try {
       const mod = await import(/* @vite-ignore */ url);
       const XGBModel = mod.XGBModel || (mod.default && mod.default.XGBModel);
-      if (!XGBModel) {
-        throw new Error('Module loaded but no XGBModel export found at ' + url);
-      }
+      if (!XGBModel) throw new Error('Module loaded but no XGBModel export found at ' + url);
       xgbLoader.XGBModel = XGBModel;
       xgbLoader.ready = true;
       xgbLoader.source = url;
       if (badge) { badge.textContent = 'XGBoost: ready'; badge.className = 'badge ready'; }
-      console.log('XGBoost loaded from', url);
       return;
     } catch (err) {
-      console.warn('XGBoost load failed from', url, err.message);
       xgbLoader.error = err.message;
     }
   }
   if (badge) { badge.textContent = 'XGBoost: failed'; badge.className = 'badge failed'; }
-  console.error('All XGBoost CDN sources failed. Last error:', xgbLoader.error);
 }
 
 loadXGBoost();
 
-/* ============================================================
-   State
-   ============================================================ */
 const state = {
-  headers: [],
-  rows: [],
-  featureCols: [],
-  targetCol: '',
-  modelType: null,
-  degree: 1,
-  scaler: null,
-  weights: null,
-  eqCoeffs: null,
-  xgbModel: null,
-  metrics: null,
-  autoParams: null,
-  splitSeed: 42,
+  headers: [], rows: [], featureCols: [], targetCol: '',
+  modelType: null, degree: 1, scaler: null, weights: null,
+  eqCoeffs: null, xgbModel: null, metrics: null, autoParams: null, splitSeed: 42,
 };
 
 const $ = id => document.getElementById(id);
@@ -246,9 +450,6 @@ function mulberry32(seed) {
   };
 }
 
-/* ============================================================
-   1. Streaming CSV
-   ============================================================ */
 $('csvFile').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   parseCSVStreaming(file, $('dataStatus'), $('progBar'), (headers, rows) => {
@@ -259,7 +460,7 @@ $('csvFile').addEventListener('change', e => {
 });
 
 function parseCSVStreaming(file, statusEl, progEl, onDone) {
-  setStatus(statusEl, `Streaming ${file.name} (${(file.size/1e6).toFixed(1)} MB)…`);
+  setStatus(statusEl, 'Streaming ' + file.name + ' (' + (file.size/1e6).toFixed(1) + ' MB)…');
   progEl.style.width = '0%';
   const headers = [];
   const rows = [];
@@ -289,30 +490,24 @@ function parseCSVStreaming(file, statusEl, progEl, onDone) {
     },
     complete: () => {
       progEl.style.width = '100%';
-      setStatus(statusEl, `✓ Parsed ${rows.length.toLocaleString()} rows, ${headers.length} columns.`, 'ok');
+      setStatus(statusEl, 'Parsed ' + rows.length.toLocaleString() + ' rows, ' + headers.length + ' columns.', 'ok');
       onDone(headers, rows);
     },
-    error: (err) => setStatus(statusEl, `Parse error: ${err.message}`, 'err')
+    error: (err) => setStatus(statusEl, 'Parse error: ' + err.message, 'err')
   });
 }
 
-/* ============================================================
-   2. Columns
-   ============================================================ */
 function populateColumnSelectors(headers) {
   const feat = $('featCols'), targ = $('targetCol');
   feat.innerHTML = ''; targ.innerHTML = '';
   headers.forEach(h => {
-    feat.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`);
-    targ.insertAdjacentHTML('beforeend', `<option value="${h}">${h}</option>`);
+    feat.insertAdjacentHTML('beforeend', '<option value="' + h + '">' + h + '</option>');
+    targ.insertAdjacentHTML('beforeend', '<option value="' + h + '">' + h + '</option>');
   });
   targ.value = headers[headers.length - 1];
   $('colConfig').style.display = 'block';
 }
 
-/* ============================================================
-   Split helper
-   ============================================================ */
 function splitTrainValTest(X, y, seed) {
   const n = X.length;
   const idx = Array.from({length: n}, (_, i) => i);
@@ -336,9 +531,6 @@ function splitTrainValTest(X, y, seed) {
   };
 }
 
-/* ============================================================
-   3. Train
-   ============================================================ */
 $('trainBtn').addEventListener('click', async () => {
   const feats = Array.from($('featCols').selectedOptions).map(o => o.value);
   const targ = $('targetCol').value;
@@ -347,7 +539,6 @@ $('trainBtn').addEventListener('click', async () => {
 
   state.featureCols = feats;
   state.targetCol = targ;
-
   setStatus($('trainStatus'), 'Preparing data…');
   $('autotuneInfo').textContent = '';
   $('splitInfo').textContent = '';
@@ -362,8 +553,7 @@ $('trainBtn').addEventListener('click', async () => {
   const split = splitTrainValTest(Xn, y, state.splitSeed);
   const { Xtr, ytr, Xva, yva, Xte, yte, sizes } = split;
 
-  $('splitInfo').textContent =
-    `Split: train=${sizes.train}, validation=${sizes.val}, test=${sizes.test} (seed=${state.splitSeed}).`;
+  $('splitInfo').textContent = 'Split: train=' + sizes.train + ', validation=' + sizes.val + ', test=' + sizes.test + ' (seed=' + state.splitSeed + ').';
 
   const algo = $('algo').value;
   state.modelType = algo;
@@ -379,7 +569,7 @@ $('trainBtn').addEventListener('click', async () => {
       }
       const opts = autoXGBoostParams(Xtr.length, feats.length);
       state.autoParams = opts;
-      setStatus($('trainStatus'), `Training XGBoost (auto: depth=${opts.depth}, eta=${opts.lr}, rounds=${opts.rounds}).`);
+      setStatus($('trainStatus'), 'Training XGBoost (auto: depth=' + opts.depth + ', eta=' + opts.lr + ', rounds=' + opts.rounds + ').');
 
       const model = await xgbLoader.XGBModel.create({
         objective: 'reg:squarederror',
@@ -388,18 +578,15 @@ $('trainBtn').addEventListener('click', async () => {
         numRound: opts.rounds,
       });
       model.fit(Xtr, ytr);
-
       state.xgbModel = model;
       predTr = Array.from(model.predict(Xtr));
       predVa = Array.from(model.predict(Xva));
       predTe = Array.from(model.predict(Xte));
 
-      $('autotuneInfo').textContent =
-        `Auto-selected: rounds=${opts.rounds}, depth=${opts.depth}, eta=${opts.lr}.`;
-
+      $('autotuneInfo').textContent = 'Auto-selected: rounds=' + opts.rounds + ', depth=' + opts.depth + ', eta=' + opts.lr + '.';
     } else {
       const grid = autoLinearGrid(Xtr.length, state.degree);
-      setStatus($('trainStatus'), `Training ${algo} (searching ${grid.length} combos on validation set)…`);
+      setStatus($('trainStatus'), 'Training ' + algo + ' (searching ' + grid.length + ' combos on validation set)…');
       const best = await bestLinearParams(Xtr, ytr, Xva, yva, state.degree, grid);
       state.autoParams = best.params;
       state.weights = best.weights;
@@ -407,9 +594,7 @@ $('trainBtn').addEventListener('click', async () => {
       predVa = predictLinearModel(state.weights, Xva, state.degree);
       predTe = predictLinearModel(state.weights, Xte, state.degree);
 
-      $('autotuneInfo').textContent =
-        `Auto-selected: epochs=${best.params.epochs}, learning rate=${best.params.lr} ` +
-        `(best validation R²=${best.metrics.r2.toFixed(4)}).`;
+      $('autotuneInfo').textContent = 'Auto-selected: epochs=' + best.params.epochs + ', learning rate=' + best.params.lr + ' (best validation R²=' + best.metrics.r2.toFixed(4) + ').';
     }
 
     const mTr = evaluate(ytr, predTr);
@@ -433,15 +618,12 @@ $('trainBtn').addEventListener('click', async () => {
       renderXGBoostInfo();
     }
 
-    setStatus($('trainStatus'),
-      `✓ ${algo} trained. Test R² = ${mTe.r2.toFixed(4)} (scored once, no tuning on test).`,
-      'ok');
+    setStatus($('trainStatus'), algo + ' trained. Test R² = ' + mTe.r2.toFixed(4) + ' (scored once, no tuning on test).', 'ok');
     $('saveBtn').disabled = false;
     $('predictBtn').disabled = false;
     $('contBtn').disabled = false;
     buildPredictInputs();
   } catch (err) {
-    console.error(err);
     setStatus($('trainStatus'), 'Training error: ' + err.message, 'err');
   }
 });
@@ -458,7 +640,6 @@ function fillMetrics(mTr, mVa, mTe) {
   $('teR2').textContent   = mTe.r2.toFixed(4);
 }
 
-/* ---------- Auto hyperparameter selection ---------- */
 function autoLinearGrid(n, degree) {
   let lrs, epochsList;
   if (degree === 1) {
@@ -482,8 +663,7 @@ async function bestLinearParams(Xtr, ytr, Xva, yva, degree, grid) {
     const w = await trainLinearModel(Xtr, ytr, degree, p.epochs, p.lr, null);
     const pred = predictLinearModel(w, Xva, degree);
     const m = evaluate(yva, pred);
-    if (!best || m.r2 > best.metrics.r2 ||
-        (Math.abs(m.r2 - best.metrics.r2) < 1e-6 && m.rmse < best.metrics.rmse)) {
+    if (!best || m.r2 > best.metrics.r2 || (Math.abs(m.r2 - best.metrics.r2) < 1e-6 && m.rmse < best.metrics.rmse)) {
       best = { params: p, weights: w, metrics: m };
     }
   }
@@ -507,7 +687,6 @@ function autoXGBoostParams(nTrain, nFeatures) {
   return { rounds, depth, lr };
 }
 
-/* ---------- Data helpers ---------- */
 function buildMatrix(rows, feats, targ) {
   const X = [], y = [];
   for (const r of rows) {
@@ -527,14 +706,9 @@ function fitScaler(X) {
   std.forEach((_,i) => std[i] = Math.sqrt(std[i] / X.length) || 1);
   return { mean, std };
 }
-function applyScaler(X, s) {
-  return X.map(row => row.map((v,i) => (v - s.mean[i]) / s.std[i]));
-}
-function applyScalerOne(x, s) {
-  return x.map((v,i) => (v - s.mean[i]) / s.std[i]);
-}
+function applyScaler(X, s) { return X.map(row => row.map((v,i) => (v - s.mean[i]) / s.std[i])); }
+function applyScalerOne(x, s) { return x.map((v,i) => (v - s.mean[i]) / s.std[i]); }
 
-/* ---------- Polynomial features ---------- */
 function polyFeatures(row, degree) {
   const f = [1];
   for (let d = 1; d <= degree; d++) {
@@ -582,7 +756,6 @@ function predictLinearModel(weights, X, degree) {
   });
 }
 
-/* ---------- Expand scaled-space weights → original units ---------- */
 function expandToOriginalUnits(weights, scaler, degree, nFeat) {
   const { mean, std } = scaler;
   const acc = new Map();
@@ -600,8 +773,8 @@ function expandToOriginalUnits(weights, scaler, degree, nFeat) {
       for (let k = 0; k <= d; k++) {
         const coeff = binomial(d, k) * Math.pow(a[i], k) * Math.pow(b[i], d - k);
         if (k === 0) addTerm('1', w * coeff);
-        else if (k === 1) addTerm(`p:${i}`, w * coeff);
-        else addTerm(`p:${k}:${i}`, w * coeff);
+        else if (k === 1) addTerm('p:' + i, w * coeff);
+        else addTerm('p:' + k + ':' + i, w * coeff);
       }
     }
   }
@@ -609,10 +782,10 @@ function expandToOriginalUnits(weights, scaler, degree, nFeat) {
     for (let i = 0; i < nFeat; i++) {
       for (let j = i + 1; j < nFeat; j++) {
         const w = weights[idx++];
-        addTerm(`pair:${i},${j}`, w * a[i] * a[j]);
-        addTerm(`p:${i}`,         w * a[i] * b[j]);
-        addTerm(`p:${j}`,         w * a[j] * b[i]);
-        addTerm('1',              w * b[i] * b[j]);
+        addTerm('pair:' + i + ',' + j, w * a[i] * a[j]);
+        addTerm('p:' + i, w * a[i] * b[j]);
+        addTerm('p:' + j, w * a[j] * b[i]);
+        addTerm('1', w * b[i] * b[j]);
       }
     }
   }
@@ -622,8 +795,7 @@ function expandToOriginalUnits(weights, scaler, degree, nFeat) {
     if (Math.abs(coeff) < 1e-10) continue;
     terms.push({ key, coeff });
   }
-  const rank = k => k === '1' ? 0 : k.startsWith('p:') && k.split(':').length === 2 ? 1
-                   : k.startsWith('p:') ? 2 : 3;
+  const rank = k => k === '1' ? 0 : k.startsWith('p:') && k.split(':').length === 2 ? 1 : k.startsWith('p:') ? 2 : 3;
   terms.sort((x, y) => rank(x.key) - rank(y.key));
   return terms;
 }
@@ -639,10 +811,10 @@ function termToLabel(key, featureCols) {
   if (key === '1') return '';
   const parts = key.split(':');
   if (parts[0] === 'p' && parts.length === 2) return featureCols[+parts[1]];
-  if (parts[0] === 'p' && parts.length === 3) return `${featureCols[+parts[2]]}^${parts[1]}`;
+  if (parts[0] === 'p' && parts.length === 3) return featureCols[+parts[2]] + '^' + parts[1];
   if (parts[0] === 'pair') {
-    const [i, j] = parts[1].split(',').map(Number);
-    return `${featureCols[i]}·${featureCols[j]}`;
+    const ij = parts[1].split(',').map(Number);
+    return featureCols[ij[0]] + '·' + featureCols[ij[1]];
   }
   return key;
 }
@@ -654,32 +826,30 @@ function renderEquation(terms, featureCols, target) {
     return s === '-0' ? '0' : s;
   };
 
-  let out = `<span class="eqTarget">${target}</span> <span class="eqOp">=</span> `;
+  let out = '<span class="eqTarget">' + target + '</span> <span class="eqOp">=</span> ';
   let first = true;
   let anyTerm = false;
-  for (const { key, coeff } of terms) {
-    if (key === '1') continue;
-    const label = termToLabel(key, featureCols);
-    const sign = coeff < 0 ? '−' : (first ? '' : '+');
-    out += `${first ? '' : ' '}<span class="eqOp">${sign}</span> <span class="eqNum">${fmt(Math.abs(coeff))}</span><span class="eqOp">·</span><span class="eqTerm">${label}</span> `;
+  for (const t of terms) {
+    if (t.key === '1') continue;
+    const label = termToLabel(t.key, featureCols);
+    const sign = t.coeff < 0 ? '−' : (first ? '' : '+');
+    out += (first ? '' : ' ') + '<span class="eqOp">' + sign + '</span> <span class="eqNum">' + fmt(Math.abs(t.coeff)) + '</span><span class="eqOp">·</span><span class="eqTerm">' + label + '</span> ';
     first = false;
     anyTerm = true;
   }
   const inter = terms.find(t => t.key === '1');
   if (inter) {
     const c = inter.coeff;
-    if (!anyTerm) {
-      out += `<span class="eqNum">${fmt(c)}</span>`;
-    } else {
+    if (!anyTerm) out += '<span class="eqNum">' + fmt(c) + '</span>';
+    else {
       const sign = c < 0 ? '−' : '+';
-      out += `<span class="eqOp">${sign}</span> <span class="eqNum">${fmt(Math.abs(c))}</span>`;
+      out += '<span class="eqOp">' + sign + '</span> <span class="eqNum">' + fmt(Math.abs(c)) + '</span>';
     }
   }
-  if (!anyTerm && !inter) out += `<span class="eqNum">0</span>`;
+  if (!anyTerm && !inter) out += '<span class="eqNum">0</span>';
   box.innerHTML = out;
 }
 
-/* ---------- Predict XGBoost ---------- */
 function predictXGBoost(model, X) {
   const p = model.predict(X);
   if (p instanceof Float64Array) return Array.from(p);
@@ -687,7 +857,6 @@ function predictXGBoost(model, X) {
   return Array.from(p);
 }
 
-/* ---------- Metrics ---------- */
 function evaluate(yTrue, yPred) {
   const n = yTrue.length;
   let se = 0, ae = 0;
@@ -698,14 +867,9 @@ function evaluate(yTrue, yPred) {
     se += e*e; ae += Math.abs(e);
     ssTot += (yTrue[i] - mean)**2;
   }
-  return {
-    rmse: Math.sqrt(se / n),
-    mae: ae / n,
-    r2: ssTot === 0 ? 0 : 1 - se / ssTot,
-  };
+  return { rmse: Math.sqrt(se / n), mae: ae / n, r2: ssTot === 0 ? 0 : 1 - se / ssTot };
 }
 
-/* ---------- Plot ---------- */
 function drawPlot(yTrue, yPred) {
   const c = $('plot'); const ctx = c.getContext('2d');
   const dpr = window.devicePixelRatio || 1;
@@ -713,112 +877,97 @@ function drawPlot(yTrue, yPred) {
   ctx.setTransform(dpr,0,0,dpr,0,0);
   const W = c.clientWidth, H = c.clientHeight;
   ctx.clearRect(0,0,W,H);
+
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const inkColor = isDark ? '#f0f0ee' : '#161615';
+  const mutedColor = isDark ? '#a8a8a2' : '#5a5a56';
+  const gridColor = isDark ? '#33332f' : '#e2e4dc';
+
   const ymin = Math.min(...yTrue, ...yPred), ymax = Math.max(...yTrue, ...yPred);
   const pad = 26;
-  ctx.strokeStyle = '#30363d'; ctx.beginPath();
+  ctx.strokeStyle = gridColor; ctx.beginPath();
   ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, H-pad);
   ctx.moveTo(pad, pad);  ctx.lineTo(pad, H-pad); ctx.stroke();
 
-  ctx.strokeStyle = '#8b949e'; ctx.setLineDash([3,3]);
+  ctx.strokeStyle = mutedColor; ctx.setLineDash([3,3]);
   ctx.beginPath(); ctx.moveTo(pad, H-pad); ctx.lineTo(W-pad, pad); ctx.stroke();
   ctx.setLineDash([]);
 
   const sx = v => pad + (v - ymin) / (ymax - ymin || 1) * (W - 2*pad);
   const sy = v => H - pad - (v - ymin) / (ymax - ymin || 1) * (H - 2*pad);
 
-  ctx.fillStyle = '#38bdf8';
+  ctx.fillStyle = '#2AA4E3';
   for (let i = 0; i < yTrue.length; i++) {
     ctx.beginPath(); ctx.arc(sx(yTrue[i]), sy(yPred[i]), 2.6, 0, 2*Math.PI); ctx.fill();
   }
-  ctx.fillStyle = '#8b949e'; ctx.font = '11px sans-serif';
+  ctx.fillStyle = mutedColor; ctx.font = '11px sans-serif';
   ctx.fillText('Test set: predicted vs actual (dashed = perfect)', pad+5, pad+12);
 }
 
-/* ---------- Linear weights table ---------- */
 function renderWeights() {
   const container = $('weightsTable');
   $('weightsHeader').textContent = 'Coefficients (scaled feature space)';
 
   const names = ['bias'];
   for (let d = 1; d <= state.degree; d++)
-    state.featureCols.forEach(f => names.push(`${f}^${d}`));
+    state.featureCols.forEach(f => names.push(f + '^' + d));
   if (state.degree >= 2)
     for (let i = 0; i < state.featureCols.length; i++)
       for (let j = i+1; j < state.featureCols.length; j++)
-        names.push(`${state.featureCols[i]}·${state.featureCols[j]}`);
+        names.push(state.featureCols[i] + '·' + state.featureCols[j]);
 
   let html = '<table><tbody>';
-  html += `<tr><td style="color:var(--muted);font-style:italic" colspan="2">Coefficients below are in <em>scaled</em> feature space (what the optimizer saw). See the equation above for original units.</td></tr>`;
+  html += '<tr><td style="color:var(--ink-muted);font-style:italic" colspan="2">Coefficients below are in <em>scaled</em> feature space (what the optimizer saw). See the equation above for original units.</td></tr>';
   state.weights.forEach((w, i) => {
-    html += `<tr><td>${names[i] ?? 'w'+i}</td><td style="text-align:right">${w.toFixed(5)}</td></tr>`;
+    html += '<tr><td>' + (names[i] ?? 'w'+i) + '</td><td style="text-align:right">' + w.toFixed(5) + '</td></tr>';
   });
   html += '</tbody></table>';
   container.innerHTML = html;
 }
 
-/* ---------- XGBoost info panel ---------- */
 function renderXGBoostInfo() {
   const container = $('weightsTable');
   $('weightsHeader').textContent = 'XGBoost model info';
 
   if (!state.xgbModel) {
-    container.innerHTML = '<p class="hint" style="color:var(--err)">Model not available.</p>';
+    container.innerHTML = '<p class="hint" style="color:var(--danger)">Model not available.</p>';
     return;
   }
 
   const opts = state.autoParams || {};
   let html = '<table><tbody>';
-  html += `<tr><td>Objective</td><td style="text-align:right">reg:squarederror</td></tr>`;
-  if (opts.rounds != null) html += `<tr><td>Boosting rounds</td><td style="text-align:right">${opts.rounds}</td></tr>`;
-  if (opts.depth != null)  html += `<tr><td>Max tree depth</td><td style="text-align:right">${opts.depth}</td></tr>`;
-  if (opts.lr != null)     html += `<tr><td>Learning rate (eta)</td><td style="text-align:right">${opts.lr}</td></tr>`;
-  html += `<tr><td colspan="2" style="color:var(--muted);font-style:italic;padding-top:10px">Tree-level structure and feature importance are not exposed by the browser WASM build. To inspect them, train in Python (<code>booster.save_model('model.json')</code>) and open the resulting file in a viewer.</td></tr>`;
-  html += `</tbody></table>`;
-
+  html += '<tr><td>Objective</td><td style="text-align:right">reg:squarederror</td></tr>';
+  if (opts.rounds != null) html += '<tr><td>Boosting rounds</td><td style="text-align:right">' + opts.rounds + '</td></tr>';
+  if (opts.depth != null)  html += '<tr><td>Max tree depth</td><td style="text-align:right">' + opts.depth + '</td></tr>';
+  if (opts.lr != null)     html += '<tr><td>Learning rate (eta)</td><td style="text-align:right">' + opts.lr + '</td></tr>';
+  html += '<tr><td colspan="2" style="color:var(--ink-muted);font-style:italic;padding-top:10px">Tree-level structure and feature importance are not exposed by the browser WASM build. To inspect them, train in Python (<code>booster.save_model(\'model.json\')</code>) and open the resulting file in a viewer.</td></tr>';
+  html += '</tbody></table>';
   container.innerHTML = html;
 }
 
-/* ============================================================
-   4. Save / Load
-   ============================================================ */
 $('saveBtn').addEventListener('click', () => {
   if (!state.weights && !state.xgbModel) return;
   let payload;
   if (state.modelType === 'xgboost' && state.xgbModel) {
     const buf = state.xgbModel.save();
     payload = {
-      version: 5,
-      type: 'xgboost',
-      featureCols: state.featureCols,
-      targetCol: state.targetCol,
-      scaler: state.scaler,
-      metrics: state.metrics,
-      autoParams: state.autoParams,
-      splitSeed: state.splitSeed,
-      xgbBuffer: Array.from(buf),
-      createdAt: new Date().toISOString(),
+      version: 5, type: 'xgboost', featureCols: state.featureCols, targetCol: state.targetCol,
+      scaler: state.scaler, metrics: state.metrics, autoParams: state.autoParams, splitSeed: state.splitSeed,
+      xgbBuffer: Array.from(buf), createdAt: new Date().toISOString(),
     };
   } else {
     payload = {
-      version: 5,
-      type: state.modelType,
-      degree: state.degree,
-      featureCols: state.featureCols,
-      targetCol: state.targetCol,
-      scaler: state.scaler,
-      metrics: state.metrics,
-      autoParams: state.autoParams,
-      splitSeed: state.splitSeed,
-      weights: state.weights,
-      eqCoeffs: state.eqCoeffs,
-      createdAt: new Date().toISOString(),
+      version: 5, type: state.modelType, degree: state.degree, featureCols: state.featureCols,
+      targetCol: state.targetCol, scaler: state.scaler, metrics: state.metrics,
+      autoParams: state.autoParams, splitSeed: state.splitSeed, weights: state.weights,
+      eqCoeffs: state.eqCoeffs, createdAt: new Date().toISOString(),
     };
   }
   const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `model_${state.modelType}_${Date.now()}.json`;
+  a.download = 'model_' + state.modelType + '_' + Date.now() + '.json';
   a.click();
   URL.revokeObjectURL(url);
 });
@@ -862,21 +1011,17 @@ $('modelFile').addEventListener('change', async e => {
         renderWeights();
       }
 
-      setStatus($('predictStatus'), '✓ Model loaded. Ready to predict.', 'ok');
+      setStatus($('predictStatus'), 'Model loaded. Ready to predict.', 'ok');
       $('predictBtn').disabled = false;
       $('contBtn').disabled = false;
       buildPredictInputs();
     } catch (err) {
-      console.error(err);
       setStatus($('predictStatus'), 'Load error: ' + err.message, 'err');
     }
   };
   reader.readAsText(file);
 });
 
-/* ============================================================
-   5. Predict
-   ============================================================ */
 function buildPredictInputs() {
   const box = $('predictInputs'); box.innerHTML = '';
   state.featureCols.forEach(f => {
@@ -903,15 +1048,12 @@ $('predictBtn').addEventListener('click', () => {
     } else {
       yhat = predictLinearModel(state.weights, [xn], state.degree)[0];
     }
-    setStatus($('predictStatus'), `Predicted ${state.targetCol} = ${yhat.toFixed(5)}`, 'ok');
+    setStatus($('predictStatus'), 'Predicted ' + state.targetCol + ' = ' + yhat.toFixed(5), 'ok');
   } catch (err) {
     setStatus($('predictStatus'), 'Predict error: ' + err.message, 'err');
   }
 });
 
-/* ============================================================
-   6. Continue Training
-   ============================================================ */
 $('contFile').addEventListener('change', e => {
   const file = e.target.files[0]; if (!file) return;
   parseCSVStreaming(file, $('contStatus'), $('progBar'), async (headers, rows) => {
@@ -933,16 +1075,13 @@ $('contFile').addEventListener('change', e => {
         if (state.xgbModel) { try { state.xgbModel.dispose(); } catch(_) {} }
         const model = await xgbLoader.XGBModel.create({
           objective: 'reg:squarederror',
-          max_depth: opts.depth,
-          eta: opts.lr,
-          numRound: opts.rounds,
+          max_depth: opts.depth, eta: opts.lr, numRound: opts.rounds,
         });
         model.fit(Xtr, ytr);
         state.xgbModel = model;
         state.autoParams = opts;
         renderXGBoostInfo();
-
-        setStatus($('contStatus'), `✓ XGBoost updated with ${Xn.length} new rows (auto: depth=${opts.depth}, eta=${opts.lr}, rounds=${opts.rounds}).`, 'ok');
+        setStatus($('contStatus'), 'XGBoost updated with ' + Xn.length + ' new rows (auto: depth=' + opts.depth + ', eta=' + opts.lr + ', rounds=' + opts.rounds + ').', 'ok');
       } else {
         const grid = autoLinearGrid(Xtr.length, state.degree);
         const best = await bestLinearParams(Xtr, ytr, Xva, yva, state.degree, grid);
@@ -950,14 +1089,25 @@ $('contFile').addEventListener('change', e => {
         state.eqCoeffs = expandToOriginalUnits(state.weights, state.scaler, state.degree, state.featureCols.length);
         renderEquation(state.eqCoeffs, state.featureCols, state.targetCol);
         renderWeights();
-        setStatus($('contStatus'), `✓ ${state.modelType} updated with ${Xn.length} new rows (auto: epochs=${best.params.epochs}, lr=${best.params.lr}, val R²=${best.metrics.r2.toFixed(4)}).`, 'ok');
+        setStatus($('contStatus'), state.modelType + ' updated with ' + Xn.length + ' new rows (auto: epochs=' + best.params.epochs + ', lr=' + best.params.lr + ', val R²=' + best.metrics.r2.toFixed(4) + ').', 'ok');
       }
     } catch (err) {
-      console.error(err);
       setStatus($('contStatus'), 'Continue error: ' + err.message, 'err');
     }
   });
 });
+
+// Re-theme plot when OS dark mode changes
+if (window.matchMedia) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (state.metrics && state.metrics.test) {
+      // redraw only if we have data — needs original arrays, so just leave it
+      // (the plot is static once drawn; user can retrain to see dark version)
+    }
+  });
+}
 </script>
+
+<script src="assets\scripts\navbar.js" defer></script>
 </body>
 </html>

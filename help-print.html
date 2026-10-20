@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Cold Box Suite — Guide (print)</title>
+<style>
+  @page {
+    size: A4;
+    margin: 18mm 16mm 20mm 16mm;
+  }
+  @page :first { margin-top: 20mm; }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: #111;
+    line-height: 1.55;
+    font-size: 10.5pt;
+    background: white;
+  }
+  .page {
+    max-width: 170mm;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  /* -------- title page -------- */
+  .title-page {
+    text-align: center;
+    padding: 60mm 0 0;
+    page-break-after: always;
+  }
+  .title-page h1 {
+    font-size: 28pt;
+    margin: 0 0 10mm;
+    letter-spacing: -0.01em;
+    color: #0f172a;
+  }
+  .title-page .subtitle {
+    font-size: 14pt;
+    color: #334155;
+    margin-bottom: 40mm;
+  }
+  .title-page .author {
+    font-size: 11pt;
+    color: #64748b;
+    border-top: 1px solid #cbd5e1;
+    padding-top: 6mm;
+    display: inline-block;
+  }
+
+  /* -------- toc -------- */
+  .toc {
+    page-break-after: always;
+  }
+  .toc h2 {
+    font-size: 16pt;
+    border: none;
+    padding: 0;
+    margin: 0 0 8mm;
+  }
+  .toc ol {
+    list-style: none;
+    padding-left: 0;
+    counter-reset: toc;
+  }
+  .toc li {
+    margin: 0 0 3mm;
+    font-size: 10.5pt;
+  }
+  .toc li.sub {
+    padding-left: 8mm;
+    color: #334155;
+    font-size: 10pt;
+    margin-bottom: 1.5mm;
+  }
+  .toc .num {
+    display: inline-block;
+    width: 10mm;
+    font-weight: 700;
+    color: #1e3a5f;
+  }
+
+  /* -------- headings -------- */
+  h1, h2, h3, h4 {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    color: #0f172a;
+    page-break-after: avoid;
+  }
+  h1 {
+    font-size: 22pt;
+    margin: 0 0 4mm;
+    padding-bottom: 3mm;
+    border-bottom: 2px solid #1e3a5f;
+  }
+  h2 {
+    font-size: 16pt;
+    margin: 14mm 0 4mm;
+    padding-top: 4mm;
+    border-top: 1px solid #cbd5e1;
+    page-break-before: auto;
+  }
+  h2.new-page { page-break-before: always; border-top: none; padding-top: 0; }
+  h3 {
+    font-size: 12.5pt;
+    color: #1e3a5f;
+    margin: 8mm 0 3mm;
+  }
+  h4 {
+    font-size: 10pt;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+    margin: 5mm 0 2mm;
+  }
+  p, ul, ol { margin: 2mm 0; }
+  ul, ol { padding-left: 6mm; }
+  li { margin: 1mm 0; }
+
+  /* -------- emphasis -------- */
+  strong { color: #000; }
+  code {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 9.5pt;
+    background: #f1f5f9;
+    padding: 0.5mm 1.5mm;
+    border-radius: 2px;
+  }
+  pre {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 8.5pt;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+    padding: 3mm 4mm;
+    overflow-x: auto;
+    line-height: 1.4;
+    page-break-inside: avoid;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* -------- tables -------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 3mm 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  th, td {
+    text-align: left;
+    padding: 2mm 2.5mm;
+    border-bottom: 0.5pt solid #cbd5e1;
+    vertical-align: top;
+  }
+  th {
+    background: #e2e8f0;
+    font-weight: 700;
+    border-bottom: 1pt solid #94a3b8;
+  }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  /* -------- callout -------- */
+  .callout {
+    padding: 3mm 4mm;
+    border-radius: 3px;
+    margin: 3mm 0;
+    font-size: 9.5pt;
+    page-break-inside: avoid;
+  }
+  .callout.info { background: #eef5fa; border-left: 3pt solid #4a90c2; }
+  .callout.warn { background: #fef7e6; border-left: 3pt solid #f0a020; }
+  .callout.success { background: #ecfdf5; border-left: 3pt solid #10b981; }
+  .callout strong {
+    display: block;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 9.5pt;
+    margin-bottom: 1mm;
+  }
+
+  /* -------- tool badge -------- */
+  .tool-badge {
+    display: inline-block;
+    padding: 0.5mm 2mm;
+    background: #eef5fa;
+    color: #1e3a5f;
+    border-radius: 20px;
+    font-size: 8pt;
+    font-weight: 600;
+    margin-left: 2mm;
+    vertical-align: middle;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .tool-badge.offline { background: #dcfce7; color: #166534; }
+  .tool-badge.online  { background: #fef3c7; color: #92400e; }
+
+  /* -------- print helpers -------- */
+  .avoid-break { page-break-inside: avoid; }
+  .page-break { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<!-- ============ TITLE PAGE ============ -->
+<div class="title-page">
+  <h1>Cold Box Suite</h1>
+  <div class="subtitle">User &amp; Maintainer Guide</div>
+  <div class="author">Imagined by Alim Yakub (RP)<br>Cold Box Project</div>
+</div>
+
+<!-- ============ TOC ============ -->
+<div class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><span class="num">1</span> Overview</li>
+    <li class="sub">1.1 What each tool does</li>
+    <li class="sub">1.2 How the tools fit together</li>
+    <li><span class="num">2</span> Getting Started</li>
+    <li class="sub">2.1 Opening the suite</li>
+    <li class="sub">2.2 Browser requirements</li>
+    <li class="sub">2.3 Where downloads go</li>
+    <li class="sub">2.4 File format expectations</li>
+    <li class="sub">2.5 A note on privacy</li>
+    <li><span class="num">3</span> The Tools</li>
+    <li class="sub">3.1 U07B Extractor</li>
+    <li class="sub">3.2 CSV Processor</li>
+    <li class="sub">3.3 CSV Aggregator</li>
+    <li class="sub">3.4 Line Chart Studio</li>
+    <li class="sub">3.5 Shaded Region Chart Studio</li>
+    <li class="sub">3.6 STL 3D Viewer</li>
+    <li class="sub">3.7 Model Builder</li>
+    <li><span class="num">4</span> Troubleshooting</li>
+    <li><span class="num">5</span> Handover Notes</li>
+    <li class="sub">5.1 File inventory</li>
+    <li class="sub">5.2 Technology stack</li>
+    <li class="sub">5.3 External dependencies</li>
+    <li class="sub">5.4 Browser compatibility</li>
+    <li class="sub">5.5 Where state is stored</li>
+    <li class="sub">5.6 Known limitations</li>
+    <li class="sub">5.7 Adding a new tool</li>
+    <li class="sub">5.8 Recovery if a CDN fails</li>
+  </ol>
+</div>
+
+<!-- ============ BODY ============ -->
+<div class="page">
+
+<h1>Cold Box Suite — User &amp; Maintainer Guide</h1>
+
+<h2>1. Overview</h2>
+<p>The Cold Box Suite is a set of small, self-contained web tools designed for processing cold-box recorder data — extracting temperature and humidity readings, cleaning and reshaping CSV files, visualising results, and training simple predictive models.</p>
+<p>Each tool is a <strong>single HTML file</strong> that opens in any modern browser. No installation, no server, no internet connection is required for most tools (a small number load charting libraries from the web — see Handover Notes §5.3 for details). Everything runs entirely inside the browser on your own computer. No data leaves your machine.</p>
+
+<h3>1.1 What each tool does</h3>
+<table>
+  <thead><tr><th>Tool</th><th>One-line purpose</th></tr></thead>
+  <tbody>
+    <tr><td><strong>U07B Extractor</strong></td><td>Reads U07B recorder CSVs, pulls out temperature and humidity, merges multiple files into one clean table</td></tr>
+    <tr><td><strong>CSV Processor</strong></td><td>Cleans and reshapes a large CSV: find/replace, keep every Nth row, add a minutes column, split into chunks</td></tr>
+    <tr><td><strong>CSV Aggregator</strong></td><td>Combines multiple CSVs by header name, producing average/minimum/maximum per row for each group</td></tr>
+    <tr><td><strong>Line Chart Studio</strong></td><td>Turns a CSV into one or more line charts with full control over axes, colours, and reference lines</td></tr>
+    <tr><td><strong>Shaded Chart Studio</strong></td><td>Same as Line Chart Studio but adds a shaded band between minimum and maximum values</td></tr>
+    <tr><td><strong>STL 3D Viewer</strong></td><td>Opens STL files and displays them as rotatable 3D models with measurement readouts</td></tr>
+    <tr><td><strong>Model Builder</strong></td><td>Trains simple predictive models on a CSV and lets you predict new values or save/load the model</td></tr>
+  </tbody>
+</table>
+
+<h3>1.2 How the tools fit together</h3>
+<p>A typical cold box analysis flows like this:</p>
+<pre><code>┌─────────────────────┐
+│  U07B recorder CSV  │
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   U07B Extractor    │  →  merged_climate.csv
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│   CSV Processor     │  →  cleaned, downsampled CSV
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  CSV Aggregator     │  →  per-row avg/min/max table
+└──────────┬──────────┘
+           │
+           ▼
+┌─────────────────────┐
+│  Chart Studios      │  →  publication-ready PNGs
+└─────────────────────┘</code></pre>
+<p>Not every workflow uses every tool. The aggregator and chart studios are independently useful; the ML Model Builder stands alone.</p>
+
+<h2 class="new-page">2. Getting Started</h2>
+
+<h3>2.1 Opening the suite</h3>
+<p>Double-click <code>index.html</code>. It opens in your default browser and shows a launchpad with a card for each tool. Click any card to open that tool in a new browser tab.</p>
+<p>Each tool is also a standalone file — you can bookmark or open any individual tool directly without going through the launchpad.</p>
+
+<h3>2.2 Browser requirements</h3>
+<p>The suite works in any recent version of Google Chrome, Microsoft Edge, Mozilla Firefox, or Apple Safari (14 and later). For best performance with very large files, use Chrome or Edge. The STL Viewer and the chart tools use modern JavaScript features that require an up-to-date browser from the last two years.</p>
+
+<h3>2.3 Where downloads go</h3>
+<p>When a tool produces a file, it uses your browser's normal download mechanism. By default this is your <strong>Downloads</strong> folder. To control where files go:</p>
+<ul>
+  <li><strong>Chrome / Edge:</strong> Settings → Downloads → "Ask where to save each file before downloading".</li>
+  <li><strong>Firefox:</strong> Settings → General → Files and Applications → "Always ask you where to save files".</li>
+</ul>
+<p>Alternatively, change your default Downloads folder to a project-specific one so everything lands in one place.</p>
+
+<h3>2.4 File format expectations</h3>
+<p>All CSV tools expect comma-separated values with a header row and UTF-8 or ASCII encoding. Blank cells are treated as missing values, not zeros.</p>
+<div class="callout warn">
+  <strong>Semicolon-separated files</strong>
+  The tools do not currently handle semicolon-separated files. Convert to comma-separated first.
+</div>
+
+<h3>2.5 A note on privacy</h3>
+<p>Everything runs locally. Nothing is uploaded, nothing is tracked, nothing phones home. The only exception is that a few tools fetch a charting library from a public content delivery network the first time they load.</p>
+
+<h2 class="new-page">3. The Tools</h2>
+<p>Each section below explains one tool: what it's for, what it needs, what it produces, and how to use it step by step.</p>
+
+<h3>3.1 U07B Extractor <span class="tool-badge offline">Works offline</span></h3>
+<p><strong>Purpose.</strong> Reads U07B temperature/humidity recorder CSV exports. These files contain a block of device metadata at the top, followed by the actual data table. The extractor finds that data table, pulls out the temperature and humidity columns, and merges one or more files into a single clean CSV with an "hours" column prepended.</p>
+<p><strong>Inputs.</strong> One or more <code>.csv</code> files in U07B format. All files must have the same number of data rows.</p>
+<p><strong>Output.</strong> A single CSV with columns:</p>
+<table>
+  <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td><code>hours</code></td><td>Time in hours, 10-minute intervals (0.166667, 0.333333, 0.5, …)</td></tr>
+    <tr><td><code>&lt;file&gt;_temperature</code></td><td>Temperature in °C from each file</td></tr>
+    <tr><td><code>&lt;file&gt;_humidity</code></td><td>Relative humidity in %RH from each file</td></tr>
+  </tbody>
+</table>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Open the tool from the launchpad.</li>
+  <li>Click <strong>Select CSV files</strong> and choose one or more U07B CSVs.</li>
+  <li>Confirm the file list appears.</li>
+  <li>Click <strong>Process &amp; Merge</strong>. A progress bar shows parsing progress.</li>
+  <li>Preview the first 10 rows to verify the numbers look sensible.</li>
+  <li>Click <strong>Save merged CSV…</strong> and choose where to save.</li>
+</ol>
+<h4>Options</h4>
+<p>None — the tool detects the header row automatically by searching for a line beginning with <code>Date,Time,Temperature</code>.</p>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>Could not find data header row</td><td>File is not a U07B export</td><td>Check for a line beginning with <code>Date,Time,Temperature</code></td></tr>
+    <tr><td>Row count mismatch</td><td>Files have different row counts</td><td>Crop all files to the same length</td></tr>
+    <tr><td>No data rows found</td><td>Header found but rows were blank</td><td>Confirm the file is not truncated</td></tr>
+  </tbody>
+</table>
+<h4>Tips</h4>
+<ul>
+  <li>You can process a single file — the tool does not require two or more.</li>
+  <li>Column names come from the input filename, so give files meaningful names.</li>
+</ul>
+
+<h3 class="page-break">3.2 CSV Processor <span class="tool-badge online">Needs internet for chunk export</span></h3>
+<p><strong>Purpose.</strong> A four-step pipeline for cleaning and reshaping a large CSV. Designed for time-series data recorded at 1/10-second intervals, where you often want to reduce to one row per minute and add a readable minutes column.</p>
+<p><strong>Inputs.</strong> A single CSV file.</p>
+<p><strong>Output.</strong> Either a single CSV or a ZIP archive of several CSV chunks.</p>
+<h4>Step-by-step</h4>
+<p><strong>Step 1 — Upload.</strong> Click <strong>Select CSV File</strong>. Progress is shown. The number of rows loaded is displayed.</p>
+<p><strong>Step 2 — Find &amp; Replace.</strong> A preview of the first 10 rows appears. Type text to find and replace, optionally tick <em>Case sensitive</em>, <em>Exact cell match</em>, or leave <em>Preview only</em> ticked to see the effect before committing. Click <strong>Apply to All Rows</strong>. Click any row in the preview to copy a specific cell value into the Find box.</p>
+<p><strong>Step 3 — Keep Nth Row &amp; Add Minutes.</strong> Default is every 600th row (one minute of data). Change as needed. Two checkboxes:</p>
+<ul>
+  <li><strong>Add "minutes" column at the beginning</strong> — prepends elapsed minutes for each kept row</li>
+  <li><strong>Round to 2 decimal places</strong></li>
+</ul>
+<p>Click <strong>Apply &amp; Keep Selected Rows</strong>.</p>
+<p><strong>Step 4 — Split &amp; Export.</strong> By default exports as one CSV. Untick <strong>Don't split</strong> to split into chunks and download as ZIP. Click <strong>Process &amp; Export</strong>.</p>
+<h4>Worked example</h4>
+<p>A 36,000-row file at 1/10-second intervals spans exactly one hour. Keeping every 600th row gives 60 rows — one per minute, labelled 0, 1, 2, … 59.</p>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>File read error</td><td>File locked or not a text file</td><td>Close it in Excel and try again</td></tr>
+    <tr><td>No data rows</td><td>Only a header, no rows beneath</td><td>Check the file content</td></tr>
+    <tr><td>ZIP download failed</td><td>ZIP library could not be fetched</td><td>See §5.3</td></tr>
+  </tbody>
+</table>
+
+<h3 class="page-break">3.3 CSV Aggregator <span class="tool-badge offline">Works offline</span></h3>
+<p><strong>Purpose.</strong> Combines multiple CSVs by matching <strong>column header names</strong>. Where two files both have a column called <code>Temp_C</code>, both are treated as the same measurement, and the tool produces average, minimum, and maximum across all matching columns, row by row.</p>
+<p><strong>Inputs.</strong> Two or more CSVs with compatible headers. Columns with names that do not match any other file are dropped. Rows beyond the shortest file's length are ignored.</p>
+<p><strong>Output.</strong> A table with three columns per unique header name: <code>&lt;header&gt;_avg</code>, <code>&lt;header&gt;_min</code>, <code>&lt;header&gt;_max</code>. Downloadable as CSV.</p>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Drag and drop CSV files onto the upload area, or click <strong>Choose CSV files</strong>.</li>
+  <li>Files appear as removable tags.</li>
+  <li>Click <strong>Aggregate</strong>.</li>
+  <li>A summary shows how many files, rows, and unique headers were processed.</li>
+  <li>Click <strong>Download CSV</strong> to save.</li>
+</ol>
+<div class="callout info">
+  <strong>Column dropping is deliberate</strong>
+  If a column contains any non-numeric value, the entire column is dropped. This prevents meaningless averages of text with numbers.
+</div>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>No numeric columns found</td><td>Every column has a non-numeric cell</td><td>Clean data first with CSV Processor</td></tr>
+    <tr><td>All columns dropped</td><td>Headers differ between files</td><td>Rename so headers match exactly</td></tr>
+  </tbody>
+</table>
+<h4>Tips</h4>
+<ul>
+  <li>Header names must match <strong>exactly</strong> — <code>Temp_C</code> and <code>temp_c</code> are different columns.</li>
+  <li>The shortest file sets the row count limit.</li>
+</ul>
+
+<h3 class="page-break">3.4 Line Chart Studio <span class="tool-badge online">Needs internet</span></h3>
+<p><strong>Purpose.</strong> Turns a CSV into one or more line charts. Supports multiple series per chart, drag-and-drop movement of series between charts, custom axes, reference lines, and high-resolution PNG export.</p>
+<p><strong>Inputs.</strong> A CSV with the first column as X-values and one or more additional columns as Y-series. Numeric X produces a numeric axis; text X produces a categorical axis.</p>
+<p><strong>Output.</strong> On-screen charts, plus downloadable PNGs.</p>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Upload a CSV, paste a URL, or click <strong>Load Sample</strong>.</li>
+  <li>The first chart is created automatically with all series.</li>
+  <li>Each chart has an editable title, export and delete buttons, theme picker, point size control, reference-line and decimation controls, and axis settings for both X and Y.</li>
+  <li>Drag any series tag from one chart onto another to move it.</li>
+  <li>Removed series appear in the <strong>Available Series Library</strong> at the top.</li>
+  <li>Click <strong>Add New Chart</strong> to create an empty chart.</li>
+  <li>Click <strong>Export All (Stacked PNG)</strong> for a composite image.</li>
+</ol>
+<h4>Options</h4>
+<table>
+  <thead><tr><th>Option</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td>Theme</td><td>Applies a preset colour palette to all series in the chart</td></tr>
+    <tr><td>Point size</td><td>0 hides markers (line only)</td></tr>
+    <tr><td>Reference line Y</td><td>Horizontal dashed line at the given Y value</td></tr>
+    <tr><td>Reference line X</td><td>Vertical dashed line at the given X value</td></tr>
+    <tr><td>Decimation</td><td>Show only every Nth point</td></tr>
+    <tr><td>Global X/Y title</td><td>Applies to charts without their own title</td></tr>
+  </tbody>
+</table>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>CSV must have header + data</td><td>File is empty or one line</td><td>Check the file</td></tr>
+    <tr><td>No valid data series found</td><td>All data columns are non-numeric</td><td>Confirm your CSV contains numbers</td></tr>
+    <tr><td>Chart is blank</td><td>All points null in visible range</td><td>Check axis min/max</td></tr>
+    <tr><td>Export produces nothing</td><td>Pop-up blocker interfered</td><td>Allow pop-ups for this page</td></tr>
+  </tbody>
+</table>
+
+<h3 class="page-break">3.5 Shaded Region Chart Studio <span class="tool-badge online">Needs internet</span></h3>
+<p><strong>Purpose.</strong> A specialised version of Line Chart Studio that expects aggregated data in <code>_avg</code>, <code>_min</code>, <code>_max</code> form (as produced by the CSV Aggregator). It draws the average as a solid line and shades the region between the minimum and maximum — ideal for tolerance envelopes, confidence bands, or spread visualisation.</p>
+<p><strong>Inputs.</strong> A CSV with columns named like <code>Time, Sales_avg, Sales_min, Sales_max, Profit_avg, Profit_min, Profit_max</code>.</p>
+<p><strong>Output.</strong> On-screen charts with shaded bands, plus PNG exports (white or transparent background).</p>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Upload a CSV, or click <strong>Load Sample</strong>.</li>
+  <li>Charts are created automatically — one per avg/min/max group.</li>
+  <li>Choose <strong>View Mode</strong>: Separate Charts or Stacked Chart.</li>
+  <li>Toggle <strong>Show MIN/MAX Shaded Region</strong> at the top.</li>
+  <li>In Separate mode, each chart has its own title, colour, axis, and export controls.</li>
+  <li>In Stacked mode, each series has a colour picker.</li>
+</ol>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>No complete avg/min/max groups found</td><td>Column names do not end in <code>_avg</code>, <code>_min</code>, <code>_max</code></td><td>Rename columns or run through CSV Aggregator first</td></tr>
+    <tr><td>Shaded band does not appear</td><td>Toggle is off</td><td>Tick Show MIN/MAX</td></tr>
+  </tbody>
+</table>
+<h4>Tips</h4>
+<ul>
+  <li>The Aggregator produces exactly the format this tool expects. Chain them for end-to-end workflow.</li>
+  <li>Transparent-background exports are useful when the destination page is not white.</li>
+  <li>Prefer Separate mode when you have more than six series.</li>
+</ul>
+
+<h3 class="page-break">3.6 STL 3D Viewer <span class="tool-badge online">Needs internet</span></h3>
+<p><strong>Purpose.</strong> Loads STL (stereolithography) 3D model files and displays them as interactive, rotatable 3D objects with automatic scaling, dynamic grid, and dimension readout.</p>
+<p><strong>Inputs.</strong> A single <code>.stl</code> file (binary or ASCII).</p>
+<p><strong>Output.</strong> On-screen 3D model with size displayed in millimetres.</p>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Click <strong>Open STL File</strong> and choose a file, or drag an STL onto the browser window.</li>
+  <li>The model is centred and scaled to fit the view automatically.</li>
+  <li>Mouse: left-drag to rotate, right-drag to pan, scroll to zoom.</li>
+  <li>Read the model's bounding-box dimensions in the <strong>Size</strong> box.</li>
+  <li>Use <strong>Center &amp; Reset View</strong> or <strong>Toggle Grid</strong> as needed.</li>
+</ol>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>STL parsing failed</td><td>File is corrupted or not STL</td><td>Open in a CAD tool and re-export</td></tr>
+    <tr><td>Nothing appears</td><td>WebGL unavailable</td><td>Use Chrome or Edge; enable hardware acceleration</td></tr>
+  </tbody>
+</table>
+<h4>Tips</h4>
+<ul>
+  <li>Binary STL loads faster than ASCII.</li>
+  <li>Very large meshes may be sluggish. Decimate in CAD first.</li>
+</ul>
+
+<h3 class="page-break">3.7 Model Builder <span class="tool-badge online">Needs internet</span></h3>
+<p><strong>Purpose.</strong> Trains a simple predictive model on a CSV and lets you inspect metrics, see the fitted equation, predict new values, save the trained model, and continue training on new data.</p>
+<p><strong>Inputs.</strong> A CSV file with a header row. The tool streams the file, so it handles large files well.</p>
+<p><strong>Output.</strong> A saved model file containing the type, feature and target names, scaler parameters, equation coefficients (linear/poly), the XGBoost booster, and metrics.</p>
+<h4>Step-by-step</h4>
+<ol>
+  <li>Open the Model Builder from the launchpad.</li>
+  <li>Under <strong>1. Load Data</strong>, select a CSV file.</li>
+  <li>Select <strong>Feature columns (X)</strong> and <strong>Target column (y)</strong>.</li>
+  <li>Under <strong>2. Train Model</strong>, choose an algorithm:
+    <table>
+      <thead><tr><th>Algorithm</th><th>Best for</th></tr></thead>
+      <tbody>
+        <tr><td>Linear Regression</td><td>Straight-line relationships</td></tr>
+        <tr><td>Polynomial (deg 2)</td><td>Curved relationships, mild non-linearity</td></tr>
+        <tr><td>Polynomial (deg 3)</td><td>Stronger curvature</td></tr>
+        <tr><td>XGBoost</td><td>Complex, non-linear, interaction-heavy data</td></tr>
+      </tbody>
+    </table>
+  </li>
+  <li>Click <strong>Train Model</strong>. The tool splits 70/15/15, tunes on the validation set, and scores once on the test set.</li>
+  <li>Three metric boxes appear — Train, Validation, and Test — each showing RMSE, MAE, and R².</li>
+  <li>A scatter plot shows predicted vs actual on the test set.</li>
+  <li>For linear/poly models, the equation appears in original units.</li>
+  <li>Under <strong>4. Predict</strong>, enter feature values and click <strong>Predict</strong>.</li>
+  <li>Under <strong>3. Save / Load Model</strong>, download or upload a model file.</li>
+</ol>
+<h4>Common errors</h4>
+<table>
+  <thead><tr><th>Error</th><th>Cause</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td>Need at least 30 valid rows</td><td>Fewer than 30 rows survived</td><td>Check for blanks in feature or target columns</td></tr>
+    <tr><td>Target must not be a feature</td><td>Target also selected as feature</td><td>Deselect it from the feature list</td></tr>
+    <tr><td>XGBoost failed to load</td><td>Library could not be fetched</td><td>See §5.3</td></tr>
+    <tr><td>R² is negative</td><td>Model worse than predicting the mean</td><td>Relationship may not exist, or wrong algorithm</td></tr>
+  </tbody>
+</table>
+<h4>Tips</h4>
+<ul>
+  <li><strong>Always check the Test R²</strong>, not the Train R². A perfect train score with a poor test score means overfitting.</li>
+  <li>Polynomial degree 3 or higher can overfit badly on small datasets.</li>
+  <li>Continue Training is useful for online learning — load a saved model and feed it new data from the same setup.</li>
+</ul>
+
+<h2 class="new-page">4. Troubleshooting</h2>
+
+<h4>My CSV uploads but shows no rows</h4>
+<ul>
+  <li>Check the file actually has data rows below the header.</li>
+  <li>Confirm the file uses <strong>commas</strong>, not semicolons or tabs.</li>
+  <li>Confirm the file has a header row.</li>
+</ul>
+
+<h4>Numbers look wrong</h4>
+<ul>
+  <li>Excel sometimes treats IDs or codes as numbers and strips leading zeros. Prefer processing the original export.</li>
+  <li>Scientific notation is parsed correctly but may display rounded in previews.</li>
+</ul>
+
+<h4>Download didn't start</h4>
+<ul>
+  <li>Some browsers block automatic downloads. Look for a notification in the address bar and allow downloads.</li>
+  <li>A download manager may be intercepting the file. Disable it temporarily.</li>
+  <li>Chrome and Edge may show a "Keep / Discard" prompt. Choose Keep.</li>
+</ul>
+
+<h4>3D viewer is blank</h4>
+<ul>
+  <li>WebGL is disabled. Enable hardware acceleration, or try a different browser.</li>
+  <li>The STL may have zero triangles. Verify in a CAD tool.</li>
+</ul>
+
+<h4>Chart is slow with large files</h4>
+<ul>
+  <li>Use the <strong>Decimation</strong> control in Line Chart Studio.</li>
+  <li>Set point size to 0 for dense data.</li>
+  <li>Split into chunks with the CSV Processor and chart separately.</li>
+</ul>
+
+<h4>The page is blank / nothing loads</h4>
+<ul>
+  <li>Check the browser console (F12 → Console) for errors.</li>
+  <li>If there is no internet, chart tools and the Model Builder will not load their libraries. See §5.3.</li>
+</ul>
+
+<h2 class="new-page">5. Handover Notes</h2>
+<p><em>This section is for whoever inherits or maintains the suite.</em></p>
+
+<h3>5.1 File inventory</h3>
+<table>
+  <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td><code>index.html</code></td><td>Launchpad — links to the seven tools</td></tr>
+    <tr><td><code>U07B-extract.html</code></td><td>U07B Extractor</td></tr>
+    <tr><td><code>csv-edit.html</code></td><td>CSV Processor</td></tr>
+    <tr><td><code>csv-aggregator.html</code></td><td>CSV Aggregator</td></tr>
+    <tr><td><code>line-chart.html</code></td><td>Line Chart Studio</td></tr>
+    <tr><td><code>shaded-chart.html</code></td><td>Shaded Region Chart Studio</td></tr>
+    <tr><td><code>stl-viewer.html</code></td><td>STL 3D Viewer</td></tr>
+    <tr><td><code>ml-modelling.html</code></td><td>Model Builder</td></tr>
+    <tr><td><code>help.html</code></td><td>This document (HTML version)</td></tr>
+    <tr><td><code>help-print.html</code></td><td>This document (print/PDF version)</td></tr>
+    <tr><td><code>help.md</code></td><td>This document (Markdown source of truth)</td></tr>
+    <tr><td><code>theme.css</code></td><td>Shared stylesheet (colours, typography, buttons, navbar, dark-mode)</td></tr>
+    <tr><td><code>navbar.js</code></td><td>Shared top navigation script</td></tr>
+  </tbody>
+</table>
+<div class="callout warn">
+  <strong>Filenames and the launchpad</strong>
+  <code>index.html</code> currently links to all seven tools. Filenames used in the launchpad may not match the on-disk capitalisation of <code>U07B-extract.html</code> — check before assuming a link is broken. A future maintainer may reasonably replace <code>index.html</code> with their own launchpad.
+</div>
+
+<h3>5.2 Technology stack</h3>
+<p>All tools are <strong>single-file HTML documents</strong> — no build step, no bundler, no package manager. Every file contains its own HTML, CSS, and JavaScript. Editing is done with a text editor.</p>
+<p>Two files are shared across the whole suite:</p>
+<ul>
+  <li><code>theme.css</code> — colours, typography, buttons, inputs, tables, callouts, and the <code>prefers-color-scheme</code> dark-mode overrides. Edit once, and every tool updates.</li>
+  <li><code>navbar.js</code> — injects the top navigation bar into every page and highlights the current one.</li>
+</ul>
+<p>External libraries are loaded from public CDNs and are <strong>not</strong> bundled:</p>
+<table>
+  <thead><tr><th>Tool</th><th>Library</th><th>Version</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Line Chart Studio</td><td>Chart.js</td><td>4.4.0</td><td>Chart rendering</td></tr>
+    <tr><td>Line Chart Studio</td><td>html2canvas</td><td>1.4.1</td><td>High-res export</td></tr>
+    <tr><td>Shaded Chart Studio</td><td>Chart.js</td><td>4.4.0</td><td>Chart rendering</td></tr>
+    <tr><td>Shaded Chart Studio</td><td>html2canvas</td><td>1.4.1</td><td>High-res export</td></tr>
+    <tr><td>STL 3D Viewer</td><td>Three.js</td><td>0.128.0</td><td>3D rendering</td></tr>
+    <tr><td>CSV Processor</td><td>JSZip</td><td>3.10.1</td><td>Chunk export (on demand)</td></tr>
+    <tr><td>Model Builder</td><td>PapaParse</td><td>5.4.1</td><td>Streaming CSV parse</td></tr>
+    <tr><td>Model Builder</td><td>TensorFlow.js</td><td>4.20.0</td><td>Linear / polynomial models</td></tr>
+    <tr><td>Model Builder</td><td>@wlearn/xgboost</td><td>latest</td><td>XGBoost WASM</td></tr>
+  </tbody>
+</table>
+
+<h3>5.3 External dependencies</h3>
+<div class="callout warn">
+  <strong>The biggest long-term risk in this suite</strong>
+  Every tool that uses a charting, 3D, ML, or ZIP library fetches it from a public CDN the first time it loads. If the CDN disappears, the version is yanked, or the machine has no internet, the affected tool will not work.
+</div>
+<p><strong>Tools that work fully offline:</strong> U07B Extractor, CSV Aggregator.</p>
+<p><strong>Tools that require internet on first load:</strong> CSV Processor (only for chunk export), Line Chart Studio, Shaded Chart Studio, STL 3D Viewer, Model Builder.</p>
+<p><strong>To make the suite fully offline</strong>, download each library once and store it alongside the HTML files. Then edit the HTML to point at the local copy instead of the CDN URL. This is a one-time job of about 20 minutes per tool.</p>
+<p>The maintainer is advised to do this <strong>before</strong> the CDNs in question are retired.</p>
+
+<h3>5.4 Browser compatibility</h3>
+<p>Tested on Chrome, Edge, Firefox, and Safari (14+). The chart tools use Canvas rendering, the STL viewer uses WebGL, and the Model Builder uses WebAssembly (for XGBoost) and IndexedDB internally via TF.js.</p>
+<p>Internet Explorer is not supported and will not work.</p>
+
+<h3>5.5 Where state is stored</h3>
+<p><strong>Nowhere persistent.</strong> Each tool holds its working data in the browser tab only. Closing the tab, or navigating away, discards everything. There is no save/resume feature.</p>
+<p>If a user reloads a page mid-work, they must re-upload their file. This is by design — it keeps the tools stateless and avoids privacy concerns.</p>
+
+<h3>5.6 Known limitations</h3>
+<ul>
+  <li>No tool handles semicolon-separated or tab-separated files.</li>
+  <li>CSV Processor is limited by browser memory — practical ceiling around 500 MB per file.</li>
+  <li>Line Chart Studio slows noticeably above ~50,000 points per series without decimation.</li>
+  <li>The Model Builder's XGBoost component is the most fragile dependency. If it fails to load, Linear and Polynomial still work.</li>
+  <li>The STL Viewer shows geometry only — no colour or material properties.</li>
+</ul>
+
+<h3>5.7 Adding a new tool</h3>
+<ol>
+  <li>Create a new HTML file with the same self-contained structure.</li>
+  <li>Link <code>theme.css</code> in the head, and <code>navbar.js</code> at the bottom of the body.</li>
+  <li>Use CSS variables rather than hardcoded colours, so the tool automatically participates in dark mode.</li>
+  <li>Add the tool to <code>navbar.js</code>'s <code>PAGES</code> array.</li>
+  <li>Add a card to <code>index.html</code> linking to it.</li>
+  <li>Consider adding it to this document under §3.</li>
+</ol>
+
+<h3>5.8 Recovery if a CDN fails</h3>
+<ol>
+  <li>Open the browser console (F12) and note which URL failed.</li>
+  <li>Search for that URL in the affected HTML file.</li>
+  <li>Download the library from an alternative source and save it next to the HTML file.</li>
+  <li>Edit the HTML to reference the local file instead of the CDN URL.</li>
+  <li>Retest.</li>
+</ol>
+<p>The same procedure works for offline deployments: pre-download all libraries, edit all HTML files to reference local copies, and ship the whole folder as a bundle.</p>
+
+</div>
+</body>
+</html>

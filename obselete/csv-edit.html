@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV Processor | By Alim Yakub (RP)</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22>
+    <text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            margin: 0 0 5px 0;
+            color: #1e3c72;
+        }
+        .sub {
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+        .workflow-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .step {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            position: relative;
+        }
+        .step.active {
+            background: #1e3c72;
+            color: white;
+        }
+        .step.completed {
+            background: #28a745;
+            color: white;
+        }
+        .step-number {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #dee2e6;
+        }
+        .card h3 {
+            margin: 0 0 15px 0;
+            color: #1e3c72;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #1a1a2e;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 3px 0;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+        .log-success {
+            border-left-color: #28a745;
+            color: #8bc34a;
+        }
+        .find-replace-panel {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        .sample-text-area {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .sample-row {
+            padding: 4px;
+            border-bottom: 1px solid #dee2e6;
+            font-family: monospace;
+            cursor: pointer;
+        }
+        .sample-row:hover {
+            background: #e9ecef;
+        }
+        .flex-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .checkbox-label input {
+            margin-right: 5px;
+            width: auto;
+        }
+        .preview-box {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+        @media (max-width: 768px) {
+            .workflow-steps { flex-direction: column; }
+            .flex-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📊 CSV Processor</h1>
+    <div class="sub">Imagined by Alim Yakub (RP) for cold box project</div>
+    
+    <div class="workflow-steps">
+        <div class="step" id="step1"><div class="step-number">1</div><div>Upload CSV</div></div>
+        <div class="step" id="step2"><div class="step-number">2</div><div>Find & Replace</div></div>
+        <div class="step" id="step3"><div class="step-number">3</div><div>Keep Nth Row + Add Minutes</div></div>
+        <div class="step" id="step4"><div class="step-number">4</div><div>Split & Export</div></div>
+    </div>
+    
+    <div class="info-box">
+        <strong>⏱️ Time Series Feature:</strong> Your data is in 1/10 second intervals.<br>
+        • 600 rows = 1 minute<br>
+        • 36,000 rows = 1 hour<br>
+        • When you keep every Nth row, a "minutes" column will be auto-calculated (0, 1, 2, 3... or 5, 10, 15... based on your sampling rate)
+    </div>
+    
+    <!-- Step 1: Upload -->
+    <div class="card" id="uploadCard">
+        <h3>📁 Step 1: Upload CSV File</h3>
+        <button id="selectFileBtn">Select CSV File</button>
+        <div id="fileInfo" style="margin-top: 10px; color: #6c757d;"></div>
+        <div class="progress" id="progressContainer" style="display: none;">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+    </div>
+    
+    <!-- Step 2: Find & Replace -->
+    <div class="card" id="findReplaceCard" style="display: none;">
+        <h3>🔍 Step 2: Find & Replace</h3>
+        <div id="sampleRows" class="sample-text-area"><div style="color: #6c757d;">Load a file to see sample rows</div></div>
+        <div class="find-replace-panel">
+            <div class="flex-row">
+                <input type="text" id="findText" placeholder="Find text..." style="flex: 2;">
+                <input type="text" id="replaceText" placeholder="Replace with (empty to delete)" style="flex: 2;">
+                <button id="applyFindReplaceBtn" class="btn-warning">Apply to All Rows</button>
+            </div>
+            <div class="flex-row">
+                <label class="checkbox-label"><input type="checkbox" id="caseSensitive"> Case sensitive</label>
+                <label class="checkbox-label"><input type="checkbox" id="exactMatch"> Exact cell match</label>
+                <label class="checkbox-label"><input type="checkbox" id="previewMode" checked> Preview only</label>
+            </div>
+            <div id="findReplaceStats" style="font-size: 12px; color: #28a745;"></div>
+        </div>
+    </div>
+    
+    <!-- Step 3: Keep Nth Row + Add Minutes -->
+    <div class="card" id="keepRowCard" style="display: none;">
+        <h3>📐 Step 3: Keep Every Nth Row & Add Minute Column</h3>
+        
+        <div class="flex-row">
+            <label>Keep every:</label>
+            <input type="number" id="keepNth" value="600" min="1" step="1" style="width: 100px;">
+            <span>th row</span>
+        </div>
+        
+        <div class="info-box" style="margin: 10px 0;">
+            <strong>⚡ Auto-calculation:</strong><br>
+            • 600 rows = 1 minute → minute markers: 0, 1, 2, 3...<br>
+            • 300 rows = 0.5 minutes → minute markers: 0, 0.5, 1, 1.5...<br>
+            • 1200 rows = 2 minutes → minute markers: 0, 2, 4, 6...<br>
+            • 3000 rows = 5 minutes → minute markers: 0, 5, 10, 15...
+        </div>
+        
+        <div class="flex-row">
+            <label class="checkbox-label">
+                <input type="checkbox" id="addMinuteColumn" checked> Add "minutes" column at the beginning
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="roundMinutes" checked> Round to 2 decimal places
+            </label>
+        </div>
+        
+        <div id="minutePreview" class="preview-box" style="display: none;">
+            <strong>Preview:</strong> Keeping every <span id="previewNth">600</span>th row → 
+            Each row represents <span id="previewMinutes">1.00</span> minutes → 
+            Minute values: 0, <span id="previewStep">1.00</span>, <span id="previewStep2">2.00</span>, <span id="previewStep3">3.00</span>...
+        </div>
+        
+        <div class="flex-row" style="margin-top: 15px;">
+            <button id="applyKeepRowBtn" class="btn-success">Apply & Keep Selected Rows</button>
+        </div>
+        
+        <div id="keepRowStats" style="font-size: 12px; color: #6c757d; margin-top: 10px;"></div>
+    </div>
+    
+    <!-- Step 4: Split & Export -->
+    <div class="card" id="exportCard" style="display: none;">
+        <h3>💾 Step 4: Split & Export</h3>
+        <div class="flex-row">
+            <label>Split into chunks of:</label>
+            <input type="number" id="rowsPerChunk" value="50000" min="1000" step="10000" style="width: 100px;">
+            <span>rows per file</span>
+            <label class="checkbox-label">
+                <input type="checkbox" id="dontSplit" checked> Don't split (single file)
+            </label>
+        </div>
+        <div style="margin-top: 15px;">
+            <button id="processAndExportBtn" class="btn-success">🚀 Process & Export</button>
+            <span id="exportStats" style="margin-left: 15px; font-size: 12px;"></span>
+        </div>
+    </div>
+    
+    <div class="log" id="log">
+        <div class="log-entry">Ready. Click "Select CSV File" to begin.</div>
+    </div>
+</div>
+
+<script>
+    // Global state
+    let originalRows = [];
+    let currentRows = [];
+    let header = "";
+    let originalFileName = "";
+    let fileLoaded = false;
+    let findReplaceApplied = false;
+    let keepRowApplied = false;
+    let totalOriginalRows = 0;
+    
+    function addLog(message, type = "info") {
+        const logDiv = document.getElementById('log');
+        const entry = document.createElement('div');
+        entry.className = `log-entry log-${type}`;
+        entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logDiv.appendChild(entry);
+        entry.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    function updateStepUI() {
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const step3 = document.getElementById('step3');
+        const step4 = document.getElementById('step4');
+        
+        if (fileLoaded) {
+            step1.classList.add('completed');
+            step2.classList.add('active');
+        }
+        if (findReplaceApplied) {
+            step2.classList.remove('active');
+            step2.classList.add('completed');
+            step3.classList.add('active');
+        }
+        if (keepRowApplied) {
+            step3.classList.remove('active');
+            step3.classList.add('completed');
+            step4.classList.add('active');
+        }
+    }
+    
+    function parseCSVLine(line) {
+        const row = [];
+        let inQuote = false;
+        let current = '';
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (ch === '"') {
+                if (inQuote && line[i+1] === '"') {
+                    current += '"';
+                    i++;
+                } else {
+                    inQuote = !inQuote;
+                }
+            } else if (ch === ',' && !inQuote) {
+                row.push(current);
+                current = '';
+            } else {
+                current += ch;
+            }
+        }
+        row.push(current);
+        return row;
+    }
+    
+    function rowToCSV(row) {
+        return row.map(cell => {
+            let str = String(cell || "");
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                str = '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }).join(',');
+    }
+    
+    // Calculate minutes per row based on sampling rate
+    function calculateMinutesPerRow(nth) {
+        // 600 rows = 1 minute (since data is in 1/10 second intervals)
+        // minutes per sampled row = nth / 600
+        return nth / 600;
+    }
+    
+    // Update minute preview
+    function updateMinutePreview() {
+        const nth = parseInt(document.getElementById('keepNth').value);
+        if (isNaN(nth) || nth < 1) return;
+        
+        const minutesPerRow = calculateMinutesPerRow(nth);
+        const roundMinutes = document.getElementById('roundMinutes').checked;
+        
+        let displayMinutes = minutesPerRow;
+        if (roundMinutes) {
+            displayMinutes = Math.round(minutesPerRow * 100) / 100;
+        }
+        
+        document.getElementById('previewNth').textContent = nth;
+        document.getElementById('previewMinutes').textContent = displayMinutes.toFixed(2);
+        document.getElementById('previewStep').textContent = displayMinutes.toFixed(2);
+        document.getElementById('previewStep2').textContent = (displayMinutes * 2).toFixed(2);
+        document.getElementById('previewStep3').textContent = (displayMinutes * 3).toFixed(2);
+        document.getElementById('minutePreview').style.display = 'block';
+    }
+    
+    // Apply find/replace to a single row
+    function applyFindReplaceToRow(rowCells, findText, replaceText, caseSensitive, exactMatch) {
+        const find = caseSensitive ? findText : findText.toLowerCase();
+        return rowCells.map(cell => {
+            if (cell === undefined || cell === null) return cell;
+            let compareCell = caseSensitive ? cell : cell.toLowerCase();
+            if (exactMatch) {
+                return compareCell === find ? replaceText : cell;
+            } else {
+                if (caseSensitive) {
+                    return cell.split(findText).join(replaceText);
+                } else {
+                    const regex = new RegExp(findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                    return cell.replace(regex, replaceText);
+                }
+            }
+        });
+    }
+    
+    // Load CSV rows
+    async function loadCSVRows(file) {
+        return new Promise((resolve, reject) => {
+            const rows = [];
+            let headerLine = null;
+            let totalRows = 0;
+            
+            addLog(`Loading "${file.name}" (${(file.size / 1024 / 1024).toFixed(2)} MB)`, "info");
+            
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
+            progressContainer.style.display = 'block';
+            
+            const fileStream = file.stream();
+            const reader = fileStream.getReader();
+            const decoder = new TextDecoder();
+            let leftover = '';
+            
+            function processLines(text) {
+                const lines = (leftover + text).split(/\r?\n/);
+                leftover = lines.pop() || '';
+                
+                for (let line of lines) {
+                    if (line.trim() === "" && totalRows > 0) continue;
+                    if (headerLine === null) {
+                        headerLine = line;
+                        continue;
+                    }
+                    rows.push(line);
+                    totalRows++;
+                    if (totalRows % 10000 === 0) {
+                        progressBar.style.width = `${Math.min((totalRows / (totalRows + 1)) * 100, 99)}%`;
+                    }
+                }
+            }
+            
+            function readChunk() {
+                reader.read().then(({ done, value }) => {
+                    if (done) {
+                        if (leftover.trim() !== "") rows.push(leftover);
+                        progressBar.style.width = '100%';
+                        addLog(`✅ Loaded ${rows.length.toLocaleString()} rows`, "success");
+                        resolve({ header: headerLine, rows: rows });
+                        return;
+                    }
+                    const text = decoder.decode(value, { stream: true });
+                    processLines(text);
+                    readChunk();
+                }).catch(reject);
+            }
+            readChunk();
+        });
+    }
+    
+    // Update sample rows display
+    function updateSampleRows() {
+        if (!currentRows.length) return;
+        
+        const findText = document.getElementById('findText').value;
+        const replaceText = document.getElementById('replaceText').value;
+        const caseSensitive = document.getElementById('caseSensitive').checked;
+        const exactMatch = document.getElementById('exactMatch').checked;
+        const previewMode = document.getElementById('previewMode').checked;
+        
+        const sampleDiv = document.getElementById('sampleRows');
+        const sampleRowsToShow = currentRows.slice(0, 10);
+        
+        let html = '<div style="font-weight: bold; margin-bottom: 8px;">First 10 rows (click any to copy to find field):</div>';
+        
+        sampleRowsToShow.forEach((row, idx) => {
+            const cells = parseCSVLine(row);
+            let displayRow = [...cells];
+            if (previewMode && findText) {
+                displayRow = applyFindReplaceToRow(cells, findText, replaceText, caseSensitive, exactMatch);
+            }
+            html += `<div class="sample-row" data-original="${row.replace(/"/g, '&quot;')}">`;
+            html += `<strong>Row ${idx + 1}:</strong> `;
+            html += displayRow.map(cell => `<span style="background: #e9ecef; padding: 2px 4px; margin: 0 2px; border-radius: 3px;">${escapeHtml(cell || '␣')}</span>`).join('');
+            html += `</div>`;
+        });
+        
+        sampleDiv.innerHTML = html;
+        
+        document.querySelectorAll('.sample-row').forEach(rowDiv => {
+            rowDiv.addEventListener('click', () => {
+                const originalRow = rowDiv.dataset.original;
+                const cells = parseCSVLine(originalRow);
+                const cellList = cells.map((cell, i) => `${i}: ${cell}`).join('\n');
+                const selectedIndex = prompt(`Select cell to copy to find field:\n\n${cellList}\n\nEnter column number (0-${cells.length-1}):`);
+                if (selectedIndex !== null && cells[selectedIndex]) {
+                    document.getElementById('findText').value = cells[selectedIndex];
+                    addLog(`Copied: "${cells[selectedIndex]}"`, "info");
+                }
+            });
+        });
+    }
+    
+    // Apply find/replace
+    async function applyFindReplace() {
+        if (!currentRows.length) return;
+        
+        const findText = document.getElementById('findText').value;
+        const replaceText = document.getElementById('replaceText').value;
+        const caseSensitive = document.getElementById('caseSensitive').checked;
+        const exactMatch = document.getElementById('exactMatch').checked;
+        
+        if (!findText) {
+            addLog("Please enter text to find.", "error");
+            return;
+        }
+        
+        addLog(`Applying find/replace: "${findText}" → "${replaceText || '(empty)'}"`, "info");
+        
+        let totalReplacements = 0;
+        const newRows = [];
+        
+        for (let row of currentRows) {
+            const cells = parseCSVLine(row);
+            const newCells = applyFindReplaceToRow(cells, findText, replaceText, caseSensitive, exactMatch);
+            let rowChanged = false;
+            for (let i = 0; i < cells.length; i++) {
+                if (cells[i] !== newCells[i]) rowChanged = true;
+            }
+            if (rowChanged) {
+                totalReplacements += newCells.filter((_, i) => cells[i] !== newCells[i]).length;
+                newRows.push(rowToCSV(newCells));
+            } else {
+                newRows.push(row);
+            }
+        }
+        
+        currentRows = newRows;
+        findReplaceApplied = true;
+        addLog(`✅ ${totalReplacements} replacements made`, "success");
+        document.getElementById('findReplaceStats').innerHTML = `✅ Replaced ${totalReplacements} occurrences`;
+        setTimeout(() => document.getElementById('findReplaceStats').innerHTML = '', 3000);
+        
+        updateSampleRows();
+        updateStepUI();
+        document.getElementById('keepRowCard').style.display = 'block';
+        updateMinutePreview();
+    }
+    
+    // Apply keep every Nth row with minute column
+    async function applyKeepEveryNth() {
+        if (!currentRows.length) return;
+        
+        const nth = parseInt(document.getElementById('keepNth').value);
+        const addMinuteColumn = document.getElementById('addMinuteColumn').checked;
+        const roundMinutes = document.getElementById('roundMinutes').checked;
+        
+        if (isNaN(nth) || nth < 1) {
+            addLog("Please enter a valid number (1 or greater)", "error");
+            return;
+        }
+        
+        const originalCount = currentRows.length;
+        const minutesPerRow = calculateMinutesPerRow(nth);
+        
+        addLog(`Keeping every ${nth}th row (${minutesPerRow.toFixed(2)} minutes per row)...`, "info");
+        
+        // Select rows to keep
+        const selectedRows = [];
+        for (let i = 0; i < currentRows.length; i++) {
+            if (i === 0 || (i + 1) % nth === 0) {
+                selectedRows.push(currentRows[i]);
+            }
+        }
+        
+        // Parse header
+        let headerCells = parseCSVLine(header);
+        
+        // Add minute column if requested
+        if (addMinuteColumn) {
+            headerCells = ["minutes", ...headerCells];
+        }
+        
+        // Build new rows with minute values
+        const newRows = [];
+        let minuteCounter = 0;
+        
+        for (let idx = 0; idx < selectedRows.length; idx++) {
+            const rowCells = parseCSVLine(selectedRows[idx]);
+            
+            // Calculate minute value
+            let minuteValue = minuteCounter * minutesPerRow;
+            if (roundMinutes) {
+                minuteValue = Math.round(minuteValue * 100) / 100;
+            }
+            
+            if (addMinuteColumn) {
+                newRows.push(rowToCSV([minuteValue.toString(), ...rowCells]));
+            } else {
+                newRows.push(rowToCSV(rowCells));
+            }
+            
+            minuteCounter++;
+        }
+        
+        // Update header
+        header = rowToCSV(headerCells);
+        currentRows = newRows;
+        keepRowApplied = true;
+        
+        addLog(`✅ Kept ${currentRows.length.toLocaleString()} rows (${Math.round(currentRows.length / originalCount * 100)}% of original)`, "success");
+        addLog(`📊 Minute column added${addMinuteColumn ? ' with values: 0, ' + minutesPerRow.toFixed(2) + ', ' + (minutesPerRow * 2).toFixed(2) + '...' : ''}`, "success");
+        
+        document.getElementById('keepRowStats').innerHTML = `✅ Kept ${currentRows.length.toLocaleString()} rows | Each row = ${minutesPerRow.toFixed(2)} minutes`;
+        
+        updateSampleRows();
+        updateStepUI();
+        document.getElementById('exportCard').style.display = 'block';
+    }
+    
+    // Process and export
+    async function processAndExport() {
+        if (!currentRows.length) return;
+        
+        const dontSplit = document.getElementById('dontSplit').checked;
+        const rowsPerChunk = parseInt(document.getElementById('rowsPerChunk').value);
+        
+        addLog(`Preparing export...`, "info");
+        
+        if (dontSplit) {
+            const allLines = [header, ...currentRows];
+            const content = allLines.join('\n');
+            const blob = new Blob([content], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${originalFileName}_processed.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            addLog(`✅ Downloaded single file (${currentRows.length.toLocaleString()} rows)`, "success");
+        } else {
+            addLog(`Splitting into chunks of ${rowsPerChunk.toLocaleString()} rows...`, "info");
+            
+            const chunks = [];
+            for (let i = 0; i < currentRows.length; i += rowsPerChunk) {
+                const chunkRows = currentRows.slice(i, i + rowsPerChunk);
+                chunks.push({
+                    name: `${originalFileName}_chunk_${(chunks.length + 1).toString().padStart(4, '0')}_rows_${i + 1}-${Math.min(i + rowsPerChunk, currentRows.length)}`,
+                    rows: chunkRows
+                });
+            }
+            
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            script.onload = () => {
+                const zip = new JSZip();
+                for (let chunk of chunks) {
+                    const csvContent = [header, ...chunk.rows].join('\n');
+                    zip.file(`${chunk.name}.csv`, csvContent);
+                }
+                zip.generateAsync({ type: "blob" }).then((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${originalFileName}_${chunks.length}_chunks.zip`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    addLog(`✅ Downloaded ZIP with ${chunks.length} chunks`, "success");
+                });
+            };
+            script.onerror = () => {
+                addLog("Downloading chunks individually...", "info");
+                for (let chunk of chunks) {
+                    setTimeout(() => {
+                        const csvContent = [header, ...chunk.rows].join('\n');
+                        const blob = new Blob([csvContent], { type: "text/csv" });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${chunk.name}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    }, 100);
+                }
+            };
+            document.head.appendChild(script);
+        }
+    }
+    
+    // Main file load
+    async function selectAndLoad() {
+        if ('showOpenFilePicker' in window) {
+            try {
+                const [fileHandle] = await window.showOpenFilePicker({
+                    types: [{ description: 'CSV Files', accept: { 'text/csv': ['.csv'] } }]
+                });
+                const file = await fileHandle.getFile();
+                originalFileName = file.name.replace('.csv', '');
+                const { header: h, rows: r } = await loadCSVRows(file);
+                header = h;
+                originalRows = r;
+                currentRows = [...r];
+                totalOriginalRows = r.length;
+                fileLoaded = true;
+                findReplaceApplied = false;
+                keepRowApplied = false;
+                
+                document.getElementById('fileInfo').innerHTML = `✅ Loaded: ${file.name}<br>📊 ${totalOriginalRows.toLocaleString()} rows loaded`;
+                document.getElementById('findReplaceCard').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'none';
+                
+                updateSampleRows();
+                updateStepUI();
+                addLog(`File ready. ${totalOriginalRows.toLocaleString()} rows to process.`, "success");
+                
+            } catch (err) {
+                if (err.name !== 'AbortError') addLog(`Error: ${err.message}`, "error");
+            }
+        } else {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.csv';
+            input.onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                originalFileName = file.name.replace('.csv', '');
+                const { header: h, rows: r } = await loadCSVRows(file);
+                header = h;
+                originalRows = r;
+                currentRows = [...r];
+                totalOriginalRows = r.length;
+                fileLoaded = true;
+                findReplaceApplied = false;
+                keepRowApplied = false;
+                
+                document.getElementById('fileInfo').innerHTML = `✅ Loaded: ${file.name}<br>📊 ${totalOriginalRows.toLocaleString()} rows loaded`;
+                document.getElementById('findReplaceCard').style.display = 'block';
+                document.getElementById('progressContainer').style.display = 'none';
+                
+                updateSampleRows();
+                updateStepUI();
+                addLog(`File ready. ${totalOriginalRows.toLocaleString()} rows to process.`, "success");
+            };
+            input.click();
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return "";
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Event listeners
+    document.getElementById('selectFileBtn').addEventListener('click', selectAndLoad);
+    document.getElementById('applyFindReplaceBtn').addEventListener('click', applyFindReplace);
+    document.getElementById('applyKeepRowBtn').addEventListener('click', applyKeepEveryNth);
+    document.getElementById('processAndExportBtn').addEventListener('click', processAndExport);
+    document.getElementById('keepNth').addEventListener('input', updateMinutePreview);
+    document.getElementById('roundMinutes').addEventListener('change', updateMinutePreview);
+    
+    document.getElementById('findText').addEventListener('input', updateSampleRows);
+    document.getElementById('replaceText').addEventListener('input', updateSampleRows);
+    document.getElementById('caseSensitive').addEventListener('change', updateSampleRows);
+    document.getElementById('exactMatch').addEventListener('change', updateSampleRows);
+    document.getElementById('previewMode').addEventListener('change', updateSampleRows);
+    
+    document.getElementById('dontSplit').addEventListener('change', (e) => {
+        document.getElementById('rowsPerChunk').disabled = e.target.checked;
+    });
+    
+    addLog("✅ Ready! Upload your CSV file to begin.", "success");
+</script>
+</body>
+</html>
