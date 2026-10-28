@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>❄️</text></svg>">
+  <title>PCM mixture calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+    body {
+      background: #f4faf0;
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+    .card {
+      max-width: 1200px;
+      width: 100%;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px rgba(60, 100, 30, 0.12);
+      padding: 2rem;
+    }
+    h1 {
+      font-weight: 500;
+      font-size: 1.9rem;
+      color: #2a4a0e;
+      margin: 0 0 0.3rem;
+    }
+    .subhead {
+      color: #3d5c1e;
+      margin-bottom: 2rem;
+      font-size: 1rem;
+      border-left: 4px solid #6FB01E;
+      padding-left: 1rem;
+      background: #f0f7e9;
+      border-radius: 0 8px 8px 0;
+    }
+    .input-area {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      background: #eef6e6;
+      padding: 1.5rem 1.8rem;
+      border-radius: 2rem;
+      border: 1px solid #d4e6c3;
+    }
+    .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .input-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      color: #3f6418;
+    }
+    .input-group input {
+      font-size: 1.1rem;
+      padding: 0.5rem 1rem;
+      border: 2px solid #c3dbaa;
+      border-radius: 2rem;
+      width: 150px;
+      font-weight: 500;
+      outline: none;
+      transition: 0.15s;
+    }
+    .input-group input:focus {
+      border-color: #6FB01E;
+      box-shadow: 0 0 0 3px rgba(111, 176, 30, 0.18);
+    }
+    .input-group input.small-input { width: 120px; }
+    button {
+      background: #6FB01E;
+      color: white;
+      border: none;
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 0.7rem 2.2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition: 0.1s;
+      box-shadow: 0 4px 8px rgba(70, 120, 20, 0.2);
+      height: 58px;
+    }
+    button:hover { background: #5a8f16; transform: scale(0.98); }
+    .results {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .result-card {
+      flex: 1 1 200px;
+      background: linear-gradient(145deg, #ffffff, #f8fcf4);
+      border-radius: 1.5rem;
+      padding: 1.2rem 1.5rem;
+      border: 1px solid #d8e9c8;
+      box-shadow: 0 6px 12px rgba(60, 100, 20, 0.04);
+    }
+    .result-card.expensive {
+      border: 2px solid #d62828;
+      background: #fff5f5;
+    }
+    .result-card .label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #5c7b3a;
+      margin-bottom: 0.2rem;
+    }
+    .result-card .value {
+      font-size: 2.2rem;
+      font-weight: 600;
+      color: #2a4a0e;
+      line-height: 1.2;
+    }
+    .result-card .value small {
+      font-size: 1rem;
+      font-weight: 400;
+      color: #5c7b3a;
+      margin-left: 4px;
+    }
+    .result-card .note {
+      font-size: 0.8rem;
+      color: #7c9b5a;
+      margin-top: 0.4rem;
+      border-top: 1px dashed #cde2b8;
+      padding-top: 0.5rem;
+    }
+    .result-card .cost-line {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #2a4a0e;
+      margin-top: 0.5rem;
+    }
+    .result-card.expensive .cost-line {
+      color: #d62828;
+    }
+    .charts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    .chart-box {
+      flex: 1 1 280px;
+      background: #ffffff;
+      border-radius: 1.5rem;
+      padding: 1rem 1rem 0.5rem;
+      border: 1px solid #dcebcd;
+      box-shadow: 0 6px 14px rgba(60, 100, 20, 0.05);
+    }
+    .chart-box canvas {
+      width: 100% !important;
+      height: auto !important;
+      max-height: 200px;
+      display: block;
+    }
+    .chart-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #3f6418;
+      margin: 0 0 0.7rem 0.5rem;
+    }
+    .table-container {
+      margin-top: 2rem;
+      overflow-x: auto;
+    }
+    .summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 1rem;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(60, 100, 20, 0.08);
+      font-size: 0.9rem;
+    }
+    .summary-table th {
+      background: #6FB01E;
+      color: white;
+      padding: 0.8rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      font-size: 0.75rem;
+    }
+    .summary-table th:first-child { border-top-left-radius: 1rem; }
+    .summary-table th:last-child { border-top-right-radius: 1rem; }
+    .summary-table td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #e5f0da;
+      color: #2a4a0e;
+    }
+    .summary-table tr:last-child td { border-bottom: none; }
+    .summary-table tr:nth-child(even) { background: #f8fcf4; }
+    .summary-table tr:hover { background: #eef6e6; }
+    .summary-table td.highlight-red {
+      color: #d62828;
+      font-weight: 700;
+    }
+    .summary-table td:first-child {
+      font-weight: 600;
+      color: #3f6418;
+    }
+    .table-caption {
+      font-size: 0.75rem;
+      color: #7c9b5a;
+      margin-top: 0.5rem;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>❄️ PCM mixture calculator</h1>
+  <div class="subhead">
+    Enter a temperature (°C) and pricing — we'll find the % PCM22 mixture and total cost for each formulation.
+  </div>
+
+  <div class="input-area">
+    <div class="input-group">
+      <label for="tempInput">Temperature (°C)</label>
+      <input type="number" id="tempInput" value="-12" step="0.1" placeholder="e.g. -12.5">
+    </div>
+    <div class="input-group">
+      <label for="qtyInput">Total quantity (ml)</label>
+      <input type="number" id="qtyInput" value="1000" step="10" min="1" placeholder="e.g. 1000">
+    </div>
+    <div class="input-group">
+      <label for="costPCM11">PCM-11 cost ($/kg)</label>
+      <input type="number" id="costPCM11" class="small-input" value="2.50" step="0.01" min="0">
+    </div>
+    <div class="input-group">
+      <label for="costPCM15">PCM-15 cost ($/kg)</label>
+      <input type="number" id="costPCM15" class="small-input" value="3.00" step="0.01" min="0">
+    </div>
+    <div class="input-group">
+      <label for="costPCM21">PCM-21 cost ($/kg)</label>
+      <input type="number" id="costPCM21" class="small-input" value="3.50" step="0.01" min="0">
+    </div>
+    <div class="input-group">
+      <label for="costPCM22">PCM22 cost ($/kg)</label>
+      <input type="number" id="costPCM22" class="small-input" value="4.00" step="0.01" min="0">
+    </div>
+    <button id="calcBtn">Calculate & show</button>
+  </div>
+
+  <div class="results" id="results"></div>
+
+  <div class="charts-container">
+    <div class="chart-box">
+      <div class="chart-title">PCM -11</div>
+      <canvas id="chart1"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">PCM -15</div>
+      <canvas id="chart2"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="chart-title">PCM -21</div>
+      <canvas id="chart3"></canvas>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <table class="summary-table" id="summaryTable">
+      <thead>
+        <tr>
+          <th>❄️</th>
+          <th>PCM -11</th>
+          <th>PCM -15</th>
+          <th>PCM -21</th>
+        </tr>
+      </thead>
+      <tbody id="summaryBody">
+        <!-- filled dynamically -->
+      </tbody>
+    </table>
+    <div class="table-caption">Density assumed 1.0 g/ml for volume ↔ mass conversion. Red = 2 most expensive options.</div>
+  </div>
+</div>
+
+<script>
+  // ------------------------------------------------------------
+  // 1. Define equations
+  // ------------------------------------------------------------
+  const f11 = x => -0.0002*x**3 + 0.0312*x**2 - 1.0033*x - 11;
+  const f15 = x => -0.0002*x**3 + 0.0369*x**2 - 1.1508*x - 15;
+  const f21 = x => -0.0002*x**3 + 0.0375*x**2 - 1.0075*x - 21;
+
+  // ------------------------------------------------------------
+  // 2. Solver: returns the LOWEST x in (0,100) with f(x)=targetY
+  // ------------------------------------------------------------
+  function solveXLowest(targetY, func) {
+    const STEPS = 1000;
+    const dx = 100 / STEPS;
+    const roots = [];
+
+    let prevX = 0;
+    let prevF = func(prevX) - targetY;
+    if (Math.abs(prevF) < 1e-9) roots.push(0);
+
+    for (let i = 1; i <= STEPS; i++) {
+      const x = i * dx;
+      const f = func(x) - targetY;
+
+      if (Math.abs(f) < 1e-9) {
+        roots.push(x);
+      } else if (prevF * f < 0) {
+        let lo = prevX, hi = x;
+        let fLo = prevF, fHi = f;
+        for (let k = 0; k < 60; k++) {
+          const mid = (lo + hi) / 2;
+          const fMid = func(mid) - targetY;
+          if (Math.abs(fMid) < 1e-10) break;
+          if (fLo * fMid < 0) { hi = mid; fHi = fMid; }
+          else                { lo = mid; fLo = fMid; }
+        }
+        roots.push((lo + hi) / 2);
+      }
+      prevX = x;
+      prevF = f;
+    }
+
+    if (roots.length === 0) return null;
+
+    const valid = roots
+      .filter(r => r > 0 && r < 100)
+      .sort((a, b) => a - b);
+
+    const deduped = [];
+    for (const r of valid) {
+      if (deduped.length === 0 || Math.abs(r - deduped[deduped.length - 1]) > 1e-4) {
+        deduped.push(r);
+      }
+    }
+    return deduped.length ? deduped[0] : null;
+  }
+
+  // ------------------------------------------------------------
+  // 3. Chart setup
+  // ------------------------------------------------------------
+  const xValues = Array.from({ length: 101 }, (_, i) => i);
+  const y11 = xValues.map(f11);
+  const y15 = xValues.map(f15);
+  const y21 = xValues.map(f21);
+
+  let chart1, chart2, chart3;
+
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    animation: { duration: 0 },
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    scales: {
+      x: {
+        type: 'linear', min: 0, max: 100,
+        grid: { color: '#eaf2e2' },
+        ticks: { stepSize: 20, font: { size: 9 }, color: '#5c7b3a' },
+        title: { display: true, text: '% PCM22', font: { size: 9 }, color: '#5c7b3a' }
+      },
+      y: {
+        grid: { color: '#eaf2e2' },
+        ticks: { font: { size: 9 }, color: '#5c7b3a' },
+        title: { display: true, text: 'T (°C)', font: { size: 9 }, color: '#5c7b3a' }
+      }
+    }
+  };
+
+  function buildDatasets(points, color, xRoot, targetY, label) {
+    const datasets = [{
+      label,
+      data: points,
+      borderColor: color,
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.1,
+      showLine: true
+    }];
+
+    if (xRoot !== null && !isNaN(xRoot)) {
+      datasets.push({
+        data: [{ x: xRoot, y: targetY }],
+        borderColor: '#6FB01E',
+        backgroundColor: '#6FB01E',
+        pointRadius: 6,
+        showLine: false,
+        type: 'scatter'
+      });
+      datasets.push({
+        data: [
+          { x: xRoot, y: Math.min(...points.map(p => p.y)) - 0.5 },
+          { x: xRoot, y: targetY }
+        ],
+        borderColor: '#6FB01E',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 0,
+        showLine: true
+      });
+      datasets.push({
+        data: [
+          { x: 0, y: targetY },
+          { x: xRoot, y: targetY }
+        ],
+        borderColor: '#6FB01E',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        pointRadius: 0,
+        showLine: true
+      });
+    }
+    return datasets;
+  }
+
+  function renderCharts(targetTemp) {
+    if (chart1) chart1.destroy();
+    if (chart2) chart2.destroy();
+    if (chart3) chart3.destroy();
+
+    const x11 = solveXLowest(targetTemp, f11);
+    const x15 = solveXLowest(targetTemp, f15);
+    const x21 = solveXLowest(targetTemp, f21);
+
+    const pts11 = xValues.map((x, i) => ({ x, y: y11[i] }));
+    const pts15 = xValues.map((x, i) => ({ x, y: y15[i] }));
+    const pts21 = xValues.map((x, i) => ({ x, y: y21[i] }));
+
+    chart1 = new Chart(document.getElementById('chart1'), {
+      type: 'line',
+      data: { datasets: buildDatasets(pts11, '#6FB01E', x11, targetTemp, 'PCM -11') },
+      options: commonOptions
+    });
+    chart2 = new Chart(document.getElementById('chart2'), {
+      type: 'line',
+      data: { datasets: buildDatasets(pts15, '#6FB01E', x15, targetTemp, 'PCM -15') },
+      options: commonOptions
+    });
+    chart3 = new Chart(document.getElementById('chart3'), {
+      type: 'line',
+      data: { datasets: buildDatasets(pts21, '#6FB01E', x21, targetTemp, 'PCM -21') },
+      options: commonOptions
+    });
+
+    updateResults(x11, x15, x21, targetTemp);
+  }
+
+  // ------------------------------------------------------------
+  // 4. Compute costs & update everything
+  // ------------------------------------------------------------
+  function updateResults(x11, x15, x21, targetTemp) {
+    const totalQty = parseFloat(document.getElementById('qtyInput').value) || 0;
+    const costPCM11 = parseFloat(document.getElementById('costPCM11').value) || 0;
+    const costPCM15 = parseFloat(document.getElementById('costPCM15').value) || 0;
+    const costPCM21 = parseFloat(document.getElementById('costPCM21').value) || 0;
+    const costPCM22 = parseFloat(document.getElementById('costPCM22').value) || 0;
+
+    const formulations = [
+      { name: 'PCM -11', x: x11, pcmCost: costPCM11 },
+      { name: 'PCM -15', x: x15, pcmCost: costPCM15 },
+      { name: 'PCM -21', x: x21, pcmCost: costPCM21 }
+    ];
+
+    const details = formulations.map(f => {
+      if (f.x === null || isNaN(f.x)) {
+        return { ...f, pctPCM22: null, amountPCM: null, amountPCM22: null, totalCost: null };
+      }
+      const pctPCM22 = Math.min(100, Math.max(0, f.x));
+      const amountPCM22 = totalQty * (pctPCM22 / 100);
+      const amountPCM = totalQty - amountPCM22;
+      const massPCM_kg = amountPCM / 1000;
+      const massPCM22_kg = amountPCM22 / 1000;
+      const totalCost = massPCM_kg * f.pcmCost + massPCM22_kg * costPCM22;
+      return { ...f, pctPCM22, amountPCM, amountPCM22, totalCost };
+    });
+
+    // Identify 2 most expensive options
+    const validCosts = details.filter(d => d.totalCost !== null).map(d => d.totalCost);
+    const sortedCosts = [...validCosts].sort((a, b) => b - a);
+    const top2Costs = sortedCosts.slice(0, 2);
+    const isExpensive = (cost) => {
+      if (cost === null) return false;
+      return top2Costs.some(tc => Math.abs(tc - cost) < 1e-9);
+    };
+
+    // ----- Update result cards -----
+    const container = document.getElementById('results');
+    container.innerHTML = details.map(d => {
+      const expensiveClass = isExpensive(d.totalCost) ? ' expensive' : '';
+      if (d.pctPCM22 === null) {
+        return `
+          <div class="result-card${expensiveClass}">
+            <div class="label">${d.name}</div>
+            <div class="value">—</div>
+            <div class="note">no solution in 0–100 %</div>
+          </div>`;
+      }
+      return `
+        <div class="result-card${expensiveClass}">
+          <div class="label">${d.name}</div>
+          <div class="value">${d.pctPCM22.toFixed(2)} <small>% PCM22</small></div>
+          <div class="note">lowest root · at ${targetTemp.toFixed(1)} °C</div>
+          <div class="cost-line">Total: $${d.totalCost.toFixed(2)}</div>
+        </div>`;
+    }).join('');
+
+    // ----- Update summary table -----
+    const tbody = document.getElementById('summaryBody');
+    const rows = [
+      { label: '% of PCM22', key: 'pctPCM22', fmt: v => v === null ? '—' : v.toFixed(2) + ' %' },
+      { label: 'Amount of PCM (ml)', key: 'amountPCM', fmt: v => v === null ? '—' : v.toFixed(2) },
+      { label: 'Amount of PCM22 (ml)', key: 'amountPCM22', fmt: v => v === null ? '—' : v.toFixed(2) },
+      { label: 'Listed cost of PCM ($/kg)', key: 'pcmCost', fmt: v => v.toFixed(2) },
+      { label: 'Listed cost of PCM22 ($/kg)', key: 'pcm22Cost', fmt: v => v.toFixed(2), staticVal: costPCM22 },
+      { label: 'Total Cost', key: 'totalCost', fmt: v => v === null ? '—' : '$' + v.toFixed(2), isCost: true }
+    ];
+
+    let html = '';
+    for (const row of rows) {
+      html += '<tr>';
+      html += `<td>${row.label}</td>`;
+      for (const d of details) {
+        let val;
+        if (row.staticVal !== undefined) {
+          val = row.fmt(row.staticVal);
+        } else if (row.key === 'pcmCost') {
+          val = row.fmt(d.pcmCost);
+        } else if (row.isCost) {
+          val = row.fmt(d.totalCost);
+        } else {
+          val = row.fmt(d[row.key]);
+        }
+        const highlight = (row.isCost && isExpensive(d.totalCost)) ? ' class="highlight-red"' : '';
+        html += `<td${highlight}>${val}</td>`;
+      }
+      html += '</tr>';
+    }
+    tbody.innerHTML = html;
+  }
+
+  // ------------------------------------------------------------
+  // 5. Wire up UI
+  // ------------------------------------------------------------
+  window.addEventListener('load', () => {
+    const input = document.getElementById('tempInput');
+    input.value = -12;
+    renderCharts(-12);
+
+    const handleCalculate = () => {
+      const target = parseFloat(document.getElementById('tempInput').value);
+      if (isNaN(target)) {
+        alert('Please enter a valid temperature.');
+        return;
+      }
+      renderCharts(target);
+    };
+
+    document.getElementById('calcBtn').addEventListener('click', handleCalculate);
+    document.getElementById('tempInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') handleCalculate();
+    });
+  });
+</script>
+</body>
+</html>
