@@ -1,6 +1,6 @@
 /* ============================================================
    Cold Box Suite — shared top navigation bar
-   Include with:  <script src="navbar.js" defer></script>
+   Include with:  <script src="assets/scripts/navbar.js" defer></script>
    The script injects a <nav class="topnav"> as the first
    child of <body> and marks the current page's link as active.
    ============================================================ */
@@ -10,13 +10,14 @@
 
   // Every tool in the suite. Order matches the launchpad cards.
   var PAGES = [
-    { file: "U07B-extract.html",   label: "U07B Extractor"  },
-    { file: "csv-edit.html",       label: "CSV Processor"   },
-    { file: "csv-aggregator.html", label: "CSV Aggregator"  },
-    { file: "line-chart.html",     label: "Line Charts"     },
-    { file: "shaded-chart.html",   label: "Shaded Charts"   },
-    { file: "stl-viewer.html",     label: "STL Viewer"      },
-    { file: "ml-modelling.html",   label: "Model Builder"   }
+    { file: "U07B-extract.html",          label: "U07B Extractor"  },
+    { file: "csv-edit.html",              label: "CSV Processor"   },
+    { file: "csv-aggregator.html",        label: "CSV Aggregator"  },
+    { file: "line-chart.html",            label: "Line Charts"     },
+    { file: "shaded-chart.html",          label: "Shaded Charts"   },
+    { file: "stl-viewer.html",            label: "STL Viewer"      },
+    { file: "ml-modelling.html",          label: "Model Builder"   },
+    { file: "google-scholar-scrape.html", label: "Scholar Scraper" }
   ];
 
   var HELP_FILE = "help.html";

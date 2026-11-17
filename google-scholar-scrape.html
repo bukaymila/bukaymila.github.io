@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scholar Scraper | By Alim Yakub (RP)</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🥶</text></svg>">
+    <link rel="stylesheet" href="assets/styles/theme.css">
+    <style>
+        body {
+            padding: calc(var(--nav-height) + 20px) 20px 32px;
+        }
+
+        .dashboard {
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+            min-height: calc(100vh - var(--nav-height) - 40px);
+            padding-bottom: 60px;
+        }
+
+        .header h1 {
+            margin: 0 0 4px;
+            font-size: 1.8rem;
+            color: var(--ink);
+            font-variant-emoji: text;
+        }
+
+        .sub {
+            color: var(--ink-muted);
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+
+        .input-panel {
+            background: var(--green-soft);
+            border: 1px solid var(--green);
+            color: var(--ink);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+        }
+
+        .input-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--green-deep);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 7px 10px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-strong);
+            font-size: 0.85rem;
+            background: var(--surface);
+            color: var(--ink);
+        }
+
+        .action-btn {
+            background: var(--green);
+            color: #ffffff;
+            border: none;
+            padding: 9px 16px;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.15s ease;
+        }
+        .action-btn:hover:not(:disabled) {
+            background: var(--green-hover);
+            transform: translateY(-1px);
+        }
+        .action-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-bar {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            border: 1px solid var(--border);
+        }
+
+        .info-panel {
+            background: var(--bg-alt);
+            border-radius: var(--radius-lg);
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 2px dashed var(--border-strong);
+        }
+
+        .info-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--ink);
+            font-size: 0.9rem;
+            font-variant-emoji: text;
+        }
+
+        .info-body {
+            font-size: 0.82rem;
+            color: var(--ink-muted);
+            line-height: 1.6;
+        }
+
+        .info-body code {
+            background: var(--surface);
+            color: var(--ink);
+            padding: 1px 5px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.9em;
+        }
+
+        #loadStatus {
+            font-size: 0.78rem;
+            margin-top: 10px;
+            color: var(--green-deep);
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            min-height: 0;
+        }
+        #loadStatus:empty { display: none; }
+        #loadStatus.ok { border-color: var(--green); background: var(--green-soft); color: var(--green-deep); }
+        #loadStatus.err { border-color: var(--danger); background: var(--danger-soft); color: var(--danger); }
+
+        .spinner {
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--border-strong);
+            border-top-color: var(--green);
+            border-radius: 50%;
+            display: inline-block;
+            animation: spin 0.7s linear infinite;
+            vertical-align: -1px;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-family: 'SF Mono', 'Cascadia Code', Menlo, Consolas, monospace;
+            font-size: 0.78rem;
+            color: var(--danger);
+            background: var(--danger-soft);
+            border: 1px solid var(--danger);
+            border-radius: var(--radius-sm);
+            padding: 10px 12px;
+            margin-top: 10px;
+        }
+        .error-pre:empty { display: none; }
+
+        @media (max-width: 900px) {
+            .input-group { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="header">
+        <h1>Scholar Scraper</h1>
+    </div>
+    <div class="sub">Imagined by Alim Yakub (RP) for the Cold Box Project</div>
+
+    <div class="input-panel">
+        <div class="input-controls">
+            <div class="input-group">
+                <label>Google Scholar Profile URL</label>
+                <input type="text" id="urlInput" placeholder="https://scholar.google.com/citations?user=XXXXXXXX" autocomplete="off" spellcheck="false">
+            </div>
+            <button id="scrapeBtn" class="action-btn">📥 Scrape &amp; Download</button>
+        </div>
+        <div id="loadStatus"></div>
+        <div id="errorBox" class="error-pre"></div>
+    </div>
+
+    <div class="action-bar">
+        <button id="helpToggleBtn" class="action-btn" style="background: var(--accent);">❓ How This Works</button>
+        <button id="clearBtn" class="action-btn" style="background: transparent; color: var(--ink); border: 1px solid var(--border-strong);">🧹 Clear</button>
+    </div>
+
+    <div class="info-panel" id="helpPanel" style="display: none;">
+        <div class="info-title">📖 How This Works</div>
+        <div class="info-body">
+            <p style="margin: 0 0 8px;">Paste a Google Scholar profile URL (it looks like <code>https://scholar.google.com/citations?user=XXXXXXXX</code>) and click <strong>Scrape &amp; Download</strong>.</p>
+            <p style="margin: 0 0 8px;">The backend fetches every publication sorted by date, parses the title, authors, journal, and year from each row, and returns them as a plain-text file.</p>
+            <p style="margin: 0 0 8px;">The downloaded <code>.txt</code> is formatted as one block per work, separated by a blank line:</p>
+            <pre style="margin: 8px 0 0; font-size: 0.78rem;">Paper Title
+Author One, Author Two
+Journal Name
+2024
+
+Next Paper Title
+...</pre>
+            <p style="margin: 8px 0 0;">⚠️ The backend runs on a free tier and sleeps after 15 minutes of inactivity. The first request after a break can take up to a minute while it wakes up.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ⚠️ ONLY change this line to your Render URL (no trailing slash)
+    const API_BASE = 'https://scholar-proxy.onrender.com';
+
+    const urlInput = document.getElementById('urlInput');
+    const scrapeBtn = document.getElementById('scrapeBtn');
+    const statusEl = document.getElementById('loadStatus');
+    const errorEl = document.getElementById('errorBox');
+    const helpToggleBtn = document.getElementById('helpToggleBtn');
+    const helpPanel = document.getElementById('helpPanel');
+    const clearBtn = document.getElementById('clearBtn');
+
+    function setStatus(html, cls) {
+        statusEl.className = cls || '';
+        statusEl.innerHTML = html;
+    }
+
+    function setError(msg) {
+        errorEl.textContent = msg;
+    }
+
+    function clearError() {
+        errorEl.textContent = '';
+    }
+
+    helpToggleBtn.addEventListener('click', () => {
+        const visible = helpPanel.style.display !== 'none';
+        helpPanel.style.display = visible ? 'none' : 'block';
+    });
+
+    clearBtn.addEventListener('click', () => {
+        urlInput.value = '';
+        setStatus('');
+        clearError();
+    });
+
+    scrapeBtn.addEventListener('click', async () => {
+        clearError();
+
+        const rawUrl = urlInput.value.trim();
+        if (!rawUrl) {
+            setStatus('<strong>Please paste a Google Scholar profile URL first.</strong>', 'err');
+            return;
+        }
+
+        scrapeBtn.disabled = true;
+        setStatus('<span class="spinner"></span>Requesting… (first request may take ~1 min if the server was asleep)');
+
+        try {
+            const resp = await fetch(API_BASE + '/scrape', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: rawUrl }),
+            });
+
+            const contentType = resp.headers.get('content-type') || '';
+            if (!contentType.includes('application/json')) {
+                const preview = (await resp.text()).slice(0, 300);
+                throw new Error(
+                    `Expected JSON from ${API_BASE}/scrape but got ${contentType} ` +
+                    `(HTTP ${resp.status}). Response preview: ${preview}`
+                );
+            }
+
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.error || 'Request failed');
+
+            setStatus(`Found <strong>${data.works.length}</strong> works. Preparing file…`);
+
+            let text = '';
+            for (const w of data.works) {
+                text += w.title + '\n';
+                text += w.authors + '\n';
+                if (w.journal) text += w.journal + '\n';
+                if (w.year) text += w.year + '\n';
+                text += '\n';
+            }
+
+            const safeName = (data.name || 'scholar').replace(/[\\/:*?"<>|]/g, '_');
+            const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = safeName + '.txt';
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            URL.revokeObjectURL(link.href);
+
+            setStatus(`✅ Done — downloaded <strong>${safeName}.txt</strong> (${data.works.length} works).`, 'ok');
+        } catch (err) {
+            setStatus('');
+            setError('Error: ' + err.message);
+        } finally {
+            scrapeBtn.disabled = false;
+        }
+    });
+</script>
+
+<script src="assets/scripts/navbar.js" defer></script>
+</body>
+</html>
